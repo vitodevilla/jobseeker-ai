@@ -2,13 +2,13 @@
 // Postgres 17 on Neon, with pgvector extension
 
 generator client {
-  provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
+  provider        = "prisma-client-js"
+  output          = "../src/generated/prisma"
   previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
+  provider   = "postgresql"
   extensions = [vector]
 }
 
@@ -62,9 +62,9 @@ enum InterviewOutcome {
 }
 
 enum CoverLetterMode {
-  WRITTEN       // user wrote it themselves
-  UPLOADED      // user uploaded a PDF
-  GENERATED     // AI-generated
+  WRITTEN // user wrote it themselves
+  UPLOADED // user uploaded a PDF
+  GENERATED // AI-generated
 }
 
 enum TaskStatus {
@@ -78,33 +78,84 @@ enum TaskStatus {
 // ============================================================
 
 model User {
-  id                  String   @id @default(cuid())
-  email               String   @unique
-  name                String?
-  image               String?           // URL to avatar in Vercel Blob (or OAuth provider's CDN)
+  id            String  @id @default(cuid())
+  name          String
+  email         String  @unique
+  emailVerified Boolean @default(false)
+  image         String?
 
   // Career context (used by AI for personalized matching)
-  targetRole          String?
-  targetLocations     String?           // comma-separated for v1, e.g. "Zagreb, Remote, Berlin"
-  yearsOfExperience   Int?              // universal across all fields
-  currentRole         String?           // free text: "Junior QA Engineer", "Pastry Chef", etc.
-  preferredWorkMode   WorkMode?
+  targetRole        String?
+  targetLocations   String?
+  yearsOfExperience Int?
+  currentRole       String?
+  preferredWorkMode WorkMode?
 
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  // Relations 
-  resumes             Resume[]  @relation("OwnedResumes")
-  primaryResumeId     String?   @unique
-  primaryResume       Resume?   @relation("PrimaryResume", fields: [primaryResumeId], references: [id], onDelete: SetNull)
-  companies           Company[]
-  jobPostings         JobPosting[]
-  applications        Application[]
-  interviews          Interview[]
-  tasks               Task[]
-  coverLetters        CoverLetter[]
+  // Better Auth relations
+  sessions Session[]
+  accounts Account[]
 
-  @@index([email])
+  // App relations
+  resumes         Resume[]      @relation("OwnedResumes")
+  primaryResumeId String?       @unique
+  primaryResume   Resume?       @relation("PrimaryResume", fields: [primaryResumeId], references: [id], onDelete: SetNull)
+  companies       Company[]
+  jobPostings     JobPosting[]
+  applications    Application[]
+  interviews      Interview[]
+  tasks           Task[]
+  coverLetters    CoverLetter[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Account {
+  id         String @id @default(cuid())
+  accountId  String
+  providerId String
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Verification {
+  id         String    @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
+
+  @@index([identifier])
 }
 
 // ============================================================
@@ -112,27 +163,27 @@ model User {
 // ============================================================
 
 model Resume {
-  id              String   @id @default(cuid())
-  userId          String
-  user            User     @relation("OwnedResumes", fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation("OwnedResumes", fields: [userId], references: [id], onDelete: Cascade)
 
-  name            String                 // e.g. "Resume v3 — Backend Focus"
-  content         String                 // extracted text from PDF, used for AI matching
-  fileUrl         String?                // Vercel Blob URL of the original PDF
+  name    String // e.g. "Resume v3 — Backend Focus"
+  content String // extracted text from PDF, used for AI matching
+  fileUrl String? // Vercel Blob URL of the original PDF
 
   // AI critique (populated when user requests review)
-  aiFeedback      String?                // markdown text of AI suggestions
-  aiFeedbackAt    DateTime?
+  aiFeedback   String? // markdown text of AI suggestions
+  aiFeedbackAt DateTime?
 
   // Future: vector embedding for semantic matching (Week 5+)
   // embedding    Unsupported("vector(1536)")?
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  applications    Application[]
-  primaryForUser  User?         @relation("PrimaryResume")
+  applications   Application[]
+  primaryForUser User?         @relation("PrimaryResume")
 
   @@index([userId])
 }
@@ -142,21 +193,21 @@ model Resume {
 // ============================================================
 
 model Company {
-  id              String   @id @default(cuid())
-  userId          String
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  name            String
-  website         String?
-  industry        String?
-  size            String?                // free text: "11-50", "Enterprise", etc.
-  notes           String?                // user's private notes
+  name     String
+  website  String?
+  industry String?
+  size     String? // free text: "11-50", "Enterprise", etc.
+  notes    String? // user's private notes
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  jobPostings     JobPosting[]
+  jobPostings JobPosting[]
 
   @@index([userId, name])
 }
@@ -166,41 +217,41 @@ model Company {
 // ============================================================
 
 model JobPosting {
-  id              String   @id @default(cuid())
-  userId          String
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  companyId       String
-  company         Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id        String  @id @default(cuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
-  title           String
-  description     String                 // full job ad text, used for AI matching
-  location        String?                // "Zagreb", "Remote", "Hybrid - Berlin"
-  workMode        WorkMode?
-  seniorityLevel  String?                // free text — "Junior", "Mid/Senior", etc.
+  title          String
+  description    String // full job ad text, used for AI matching
+  location       String? // "Zagreb", "Remote", "Hybrid - Berlin"
+  workMode       WorkMode?
+  seniorityLevel String? // free text — "Junior", "Mid/Senior", etc.
 
-  salaryMin       Int?
-  salaryMax       Int?
-  salaryCurrency  String?                // "EUR", "USD", "HRK"
+  salaryMin      Int?
+  salaryMax      Int?
+  salaryCurrency String? // "EUR", "USD", "HRK"
 
-  url             String?                // original posting URL
-  postedAt        DateTime?              // when company posted it (often unknown)
-  deadline        DateTime?              // application deadline
-  savedAt         DateTime @default(now()) // when YOU saved it
+  url      String? // original posting URL
+  postedAt DateTime? // when company posted it (often unknown)
+  deadline DateTime? // application deadline
+  savedAt  DateTime  @default(now()) // when YOU saved it
 
   // Cached AI outputs (regenerated on demand, stored to avoid recomputation)
-  aiSummary       String?
-  aiSummaryAt     DateTime?
-  matchScore      Int?                   // 0-100, against user's primary resume
-  matchScoreAt    DateTime?
+  aiSummary    String?
+  aiSummaryAt  DateTime?
+  matchScore   Int? // 0-100, against user's primary resume
+  matchScoreAt DateTime?
 
   // Future: vector embedding for semantic matching
   // embedding    Unsupported("vector(1536)")?
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  application     Application?           // one-to-one (optional — not every saved posting becomes an application)
+  application Application? // one-to-one (optional — not every saved posting becomes an application)
 
   @@index([userId, companyId])
   @@index([deadline])
@@ -211,31 +262,31 @@ model JobPosting {
 // ============================================================
 
 model Application {
-  id                String              @id @default(cuid())
-  userId            String
-  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  jobPostingId      String              @unique  // one-to-one with JobPosting
-  jobPosting        JobPosting          @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
+  jobPostingId String     @unique // one-to-one with JobPosting
+  jobPosting   JobPosting @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
 
-  resumeId          String?
-  resume            Resume?             @relation(fields: [resumeId], references: [id], onDelete: SetNull)
+  resumeId String?
+  resume   Resume? @relation(fields: [resumeId], references: [id], onDelete: SetNull)
 
-  status            ApplicationStatus   @default(SAVED)
-  priority          Priority            @default(MEDIUM)
+  status   ApplicationStatus @default(SAVED)
+  priority Priority          @default(MEDIUM)
 
-  appliedAt         DateTime?
-  nextActionDate    DateTime?           // when to nudge / take next step
-  rejectionReason   String?             // populated when status = REJECTED
-  notes             String?             // user's private notes
+  appliedAt       DateTime?
+  nextActionDate  DateTime? // when to nudge / take next step
+  rejectionReason String? // populated when status = REJECTED
+  notes           String? // user's private notes
 
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  coverLetters      CoverLetter[]
-  interviews        Interview[]
-  tasks             Task[]
+  coverLetters CoverLetter[]
+  interviews   Interview[]
+  tasks        Task[]
 
   @@index([userId, status])
   @@index([nextActionDate])
@@ -246,31 +297,31 @@ model Application {
 // ============================================================
 
 model CoverLetter {
-  id              String   @id @default(cuid())
-  userId          String
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  applicationId   String
-  application     Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
-  title           String                 // e.g. "Cover letter for Infobip Junior Backend — v2"
-  mode            CoverLetterMode        // how this letter was created
-  content         String?                // pasted text or extracted from PDF
-  fileUrl         String?                // uploaded PDF in Vercel Blob (if applicable)
+  title   String // e.g. "Cover letter for Infobip Junior Backend — v2"
+  mode    CoverLetterMode // how this letter was created
+  content String? // pasted text or extracted from PDF
+  fileUrl String? // uploaded PDF in Vercel Blob (if applicable)
 
   // Versioning — chain via parent reference
-  version         Int      @default(1)
-  parentId        String?
-  parent          CoverLetter?  @relation("Versions", fields: [parentId], references: [id], onDelete: SetNull)
-  versions        CoverLetter[] @relation("Versions")
+  version  Int           @default(1)
+  parentId String?
+  parent   CoverLetter?  @relation("Versions", fields: [parentId], references: [id], onDelete: SetNull)
+  versions CoverLetter[] @relation("Versions")
 
-  isFinal         Boolean  @default(false) // marks the version actually sent
+  isFinal Boolean @default(false) // marks the version actually sent
 
   // AI critique
-  aiFeedback      String?                // markdown of AI's suggestions for this version
-  aiFeedbackAt    DateTime?
+  aiFeedback   String? // markdown of AI's suggestions for this version
+  aiFeedbackAt DateTime?
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([applicationId, version])
@@ -281,26 +332,26 @@ model CoverLetter {
 // ============================================================
 
 model Interview {
-  id                String           @id @default(cuid())
-  userId            String
-  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  applicationId     String
-  application       Application      @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
-  type              InterviewType
-  scheduledAt       DateTime
-  durationMinutes   Int?
-  locationOrLink    String?          // "Office, 5th floor" or Google Meet URL
+  type            InterviewType
+  scheduledAt     DateTime
+  durationMinutes Int?
+  locationOrLink  String? // "Office, 5th floor" or Google Meet URL
 
-  interviewerName   String?          // free text — kept simple, no Contact entity in v1
-  interviewerEmail  String?
+  interviewerName  String? // free text — kept simple, no Contact entity in v1
+  interviewerEmail String?
 
-  prepNotes         String?          // markdown — what user prepared
-  outcome           InterviewOutcome @default(PENDING)
-  feedback          String?          // post-interview reflection
+  prepNotes String? // markdown — what user prepared
+  outcome   InterviewOutcome @default(PENDING)
+  feedback  String? // post-interview reflection
 
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([applicationId])
@@ -312,22 +363,22 @@ model Interview {
 // ============================================================
 
 model Task {
-  id              String      @id @default(cuid())
-  userId          String
-  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  applicationId   String?     // nullable — task can be standalone or app-related
-  application     Application? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  id            String       @id @default(cuid())
+  userId        String
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applicationId String? // nullable — task can be standalone or app-related
+  application   Application? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
 
-  title           String                  // "Follow up with Ana about Infobip"
-  description     String?                 // optional details
+  title           String // "Follow up with Ana about Infobip"
+  description     String? // optional details
   dueAt           DateTime?
-  status          TaskStatus  @default(PENDING)
-  priority        Priority    @default(MEDIUM)
+  status          TaskStatus @default(PENDING)
+  priority        Priority   @default(MEDIUM)
   completedAt     DateTime?
-  completionNotes String?                 // what actually happened
+  completionNotes String? // what actually happened
 
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId, status])
   @@index([dueAt])
