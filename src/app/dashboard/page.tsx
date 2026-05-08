@@ -1,7 +1,14 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { LogoutButton } from "@/components/ui/logout-button";
+import { AppShell } from "@/components/app-shell";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default async function DashboardPage() {
   const session = await auth.api.getSession({
@@ -13,25 +20,54 @@ export default async function DashboardPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-4xl flex-col px-6 py-10">
-      <div className="space-y-2">
-        <p className="text-sm text-gray-600">Signed in as</p>
-        <h1 className="text-3xl font-bold tracking-tight">
-          {session.user.name}
-        </h1>
-        <p className="text-sm text-gray-600">{session.user.email}</p>
-        <div className="pt-4">
-          <LogoutButton />
+    <AppShell userName={session.user.name} userEmail={session.user.email}>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="mt-2 text-muted-foreground">
+            Welcome back, {session.user.name}. This is your protected JobSeeker
+            AI workspace.
+          </p>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Card>
+            <CardHeader>
+              <CardTitle>Applications</CardTitle>
+              <CardDescription>Track your job applications.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold">0</p>
+              <p className="text-sm text-muted-foreground">CRUD comes next.</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Resumes</CardTitle>
+              <CardDescription>Manage resume versions.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold">0</p>
+              <p className="text-sm text-muted-foreground">
+                Uploads come later.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Profile</CardTitle>
+              <CardDescription>Complete your career context.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                This will help AI personalize job matching.
+              </p>
+            </CardContent>
+          </Card>
         </div>
       </div>
-
-      <section className="mt-10 rounded-lg border p-6">
-        <h2 className="text-xl font-semibold">Dashboard</h2>
-        <p className="mt-2 text-sm text-gray-600">
-          This is your protected JobSeeker AI dashboard. Only signed-in users
-          should be able to see this page.
-        </p>
-      </section>
-    </main>
+    </AppShell>
   );
 }
