@@ -31,6 +31,12 @@ export function AppShell({ userName, userEmail, children }: AppShellProps) {
                 Dashboard
               </Link>
               <Link
+                href="/companies"
+                className="font-medium text-muted-foreground hover:text-foreground"
+              >
+                Companies
+              </Link>
+              <Link
                 href="/profile"
                 className="font-medium text-muted-foreground hover:text-foreground"
               >
