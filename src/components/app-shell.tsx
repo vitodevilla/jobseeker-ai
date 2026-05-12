@@ -49,6 +49,12 @@ export function AppShell({ userName, userEmail, children }: AppShellProps) {
                 Applications
               </Link>
               <Link
+                href="/tasks"
+                className="font-medium text-muted-foreground hover:text-foreground"
+              >
+                Tasks
+              </Link>
+              <Link
                 href="/resumes"
                 className="font-medium text-muted-foreground hover:text-foreground"
               >
