@@ -70,7 +70,7 @@ export default async function EditResumePage({ params }: EditResumePageProps) {
           <CardHeader>
             <CardTitle>Resume details</CardTitle>
             <CardDescription>
-              Resume name and content are required.
+              Fields marked with * are required.
             </CardDescription>
           </CardHeader>
 

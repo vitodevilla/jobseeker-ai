@@ -47,14 +47,14 @@ export default async function NewCompanyPage() {
           <CardHeader>
             <CardTitle>Company details</CardTitle>
             <CardDescription>
-              Only the company name is required. You can add more context later.
+              Fields marked with * are required.
             </CardDescription>
           </CardHeader>
 
           <CardContent>
             <form action={createCompany} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="name">Company name</Label>
+                <Label htmlFor="name">Company name *</Label>
                 <Input
                   id="name"
                   name="name"
