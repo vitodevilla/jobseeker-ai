@@ -90,8 +90,7 @@ export default async function EditJobPostingPage({
           <CardHeader>
             <CardTitle>Job posting details</CardTitle>
             <CardDescription>
-              Company, title, and description are required. Other fields are
-              optional.
+              Fields marked with * are required.
             </CardDescription>
           </CardHeader>
 
@@ -126,7 +125,7 @@ export default async function EditJobPostingPage({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="location">Location optional</Label>
+                  <Label htmlFor="location">Location</Label>
                   <Input
                     id="location"
                     name="location"
@@ -136,7 +135,7 @@ export default async function EditJobPostingPage({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="workMode">Work mode optional</Label>
+                  <Label htmlFor="workMode">Work mode</Label>
                   <select
                     id="workMode"
                     name="workMode"
@@ -152,7 +151,7 @@ export default async function EditJobPostingPage({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="seniorityLevel">Seniority optional</Label>
+                  <Label htmlFor="seniorityLevel">Seniority</Label>
                   <Input
                     id="seniorityLevel"
                     name="seniorityLevel"
@@ -162,7 +161,7 @@ export default async function EditJobPostingPage({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="salaryMin">Salary min optional</Label>
+                  <Label htmlFor="salaryMin">Salary min</Label>
                   <Input
                     id="salaryMin"
                     name="salaryMin"
@@ -173,7 +172,7 @@ export default async function EditJobPostingPage({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="salaryMax">Salary max optional</Label>
+                  <Label htmlFor="salaryMax">Salary max</Label>
                   <Input
                     id="salaryMax"
                     name="salaryMax"
@@ -185,7 +184,7 @@ export default async function EditJobPostingPage({
 
                 <div className="space-y-2">
                   <Label htmlFor="salaryCurrency">
-                    Salary currency optional
+                    Salary currency
                   </Label>
                   <Input
                     id="salaryCurrency"
@@ -196,7 +195,7 @@ export default async function EditJobPostingPage({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="url">Posting URL optional</Label>
+                  <Label htmlFor="url">Posting URL</Label>
                   <Input
                     id="url"
                     name="url"
@@ -207,7 +206,7 @@ export default async function EditJobPostingPage({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="postedAt">Posted date optional</Label>
+                  <Label htmlFor="postedAt">Posted date</Label>
                   <Input
                     id="postedAt"
                     name="postedAt"
@@ -217,7 +216,7 @@ export default async function EditJobPostingPage({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="deadline">Deadline optional</Label>
+                  <Label htmlFor="deadline">Deadline</Label>
                   <Input
                     id="deadline"
                     name="deadline"
