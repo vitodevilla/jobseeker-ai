@@ -72,7 +72,7 @@ export default async function EditCompanyPage({
           <CardHeader>
             <CardTitle>Company details</CardTitle>
             <CardDescription>
-              Company name is required. Other fields are optional.
+              Fields marked with * are required.
             </CardDescription>
           </CardHeader>
 
@@ -90,7 +90,7 @@ export default async function EditCompanyPage({
 
               <div className="grid gap-5 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="website">Website optional</Label>
+                  <Label htmlFor="website">Website</Label>
                   <Input
                     id="website"
                     name="website"
@@ -101,7 +101,7 @@ export default async function EditCompanyPage({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="industry">Industry optional</Label>
+                  <Label htmlFor="industry">Industry</Label>
                   <Input
                     id="industry"
                     name="industry"
@@ -111,7 +111,7 @@ export default async function EditCompanyPage({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="size">Size optional</Label>
+                  <Label htmlFor="size">Size</Label>
                   <Input
                     id="size"
                     name="size"
@@ -122,7 +122,7 @@ export default async function EditCompanyPage({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="notes">Private notes optional</Label>
+                <Label htmlFor="notes">Private notes</Label>
                 <textarea
                   id="notes"
                   name="notes"

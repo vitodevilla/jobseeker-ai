@@ -46,7 +46,7 @@ export default async function NewResumePage() {
           <CardHeader>
             <CardTitle>Resume details</CardTitle>
             <CardDescription>
-              Resume name and content are required for v1.
+              Fields marked with * are required.
             </CardDescription>
           </CardHeader>
 
