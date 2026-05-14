@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DeleteConfirmationForm } from "@/components/delete-confirmation-form";
 
 type EditJobPostingPageProps = {
   params: Promise<{
@@ -259,11 +260,13 @@ export default async function EditJobPostingPage({
           </CardHeader>
 
           <CardContent>
-            <form action={deleteJobPostingWithId}>
-              <Button type="submit" variant="destructive">
-                Delete job posting
-              </Button>
-            </form>
+            <DeleteConfirmationForm
+              action={deleteJobPostingWithId}
+              title="Delete job posting?"
+              description="This will remove this saved job posting. If an application exists for this posting, it may also be removed depending on the database relation. This action cannot be undone."
+              confirmLabel="Delete job posting"
+              triggerLabel="Delete job posting"
+            />
           </CardContent>
         </Card>
       </div>

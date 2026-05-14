@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DeleteConfirmationForm } from "@/components/delete-confirmation-form";
 
 type EditInterviewPageProps = {
   params: Promise<{
@@ -256,11 +257,13 @@ export default async function EditInterviewPage({
           </CardHeader>
 
           <CardContent>
-            <form action={deleteInterviewWithId}>
-              <Button type="submit" variant="destructive">
-                Delete interview
-              </Button>
-            </form>
+            <DeleteConfirmationForm
+              action={deleteInterviewWithId}
+              title="Delete interview?"
+              description="This will remove this interview round from your workspace. This action cannot be undone."
+              confirmLabel="Delete interview"
+              triggerLabel="Delete interview"
+            />
           </CardContent>
         </Card>
       </div>

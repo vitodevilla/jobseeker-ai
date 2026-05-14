@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DeleteConfirmationForm } from "@/components/delete-confirmation-form";
 
 type EditApplicationPageProps = {
   params: Promise<{
@@ -265,11 +266,13 @@ export default async function EditApplicationPage({
           </CardHeader>
 
           <CardContent>
-            <form action={deleteApplicationWithId}>
-              <Button type="submit" variant="destructive">
-                Delete application
-              </Button>
-            </form>
+            <DeleteConfirmationForm
+              action={deleteApplicationWithId}
+              title="Delete application?"
+              description="This will remove this application record. Related cover letters, interviews, and tasks may also be removed depending on their database relations. This action cannot be undone."
+              confirmLabel="Delete application"
+              triggerLabel="Delete application"
+            />
           </CardContent>
         </Card>
       </div>

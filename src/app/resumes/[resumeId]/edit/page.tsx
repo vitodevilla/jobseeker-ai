@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DeleteConfirmationForm } from "@/components/delete-confirmation-form";
 
 type EditResumePageProps = {
   params: Promise<{
@@ -118,11 +119,13 @@ export default async function EditResumePage({ params }: EditResumePageProps) {
           </CardHeader>
 
           <CardContent>
-            <form action={deleteResumeWithId}>
-              <Button type="submit" variant="destructive">
-                Delete resume
-              </Button>
-            </form>
+            <DeleteConfirmationForm
+              action={deleteResumeWithId}
+              title="Delete resume?"
+              description="This will remove this resume version. Applications that referenced it will keep their history with the resume reference cleared. This action cannot be undone."
+              confirmLabel="Delete resume"
+              triggerLabel="Delete resume"
+            />
           </CardContent>
         </Card>
       </div>
