@@ -5,59 +5,8 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import type { Priority, TaskStatus } from "@/generated/prisma";
-
-const allowedStatuses = ["PENDING", "DONE", "CANCELLED"] as const;
-const allowedPriorities = ["LOW", "MEDIUM", "HIGH"] as const;
-
-function getNullableString(formData: FormData, key: string) {
-  const value = formData.get(key)?.toString().trim();
-  return value ? value : null;
-}
-
-function getRequiredString(formData: FormData, key: string, message: string) {
-  const value = formData.get(key)?.toString().trim();
-
-  if (!value) {
-    throw new Error(message);
-  }
-
-  return value;
-}
-
-function getNullableDate(formData: FormData, key: string) {
-  const value = getNullableString(formData, key);
-
-  if (value === null) {
-    return null;
-  }
-
-  return new Date(value);
-}
-
-function getStatus(formData: FormData) {
-  const value = getRequiredString(formData, "status", "Status is required.");
-
-  if (!allowedStatuses.includes(value as TaskStatus)) {
-    throw new Error("Invalid task status.");
-  }
-
-  return value as TaskStatus;
-}
-
-function getPriority(formData: FormData) {
-  const value = getRequiredString(
-    formData,
-    "priority",
-    "Priority is required.",
-  );
-
-  if (!allowedPriorities.includes(value as Priority)) {
-    throw new Error("Invalid priority.");
-  }
-
-  return value as Priority;
-}
+import type { TaskStatus } from "@/generated/prisma";
+import { taskFormSchema } from "@/lib/validations/task";
 
 async function getSignedInUserId() {
   const session = await auth.api.getSession({
@@ -101,24 +50,23 @@ function getCompletedAt(status: TaskStatus) {
 export async function createTask(formData: FormData) {
   const userId = await getSignedInUserId();
 
-  const applicationId = getNullableString(formData, "applicationId");
+  const parsed = taskFormSchema.parse({
+    applicationId: formData.get("applicationId"),
+    title: formData.get("title"),
+    description: formData.get("description"),
+    dueAt: formData.get("dueAt"),
+    status: formData.get("status"),
+    priority: formData.get("priority"),
+    completionNotes: formData.get("completionNotes"),
+  });
 
-  await verifyApplicationOwnership(applicationId, userId);
-
-  const title = getRequiredString(formData, "title", "Task title is required.");
-  const status = getStatus(formData);
+  await verifyApplicationOwnership(parsed.applicationId, userId);
 
   await prisma.task.create({
     data: {
       userId,
-      applicationId,
-      title,
-      description: getNullableString(formData, "description"),
-      dueAt: getNullableDate(formData, "dueAt"),
-      status,
-      priority: getPriority(formData),
-      completedAt: getCompletedAt(status),
-      completionNotes: getNullableString(formData, "completionNotes"),
+      ...parsed,
+      completedAt: getCompletedAt(parsed.status),
     },
   });
 
@@ -129,12 +77,17 @@ export async function createTask(formData: FormData) {
 export async function updateTask(taskId: string, formData: FormData) {
   const userId = await getSignedInUserId();
 
-  const applicationId = getNullableString(formData, "applicationId");
+  const parsed = taskFormSchema.parse({
+    applicationId: formData.get("applicationId"),
+    title: formData.get("title"),
+    description: formData.get("description"),
+    dueAt: formData.get("dueAt"),
+    status: formData.get("status"),
+    priority: formData.get("priority"),
+    completionNotes: formData.get("completionNotes"),
+  });
 
-  await verifyApplicationOwnership(applicationId, userId);
-
-  const title = getRequiredString(formData, "title", "Task title is required.");
-  const status = getStatus(formData);
+  await verifyApplicationOwnership(parsed.applicationId, userId);
 
   const result = await prisma.task.updateMany({
     where: {
@@ -142,14 +95,8 @@ export async function updateTask(taskId: string, formData: FormData) {
       userId,
     },
     data: {
-      applicationId,
-      title,
-      description: getNullableString(formData, "description"),
-      dueAt: getNullableDate(formData, "dueAt"),
-      status,
-      priority: getPriority(formData),
-      completedAt: getCompletedAt(status),
-      completionNotes: getNullableString(formData, "completionNotes"),
+      ...parsed,
+      completedAt: getCompletedAt(parsed.status),
     },
   });
 
