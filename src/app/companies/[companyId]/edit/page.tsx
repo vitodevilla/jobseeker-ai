@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DeleteConfirmationForm } from "@/components/delete-confirmation-form";
 
 type EditCompanyPageProps = {
   params: Promise<{
@@ -152,11 +153,13 @@ export default async function EditCompanyPage({
           </CardHeader>
 
           <CardContent>
-            <form action={deleteCompanyWithId}>
-              <Button type="submit" variant="destructive">
-                Delete company
-              </Button>
-            </form>
+            <DeleteConfirmationForm
+              action={deleteCompanyWithId}
+              title="Delete company?"
+              description="This will remove the company and its related job postings from your workspace. This action cannot be undone."
+              confirmLabel="Delete company"
+              triggerLabel="Delete company"
+            />
           </CardContent>
         </Card>
       </div>

@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DeleteConfirmationForm } from "@/components/delete-confirmation-form";
 
 type EditCoverLetterPageProps = {
   params: Promise<{
@@ -217,11 +218,13 @@ export default async function EditCoverLetterPage({
           </CardHeader>
 
           <CardContent>
-            <form action={deleteCoverLetterWithId}>
-              <Button type="submit" variant="destructive">
-                Delete cover letter
-              </Button>
-            </form>
+            <DeleteConfirmationForm
+              action={deleteCoverLetterWithId}
+              title="Delete cover letter?"
+              description="This will remove this cover letter draft from your workspace. This action cannot be undone."
+              confirmLabel="Delete cover letter"
+              triggerLabel="Delete cover letter"
+            />
           </CardContent>
         </Card>
       </div>

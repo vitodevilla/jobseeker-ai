@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DeleteConfirmationForm } from "@/components/delete-confirmation-form";
 
 type EditTaskPageProps = {
   params: Promise<{
@@ -213,11 +214,13 @@ export default async function EditTaskPage({ params }: EditTaskPageProps) {
           </CardHeader>
 
           <CardContent>
-            <form action={deleteTaskWithId}>
-              <Button type="submit" variant="destructive">
-                Delete task
-              </Button>
-            </form>
+            <DeleteConfirmationForm
+              action={deleteTaskWithId}
+              title="Delete task?"
+              description="This will remove this task from your workspace. This action cannot be undone."
+              confirmLabel="Delete task"
+              triggerLabel="Delete task"
+            />
           </CardContent>
         </Card>
       </div>
