@@ -5,13 +5,9 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { companyFormSchema } from "@/lib/validations/company";
 
-function getNullableString(formData: FormData, key: string) {
-  const value = formData.get(key)?.toString().trim();
-  return value ? value : null;
-}
-
-export async function createCompany(formData: FormData) {
+async function getSignedInUserId() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -20,20 +16,24 @@ export async function createCompany(formData: FormData) {
     redirect("/sign-in");
   }
 
-  const name = formData.get("name")?.toString().trim();
+  return session.user.id;
+}
 
-  if (!name) {
-    throw new Error("Company name is required.");
-  }
+export async function createCompany(formData: FormData) {
+  const userId = await getSignedInUserId();
+
+  const parsed = companyFormSchema.parse({
+    name: formData.get("name"),
+    website: formData.get("website"),
+    industry: formData.get("industry"),
+    size: formData.get("size"),
+    notes: formData.get("notes"),
+  });
 
   await prisma.company.create({
     data: {
-      userId: session.user.id,
-      name,
-      website: getNullableString(formData, "website"),
-      industry: getNullableString(formData, "industry"),
-      size: getNullableString(formData, "size"),
-      notes: getNullableString(formData, "notes"),
+      userId,
+      ...parsed,
     },
   });
 
@@ -42,32 +42,22 @@ export async function createCompany(formData: FormData) {
 }
 
 export async function updateCompany(companyId: string, formData: FormData) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
+  const userId = await getSignedInUserId();
+
+  const parsed = companyFormSchema.parse({
+    name: formData.get("name"),
+    website: formData.get("website"),
+    industry: formData.get("industry"),
+    size: formData.get("size"),
+    notes: formData.get("notes"),
   });
-
-  if (!session) {
-    redirect("/sign-in");
-  }
-
-  const name = formData.get("name")?.toString().trim();
-
-  if (!name) {
-    throw new Error("Company name is required.");
-  }
 
   const result = await prisma.company.updateMany({
     where: {
       id: companyId,
-      userId: session.user.id,
+      userId,
     },
-    data: {
-      name,
-      website: getNullableString(formData, "website"),
-      industry: getNullableString(formData, "industry"),
-      size: getNullableString(formData, "size"),
-      notes: getNullableString(formData, "notes"),
-    },
+    data: parsed,
   });
 
   if (result.count === 0) {
@@ -80,18 +70,12 @@ export async function updateCompany(companyId: string, formData: FormData) {
 }
 
 export async function deleteCompany(companyId: string) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session) {
-    redirect("/sign-in");
-  }
+  const userId = await getSignedInUserId();
 
   await prisma.company.deleteMany({
     where: {
       id: companyId,
-      userId: session.user.id,
+      userId,
     },
   });
 

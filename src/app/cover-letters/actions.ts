@@ -5,54 +5,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import type { CoverLetterMode } from "@/generated/prisma";
-
-const allowedModes = ["WRITTEN", "UPLOADED", "GENERATED"] as const;
-
-function getNullableString(formData: FormData, key: string) {
-  const value = formData.get(key)?.toString().trim();
-  return value ? value : null;
-}
-
-function getRequiredString(formData: FormData, key: string, message: string) {
-  const value = formData.get(key)?.toString().trim();
-
-  if (!value) {
-    throw new Error(message);
-  }
-
-  return value;
-}
-
-function getNullableInt(formData: FormData, key: string) {
-  const value = getNullableString(formData, key);
-
-  if (value === null) {
-    return null;
-  }
-
-  const parsed = Number.parseInt(value, 10);
-
-  if (!Number.isInteger(parsed) || parsed < 1) {
-    throw new Error(`${key} must be a valid positive number.`);
-  }
-
-  return parsed;
-}
-
-function getCoverLetterMode(formData: FormData) {
-  const value = getRequiredString(formData, "mode", "Mode is required.");
-
-  if (!allowedModes.includes(value as CoverLetterMode)) {
-    throw new Error("Invalid cover letter mode.");
-  }
-
-  return value as CoverLetterMode;
-}
-
-function getBoolean(formData: FormData, key: string) {
-  return formData.get(key) === "on";
-}
+import { coverLetterFormSchema } from "@/lib/validations/cover-letter";
 
 async function getSignedInUserId() {
   const session = await auth.api.getSession({
@@ -88,25 +41,21 @@ async function verifyApplicationOwnership(
 export async function createCoverLetter(formData: FormData) {
   const userId = await getSignedInUserId();
 
-  const applicationId = getRequiredString(
-    formData,
-    "applicationId",
-    "Application is required.",
-  );
+  const parsed = coverLetterFormSchema.parse({
+    applicationId: formData.get("applicationId"),
+    title: formData.get("title"),
+    mode: formData.get("mode"),
+    content: formData.get("content"),
+    version: formData.get("version"),
+    isFinal: formData.get("isFinal"),
+  });
 
-  await verifyApplicationOwnership(applicationId, userId);
-
-  const version = getNullableInt(formData, "version") ?? 1;
+  await verifyApplicationOwnership(parsed.applicationId, userId);
 
   await prisma.coverLetter.create({
     data: {
       userId,
-      applicationId,
-      title: getRequiredString(formData, "title", "Title is required."),
-      mode: getCoverLetterMode(formData),
-      content: getNullableString(formData, "content"),
-      version,
-      isFinal: getBoolean(formData, "isFinal"),
+      ...parsed,
     },
   });
 
@@ -120,29 +69,23 @@ export async function updateCoverLetter(
 ) {
   const userId = await getSignedInUserId();
 
-  const applicationId = getRequiredString(
-    formData,
-    "applicationId",
-    "Application is required.",
-  );
+  const parsed = coverLetterFormSchema.parse({
+    applicationId: formData.get("applicationId"),
+    title: formData.get("title"),
+    mode: formData.get("mode"),
+    content: formData.get("content"),
+    version: formData.get("version"),
+    isFinal: formData.get("isFinal"),
+  });
 
-  await verifyApplicationOwnership(applicationId, userId);
-
-  const version = getNullableInt(formData, "version") ?? 1;
+  await verifyApplicationOwnership(parsed.applicationId, userId);
 
   const result = await prisma.coverLetter.updateMany({
     where: {
       id: coverLetterId,
       userId,
     },
-    data: {
-      applicationId,
-      title: getRequiredString(formData, "title", "Title is required."),
-      mode: getCoverLetterMode(formData),
-      content: getNullableString(formData, "content"),
-      version,
-      isFinal: getBoolean(formData, "isFinal"),
-    },
+    data: parsed,
   });
 
   if (result.count === 0) {
