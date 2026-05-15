@@ -1,5 +1,7 @@
 "use server";
 
+import { put } from "@vercel/blob";
+import pdfParse from "pdf-parse/lib/pdf-parse";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -7,7 +9,9 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { resumeFormSchema } from "@/lib/validations/resume";
 
-export async function createResume(formData: FormData) {
+const MAX_RESUME_PDF_SIZE_BYTES = 5 * 1024 * 1024;
+
+async function getSignedInUserId() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -16,15 +20,79 @@ export async function createResume(formData: FormData) {
     redirect("/sign-in");
   }
 
+  return session.user.id;
+}
+
+function getOptionalPdfFile(formData: FormData) {
+  const file = formData.get("pdfFile");
+
+  if (!(file instanceof File) || file.size === 0) {
+    return null;
+  }
+
+  if (file.type !== "application/pdf") {
+    throw new Error("Resume file must be a PDF.");
+  }
+
+  if (file.size > MAX_RESUME_PDF_SIZE_BYTES) {
+    throw new Error("Resume PDF must be 5 MB or smaller.");
+  }
+
+  return file;
+}
+
+async function extractTextFromPdf(file: File) {
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+
+  const result = await pdfParse(buffer);
+  return result.text.trim();
+}
+
+async function uploadResumePdf(file: File, userId: string) {
+  const safeFileName = file.name.replaceAll(/[^a-zA-Z0-9.\-_]/g, "-");
+
+  return put(`resumes/${userId}/${Date.now()}-${safeFileName}`, file, {
+    access: "private",
+    addRandomSuffix: true,
+  });
+}
+
+export async function createResume(formData: FormData) {
+  const userId = await getSignedInUserId();
+
   const parsed = resumeFormSchema.parse({
     name: formData.get("name"),
     content: formData.get("content"),
   });
 
+  const pdfFile = getOptionalPdfFile(formData);
+
+  let fileUrl: string | null = null;
+  let extractedContent: string | null = null;
+
+  if (pdfFile) {
+    const [blob, extractedText] = await Promise.all([
+      uploadResumePdf(pdfFile, userId),
+      extractTextFromPdf(pdfFile),
+    ]);
+
+    fileUrl = blob.url;
+    extractedContent = extractedText || null;
+  }
+
+  const finalContent = extractedContent ?? parsed.content;
+
+  if (!finalContent) {
+    redirect("/resumes/new?error=missing-content");
+  }
+
   await prisma.resume.create({
     data: {
-      userId: session.user.id,
-      ...parsed,
+      userId,
+      name: parsed.name,
+      content: finalContent,
+      fileUrl,
     },
   });
 
@@ -33,25 +101,42 @@ export async function createResume(formData: FormData) {
 }
 
 export async function updateResume(resumeId: string, formData: FormData) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session) {
-    redirect("/sign-in");
-  }
+  const userId = await getSignedInUserId();
 
   const parsed = resumeFormSchema.parse({
     name: formData.get("name"),
     content: formData.get("content"),
   });
 
+  const pdfFile = getOptionalPdfFile(formData);
+
+  let finalContent = parsed.content;
+  let fileUrl: string | undefined;
+
+  if (pdfFile) {
+    const extractedText = await extractTextFromPdf(pdfFile);
+    finalContent = extractedText || parsed.content;
+  }
+
+  if (!finalContent) {
+    redirect(`/resumes/${resumeId}/edit?error=missing-content`);
+  }
+
+  if (pdfFile) {
+    const blob = await uploadResumePdf(pdfFile, userId);
+    fileUrl = blob.url;
+  }
+
   const result = await prisma.resume.updateMany({
     where: {
       id: resumeId,
-      userId: session.user.id,
+      userId,
     },
-    data: parsed,
+    data: {
+      name: parsed.name,
+      content: finalContent,
+      ...(fileUrl ? { fileUrl } : {}),
+    },
   });
 
   if (result.count === 0) {
@@ -64,18 +149,12 @@ export async function updateResume(resumeId: string, formData: FormData) {
 }
 
 export async function deleteResume(resumeId: string) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session) {
-    redirect("/sign-in");
-  }
+  const userId = await getSignedInUserId();
 
   await prisma.resume.deleteMany({
     where: {
       id: resumeId,
-      userId: session.user.id,
+      userId,
     },
   });
 

@@ -209,7 +209,7 @@ export default async function DashboardPage() {
                           <p className="text-sm font-medium">
                             {formatStatus(interview.type)}
                           </p>
-                          <p className="break-words text-sm text-muted-foreground">
+                          <p className="wrap-break-word text-sm text-muted-foreground">
                             {interview.application.jobPosting.title} —{" "}
                             {interview.application.jobPosting.company.name}
                           </p>
@@ -249,10 +249,10 @@ export default async function DashboardPage() {
                     <div key={task.id} className="space-y-1">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="break-words text-sm font-medium">
+                          <p className="wrap-break-word text-sm font-medium">
                             {task.title}
                           </p>
-                          <p className="break-words text-sm text-muted-foreground">
+                          <p className="wrap-break-word text-sm text-muted-foreground">
                             {task.application
                               ? `${task.application.jobPosting.title} — ${task.application.jobPosting.company.name}`
                               : "Standalone task"}
@@ -298,10 +298,10 @@ export default async function DashboardPage() {
                     <div key={application.id} className="space-y-1">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="break-words text-sm font-medium">
+                          <p className="wrap-break-word text-sm font-medium">
                             {application.jobPosting.title}
                           </p>
-                          <p className="break-words text-sm text-muted-foreground">
+                          <p className="wrap-break-word text-sm text-muted-foreground">
                             {application.jobPosting.company.name} ·{" "}
                             {formatStatus(application.status)}
                           </p>
@@ -344,10 +344,10 @@ export default async function DashboardPage() {
                     <div key={jobPosting.id} className="space-y-1">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="break-words text-sm font-medium">
+                          <p className="wrap-break-word text-sm font-medium">
                             {jobPosting.title}
                           </p>
-                          <p className="break-words text-sm text-muted-foreground">
+                          <p className="wrap-break-word text-sm text-muted-foreground">
                             {jobPosting.company.name}
                             {jobPosting.location
                               ? ` · ${jobPosting.location}`

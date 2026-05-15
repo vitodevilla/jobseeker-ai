@@ -21,9 +21,15 @@ type EditResumePageProps = {
   params: Promise<{
     resumeId: string;
   }>;
+  searchParams: Promise<{
+    error?: string;
+  }>;
 };
 
-export default async function EditResumePage({ params }: EditResumePageProps) {
+export default async function EditResumePage({
+  params,
+  searchParams,
+}: EditResumePageProps) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -33,6 +39,8 @@ export default async function EditResumePage({ params }: EditResumePageProps) {
   }
 
   const { resumeId } = await params;
+  const query = await searchParams;
+  const error = query.error;
 
   const resume = await prisma.resume.findFirst({
     where: {
@@ -63,15 +71,28 @@ export default async function EditResumePage({ params }: EditResumePageProps) {
             Edit resume
           </h1>
           <p className="mt-2 text-muted-foreground">
-            Update this resume version. PDF upload will be added later.
+            Update this resume version by editing the text or replacing its PDF.
           </p>
         </div>
+
+        {error === "missing-content" ? (
+          <Card className="border-destructive/30">
+            <CardHeader>
+              <CardTitle>Resume content is required</CardTitle>
+              <CardDescription>
+                Upload a readable PDF or keep resume text in the editor before
+                saving changes.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        ) : null}
 
         <Card>
           <CardHeader>
             <CardTitle>Resume details</CardTitle>
             <CardDescription>
-              Fields marked with * are required.
+              Resume name is required. Replace the stored PDF or edit the
+              resume text manually.
             </CardDescription>
           </CardHeader>
 
@@ -88,15 +109,33 @@ export default async function EditResumePage({ params }: EditResumePageProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="content">Resume content *</Label>
+                <Label htmlFor="pdfFile">Resume PDF</Label>
+                <Input
+                  id="pdfFile"
+                  name="pdfFile"
+                  type="file"
+                  accept="application/pdf"
+                />
+                <p className="text-sm text-muted-foreground">
+                  {resume.fileUrl
+                    ? "A PDF is currently stored. Upload a new PDF to replace it. Maximum file size: 5 MB."
+                    : "No PDF is currently stored. Upload a PDF to extract its text automatically. Maximum file size: 5 MB."}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="content">Resume content</Label>
                 <textarea
                   id="content"
                   name="content"
-                  required
                   rows={14}
                   defaultValue={resume.content}
                   className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 />
+                <p className="text-sm text-muted-foreground">
+                  If you upload a readable PDF, its extracted text will replace
+                  this content. If no PDF is uploaded, this text will be saved.
+                </p>
               </div>
 
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
