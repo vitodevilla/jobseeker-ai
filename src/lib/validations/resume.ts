@@ -1,7 +1,11 @@
 import { z } from "zod";
-import { requiredText } from "@/lib/validations/form";
+
+const optionalText = z
+  .string()
+  .trim()
+  .transform((value) => (value === "" ? null : value));
 
 export const resumeFormSchema = z.object({
-  name: requiredText("Resume name is required."),
-  content: requiredText("Resume content is required."),
+  name: z.string().trim().min(1, "Resume name is required."),
+  content: optionalText,
 });
