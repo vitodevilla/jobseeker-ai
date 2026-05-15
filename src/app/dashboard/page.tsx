@@ -12,30 +12,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import type { ApplicationStatus } from "@/generated/prisma";
-
-const activeApplicationStatuses: ApplicationStatus[] = [
-  "SAVED",
-  "INTERESTED",
-  "APPLIED",
-  "SCREENING",
-  "INTERVIEWING",
-  "OFFER",
-];
-
-const pipelineStatuses: ApplicationStatus[] = [
-  "SAVED",
-  "INTERESTED",
-  "APPLIED",
-  "SCREENING",
-  "INTERVIEWING",
-  "OFFER",
-  "ACCEPTED",
-  "REJECTED",
-  "WITHDRAWN",
-  "GHOSTED",
-  "ARCHIVED",
-];
 
 function formatStatus(status: string) {
   return status
@@ -58,30 +34,6 @@ function formatDate(date: Date) {
   });
 }
 
-type StatCardProps = {
-  title: string;
-  value: number;
-  description: string;
-  href: string;
-};
-
-function StatCard({ title, value, description, href }: StatCardProps) {
-  return (
-    <Card>
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-base">{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
-      <CardContent className="flex items-end justify-between gap-4">
-        <p className="text-3xl font-bold">{value}</p>
-        <Button variant="outline" size="sm" asChild>
-          <Link href={href}>Open</Link>
-        </Button>
-      </CardContent>
-    </Card>
-  );
-}
-
 export default async function DashboardPage() {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -95,18 +47,10 @@ export default async function DashboardPage() {
 
   const [
     user,
-    companyCount,
-    resumeCount,
-    jobPostingCount,
-    applicationCount,
-    activeApplicationCount,
-    pendingTaskCount,
-    upcomingInterviewCount,
-    coverLetterCount,
-    applicationsByStatus,
     upcomingInterviews,
     dueTasks,
     recentApplications,
+    recentJobPostings,
   ] = await Promise.all([
     prisma.user.findUnique({
       where: {
@@ -120,62 +64,6 @@ export default async function DashboardPage() {
         yearsOfExperience: true,
         currentRole: true,
         preferredWorkMode: true,
-      },
-    }),
-    prisma.company.count({
-      where: {
-        userId,
-      },
-    }),
-    prisma.resume.count({
-      where: {
-        userId,
-      },
-    }),
-    prisma.jobPosting.count({
-      where: {
-        userId,
-      },
-    }),
-    prisma.application.count({
-      where: {
-        userId,
-      },
-    }),
-    prisma.application.count({
-      where: {
-        userId,
-        status: {
-          in: activeApplicationStatuses,
-        },
-      },
-    }),
-    prisma.task.count({
-      where: {
-        userId,
-        status: "PENDING",
-      },
-    }),
-    prisma.interview.count({
-      where: {
-        userId,
-        scheduledAt: {
-          gte: new Date(),
-        },
-      },
-    }),
-    prisma.coverLetter.count({
-      where: {
-        userId,
-      },
-    }),
-    prisma.application.groupBy({
-      by: ["status"],
-      where: {
-        userId,
-      },
-      _count: {
-        status: true,
       },
     }),
     prisma.interview.findMany({
@@ -244,16 +132,22 @@ export default async function DashboardPage() {
       },
       take: 5,
     }),
+    prisma.jobPosting.findMany({
+      where: {
+        userId,
+      },
+      include: {
+        company: true,
+      },
+      orderBy: {
+        savedAt: "desc",
+      },
+      take: 5,
+    }),
   ]);
 
   if (!user) {
     redirect("/sign-in");
-  }
-
-  const statusCounts = new Map<ApplicationStatus, number>();
-
-  for (const item of applicationsByStatus) {
-    statusCounts.set(item.status, item._count.status);
   }
 
   const missingProfileFields = [
@@ -270,7 +164,8 @@ export default async function DashboardPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="mt-2 text-muted-foreground">
-            Overview of your job-search workspace.
+            Focus on the interviews, follow-ups, and opportunities that need
+            your attention now.
           </p>
         </div>
 
@@ -291,87 +186,7 @@ export default async function DashboardPage() {
           </Card>
         ) : null}
 
-        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            title="Active applications"
-            value={activeApplicationCount}
-            description="Applications still in progress."
-            href="/applications"
-          />
-          <StatCard
-            title="Pending tasks"
-            value={pendingTaskCount}
-            description="Follow-ups and reminders to handle."
-            href="/tasks"
-          />
-          <StatCard
-            title="Upcoming interviews"
-            value={upcomingInterviewCount}
-            description="Scheduled interviews from now onward."
-            href="/interviews"
-          />
-          <StatCard
-            title="Saved job postings"
-            value={jobPostingCount}
-            description="Roles saved for tracking or applying."
-            href="/job-postings"
-          />
-        </section>
-
-        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            title="Companies"
-            value={companyCount}
-            description="Companies in your workspace."
-            href="/companies"
-          />
-          <StatCard
-            title="Resumes"
-            value={resumeCount}
-            description="Resume versions available."
-            href="/resumes"
-          />
-          <StatCard
-            title="Cover letters"
-            value={coverLetterCount}
-            description="Drafts and final versions."
-            href="/cover-letters"
-          />
-          <StatCard
-            title="All applications"
-            value={applicationCount}
-            description="Total tracked applications."
-            href="/applications"
-          />
-        </section>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Application pipeline</CardTitle>
-            <CardDescription>
-              Current distribution of applications by status.
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {pipelineStatuses.map((status) => (
-                <div
-                  key={status}
-                  className="flex items-center justify-between rounded-md border px-3 py-2"
-                >
-                  <span className="text-sm font-medium">
-                    {formatStatus(status)}
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    {statusCounts.get(status) ?? 0}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-        <section className="grid gap-4 lg:grid-cols-3">
+        <section className="grid gap-4 lg:grid-cols-2">
           <Card>
             <CardHeader>
               <CardTitle>Upcoming interviews</CardTitle>
@@ -390,11 +205,11 @@ export default async function DashboardPage() {
                   {upcomingInterviews.map((interview) => (
                     <div key={interview.id} className="space-y-1">
                       <div className="flex items-start justify-between gap-3">
-                        <div>
+                        <div className="min-w-0">
                           <p className="text-sm font-medium">
                             {formatStatus(interview.type)}
                           </p>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="break-words text-sm text-muted-foreground">
                             {interview.application.jobPosting.title} —{" "}
                             {interview.application.jobPosting.company.name}
                           </p>
@@ -433,9 +248,11 @@ export default async function DashboardPage() {
                   {dueTasks.map((task) => (
                     <div key={task.id} className="space-y-1">
                       <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="text-sm font-medium">{task.title}</p>
-                          <p className="text-sm text-muted-foreground">
+                        <div className="min-w-0">
+                          <p className="break-words text-sm font-medium">
+                            {task.title}
+                          </p>
+                          <p className="break-words text-sm text-muted-foreground">
                             {task.application
                               ? `${task.application.jobPosting.title} — ${task.application.jobPosting.company.name}`
                               : "Standalone task"}
@@ -480,11 +297,11 @@ export default async function DashboardPage() {
                   {recentApplications.map((application) => (
                     <div key={application.id} className="space-y-1">
                       <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="text-sm font-medium">
+                        <div className="min-w-0">
+                          <p className="break-words text-sm font-medium">
                             {application.jobPosting.title}
                           </p>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="break-words text-sm text-muted-foreground">
                             {application.jobPosting.company.name} ·{" "}
                             {formatStatus(application.status)}
                           </p>
@@ -501,6 +318,54 @@ export default async function DashboardPage() {
                           Resume: {application.resume.name}
                         </p>
                       ) : null}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent job postings</CardTitle>
+              <CardDescription>
+                Recently saved roles to review or turn into applications.
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent>
+              {recentJobPostings.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No job postings yet.
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {recentJobPostings.map((jobPosting) => (
+                    <div key={jobPosting.id} className="space-y-1">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="break-words text-sm font-medium">
+                            {jobPosting.title}
+                          </p>
+                          <p className="break-words text-sm text-muted-foreground">
+                            {jobPosting.company.name}
+                            {jobPosting.location
+                              ? ` · ${jobPosting.location}`
+                              : ""}
+                          </p>
+                        </div>
+                        <Button variant="outline" size="sm" asChild>
+                          <Link href={`/job-postings/${jobPosting.id}/edit`}>
+                            Open
+                          </Link>
+                        </Button>
+                      </div>
+
+                      <p className="text-sm text-muted-foreground">
+                        {jobPosting.deadline
+                          ? `Deadline: ${formatDate(jobPosting.deadline)}`
+                          : `Saved: ${formatDate(jobPosting.savedAt)}`}
+                      </p>
                     </div>
                   ))}
                 </div>
