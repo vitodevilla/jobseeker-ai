@@ -4,7 +4,11 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { AppShell } from "@/components/app-shell";
-import { deleteResume, updateResume } from "@/app/resumes/actions";
+import {
+  deleteResume,
+  generateResumeAiFeedback,
+  updateResume,
+} from "@/app/resumes/actions";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -22,6 +26,7 @@ type EditResumePageProps = {
     resumeId: string;
   }>;
   searchParams: Promise<{
+    ai?: string;
     error?: string;
   }>;
 };
@@ -55,6 +60,10 @@ export default async function EditResumePage({
 
   const updateResumeWithId = updateResume.bind(null, resume.id);
   const deleteResumeWithId = deleteResume.bind(null, resume.id);
+  const generateResumeAiFeedbackWithId = generateResumeAiFeedback.bind(
+    null,
+    resume.id,
+  );
 
   return (
     <AppShell userName={session.user.name} userEmail={session.user.email}>
@@ -85,6 +94,36 @@ export default async function EditResumePage({
               </CardDescription>
             </CardHeader>
           </Card>
+        ) : null}
+
+        {error === "empty-ai-feedback" ? (
+          <Card className="border-destructive/30">
+            <CardHeader>
+              <CardTitle>AI critique was empty</CardTitle>
+              <CardDescription>
+                The AI request completed without usable feedback. Try
+                generating the critique again.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        ) : null}
+
+        {error === "ai-failed" ? (
+          <Card className="border-destructive/30">
+            <CardHeader>
+              <CardTitle>AI critique could not be generated</CardTitle>
+              <CardDescription>
+                Something went wrong while generating feedback. Try again in a
+                moment.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        ) : null}
+
+        {query.ai === "generated" ? (
+          <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+            AI critique saved.
+          </p>
         ) : null}
 
         <Card>
@@ -145,6 +184,40 @@ export default async function EditResumePage({
                 <Button type="submit">Save changes</Button>
               </div>
             </form>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <CardTitle>AI critique</CardTitle>
+                <CardDescription>
+                  Saved feedback for this resume version.
+                  {resume.aiFeedbackAt
+                    ? ` Generated ${resume.aiFeedbackAt.toLocaleString("hr-HR")}.`
+                    : ""}
+                </CardDescription>
+              </div>
+
+              <form action={generateResumeAiFeedbackWithId}>
+                <Button type="submit" variant="outline" size="sm">
+                  {resume.aiFeedback ? "Refresh critique" : "AI critique"}
+                </Button>
+              </form>
+            </div>
+          </CardHeader>
+
+          <CardContent>
+            {resume.aiFeedback ? (
+              <div className="whitespace-pre-wrap rounded-md border bg-muted/30 p-4 text-sm leading-6">
+                {resume.aiFeedback}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No AI critique has been generated for this resume yet.
+              </p>
+            )}
           </CardContent>
         </Card>
 

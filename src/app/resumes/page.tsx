@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { generateResumeAiFeedback } from "@/app/resumes/actions";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import {
@@ -53,8 +54,8 @@ export default async function ResumesPage() {
             <CardHeader>
               <CardTitle>No resumes yet</CardTitle>
               <CardDescription>
-                Add your first resume version. For now, paste the resume text
-                manually; PDF upload will come later.
+                Add your first resume version by pasting resume text or
+                uploading a readable PDF.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -65,26 +66,41 @@ export default async function ResumesPage() {
           </Card>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
-            {resumes.map((resume) => (
-              <Card key={resume.id}>
-                <CardHeader>
-                  <CardTitle>{resume.name}</CardTitle>
-                  <CardDescription>
-                    Updated {resume.updatedAt.toLocaleDateString("hr-HR")}
-                  </CardDescription>
-                </CardHeader>
+            {resumes.map((resume) => {
+              const generateResumeAiFeedbackWithId =
+                generateResumeAiFeedback.bind(null, resume.id);
 
-                <CardContent className="space-y-4">
-                  <p className="line-clamp-4 text-sm text-muted-foreground">
-                    {resume.content}
-                  </p>
+              return (
+                <Card key={resume.id}>
+                  <CardHeader>
+                    <CardTitle>{resume.name}</CardTitle>
+                    <CardDescription>
+                      Updated {resume.updatedAt.toLocaleDateString("hr-HR")}
+                    </CardDescription>
+                  </CardHeader>
 
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href={`/resumes/${resume.id}/edit`}>Edit</Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+                  <CardContent className="space-y-4">
+                    <p className="line-clamp-4 text-sm text-muted-foreground">
+                      {resume.content}
+                    </p>
+
+                    <div className="flex flex-wrap gap-2">
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/resumes/${resume.id}/edit`}>Edit</Link>
+                      </Button>
+
+                      <form action={generateResumeAiFeedbackWithId}>
+                        <Button type="submit" variant="outline" size="sm">
+                          {resume.aiFeedback
+                            ? "Refresh critique"
+                            : "AI critique"}
+                        </Button>
+                      </form>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>
