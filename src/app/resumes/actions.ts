@@ -6,6 +6,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
+import { generateResumeCritique } from "@/lib/ai/resume-critique";
 import { prisma } from "@/lib/prisma";
 import { resumeFormSchema } from "@/lib/validations/resume";
 
@@ -146,6 +147,79 @@ export async function updateResume(resumeId: string, formData: FormData) {
   revalidatePath("/resumes");
   revalidatePath(`/resumes/${resumeId}/edit`);
   redirect("/resumes");
+}
+
+export async function generateResumeAiFeedback(resumeId: string) {
+  const userId = await getSignedInUserId();
+
+  const resume = await prisma.resume.findFirst({
+    where: {
+      id: resumeId,
+      userId,
+    },
+    select: {
+      name: true,
+      content: true,
+      user: {
+        select: {
+          targetRole: true,
+          currentRole: true,
+          targetLocations: true,
+          yearsOfExperience: true,
+          preferredWorkMode: true,
+        },
+      },
+    },
+  });
+
+  if (!resume) {
+    redirect("/resumes");
+  }
+
+  if (!resume.content.trim()) {
+    redirect(`/resumes/${resumeId}/edit?error=missing-content`);
+  }
+
+  let aiFeedback: string;
+
+  try {
+    aiFeedback = await generateResumeCritique({
+      resumeName: resume.name,
+      resumeContent: resume.content,
+      careerContext: {
+        targetRole: resume.user.targetRole,
+        currentRole: resume.user.currentRole,
+        targetLocations: resume.user.targetLocations,
+        yearsOfExperience: resume.user.yearsOfExperience,
+        preferredWorkMode: resume.user.preferredWorkMode,
+      },
+    });
+  } catch {
+    redirect(`/resumes/${resumeId}/edit?error=ai-failed`);
+  }
+
+  if (!aiFeedback) {
+    redirect(`/resumes/${resumeId}/edit?error=empty-ai-feedback`);
+  }
+
+  const result = await prisma.resume.updateMany({
+    where: {
+      id: resumeId,
+      userId,
+    },
+    data: {
+      aiFeedback,
+      aiFeedbackAt: new Date(),
+    },
+  });
+
+  if (result.count === 0) {
+    redirect("/resumes");
+  }
+
+  revalidatePath("/resumes");
+  revalidatePath(`/resumes/${resumeId}/edit`);
+  redirect(`/resumes/${resumeId}/edit?ai=generated`);
 }
 
 export async function deleteResume(resumeId: string) {
