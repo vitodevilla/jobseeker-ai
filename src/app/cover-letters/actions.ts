@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
+import { generateCoverLetterCritique } from "@/lib/ai/cover-letter-critique";
 import { prisma } from "@/lib/prisma";
 import { coverLetterFormSchema } from "@/lib/validations/cover-letter";
 
@@ -95,6 +96,139 @@ export async function updateCoverLetter(
   revalidatePath("/cover-letters");
   revalidatePath(`/cover-letters/${coverLetterId}/edit`);
   redirect("/cover-letters");
+}
+
+export async function generateCoverLetterAiFeedback(coverLetterId: string) {
+  const userId = await getSignedInUserId();
+
+  const coverLetter = await prisma.coverLetter.findFirst({
+    where: {
+      id: coverLetterId,
+      userId,
+    },
+    select: {
+      title: true,
+      mode: true,
+      content: true,
+      version: true,
+      isFinal: true,
+      user: {
+        select: {
+          targetRole: true,
+          currentRole: true,
+          targetLocations: true,
+          yearsOfExperience: true,
+          preferredWorkMode: true,
+        },
+      },
+      application: {
+        select: {
+          status: true,
+          priority: true,
+          appliedAt: true,
+          nextActionDate: true,
+          notes: true,
+          jobPosting: {
+            select: {
+              title: true,
+              description: true,
+              location: true,
+              workMode: true,
+              seniorityLevel: true,
+              salaryMin: true,
+              salaryMax: true,
+              salaryCurrency: true,
+              company: {
+                select: {
+                  name: true,
+                  industry: true,
+                  website: true,
+                  notes: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!coverLetter) {
+    redirect("/cover-letters");
+  }
+
+  const coverLetterContent = coverLetter.content?.trim();
+
+  if (!coverLetterContent) {
+    redirect(`/cover-letters/${coverLetterId}/edit?error=missing-content`);
+  }
+
+  let aiFeedback: string;
+
+  try {
+    aiFeedback = await generateCoverLetterCritique({
+      coverLetterTitle: coverLetter.title,
+      coverLetterMode: coverLetter.mode,
+      coverLetterContent,
+      version: coverLetter.version,
+      isFinal: coverLetter.isFinal,
+      careerContext: {
+        targetRole: coverLetter.user.targetRole,
+        currentRole: coverLetter.user.currentRole,
+        targetLocations: coverLetter.user.targetLocations,
+        yearsOfExperience: coverLetter.user.yearsOfExperience,
+        preferredWorkMode: coverLetter.user.preferredWorkMode,
+      },
+      applicationContext: {
+        status: coverLetter.application.status,
+        priority: coverLetter.application.priority,
+        appliedAt: coverLetter.application.appliedAt,
+        nextActionDate: coverLetter.application.nextActionDate,
+        notes: coverLetter.application.notes,
+      },
+      jobPostingContext: {
+        title: coverLetter.application.jobPosting.title,
+        description: coverLetter.application.jobPosting.description,
+        location: coverLetter.application.jobPosting.location,
+        workMode: coverLetter.application.jobPosting.workMode,
+        seniorityLevel: coverLetter.application.jobPosting.seniorityLevel,
+        salaryMin: coverLetter.application.jobPosting.salaryMin,
+        salaryMax: coverLetter.application.jobPosting.salaryMax,
+        salaryCurrency: coverLetter.application.jobPosting.salaryCurrency,
+        company: {
+          name: coverLetter.application.jobPosting.company.name,
+          industry: coverLetter.application.jobPosting.company.industry,
+          website: coverLetter.application.jobPosting.company.website,
+          notes: coverLetter.application.jobPosting.company.notes,
+        },
+      },
+    });
+  } catch {
+    redirect(`/cover-letters/${coverLetterId}/edit?error=ai-failed`);
+  }
+
+  if (!aiFeedback) {
+    redirect(`/cover-letters/${coverLetterId}/edit?error=empty-ai-feedback`);
+  }
+
+  const result = await prisma.coverLetter.updateMany({
+    where: {
+      id: coverLetterId,
+      userId,
+    },
+    data: {
+      aiFeedback,
+      aiFeedbackAt: new Date(),
+    },
+  });
+
+  if (result.count === 0) {
+    redirect("/cover-letters");
+  }
+
+  revalidatePath("/cover-letters");
+  revalidatePath(`/cover-letters/${coverLetterId}/edit`);
+  redirect(`/cover-letters/${coverLetterId}/edit?ai=generated`);
 }
 
 export async function deleteCoverLetter(coverLetterId: string) {

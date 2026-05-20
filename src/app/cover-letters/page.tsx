@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { generateCoverLetterAiFeedback } from "@/app/cover-letters/actions";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import {
@@ -69,8 +70,8 @@ export default async function CoverLettersPage() {
             <CardTitle>Writing guidance</CardTitle>
             <CardDescription>
               For best results, start with your own draft. JobSeeker AI can
-              later help critique, tailor, or generate cover letters, but
-              user-written drafts usually provide stronger personalization.
+              critique cover letters for improvement; user-written drafts
+              usually provide stronger personalization.
             </CardDescription>
           </CardHeader>
         </Card>
@@ -92,41 +93,56 @@ export default async function CoverLettersPage() {
           </Card>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
-            {coverLetters.map((coverLetter) => (
-              <Card key={coverLetter.id}>
-                <CardHeader>
-                  <CardTitle>{coverLetter.title}</CardTitle>
-                  <CardDescription>
-                    {coverLetter.application.jobPosting.title} —{" "}
-                    {coverLetter.application.jobPosting.company.name}
-                  </CardDescription>
-                </CardHeader>
+            {coverLetters.map((coverLetter) => {
+              const generateCoverLetterAiFeedbackWithId =
+                generateCoverLetterAiFeedback.bind(null, coverLetter.id);
 
-                <CardContent className="space-y-4">
-                  <div className="space-y-1 text-sm text-muted-foreground">
-                    <p>Mode: {coverLetter.mode}</p>
-                    <p>Version: {coverLetter.version}</p>
-                    <p>{coverLetter.isFinal ? "Final version" : "Draft"}</p>
-                  </div>
+              return (
+                <Card key={coverLetter.id}>
+                  <CardHeader>
+                    <CardTitle>{coverLetter.title}</CardTitle>
+                    <CardDescription>
+                      {coverLetter.application.jobPosting.title} —{" "}
+                      {coverLetter.application.jobPosting.company.name}
+                    </CardDescription>
+                  </CardHeader>
 
-                  {coverLetter.content ? (
-                    <p className="line-clamp-4 text-sm text-muted-foreground">
-                      {coverLetter.content}
-                    </p>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      No text content added.
-                    </p>
-                  )}
+                  <CardContent className="space-y-4">
+                    <div className="space-y-1 text-sm text-muted-foreground">
+                      <p>Mode: {coverLetter.mode}</p>
+                      <p>Version: {coverLetter.version}</p>
+                      <p>{coverLetter.isFinal ? "Final version" : "Draft"}</p>
+                    </div>
 
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href={`/cover-letters/${coverLetter.id}/edit`}>
-                      Edit
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+                    {coverLetter.content ? (
+                      <p className="line-clamp-4 text-sm text-muted-foreground">
+                        {coverLetter.content}
+                      </p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        No text content added.
+                      </p>
+                    )}
+
+                    <div className="flex flex-wrap gap-2">
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/cover-letters/${coverLetter.id}/edit`}>
+                          Edit
+                        </Link>
+                      </Button>
+
+                      <form action={generateCoverLetterAiFeedbackWithId}>
+                        <Button type="submit" variant="outline" size="sm">
+                          {coverLetter.aiFeedback
+                            ? "Refresh critique"
+                            : "AI critique"}
+                        </Button>
+                      </form>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>
