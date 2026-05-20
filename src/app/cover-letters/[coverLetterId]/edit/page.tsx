@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { AppShell } from "@/components/app-shell";
 import {
   deleteCoverLetter,
+  generateCoverLetterAiFeedback,
   updateCoverLetter,
 } from "@/app/cover-letters/actions";
 import { Button } from "@/components/ui/button";
@@ -24,10 +25,15 @@ type EditCoverLetterPageProps = {
   params: Promise<{
     coverLetterId: string;
   }>;
+  searchParams: Promise<{
+    ai?: string;
+    error?: string;
+  }>;
 };
 
 export default async function EditCoverLetterPage({
   params,
+  searchParams,
 }: EditCoverLetterPageProps) {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -38,6 +44,8 @@ export default async function EditCoverLetterPage({
   }
 
   const { coverLetterId } = await params;
+  const query = await searchParams;
+  const error = query.error;
 
   const [coverLetter, applications] = await Promise.all([
     prisma.coverLetter.findFirst({
@@ -69,6 +77,10 @@ export default async function EditCoverLetterPage({
 
   const updateCoverLetterWithId = updateCoverLetter.bind(null, coverLetter.id);
   const deleteCoverLetterWithId = deleteCoverLetter.bind(null, coverLetter.id);
+  const generateCoverLetterAiFeedbackWithId = generateCoverLetterAiFeedback.bind(
+    null,
+    coverLetter.id,
+  );
 
   return (
     <AppShell userName={session.user.name} userEmail={session.user.email}>
@@ -93,12 +105,52 @@ export default async function EditCoverLetterPage({
           <CardHeader>
             <CardTitle>Writing guidance</CardTitle>
             <CardDescription>
-              Written drafts are the recommended starting point. AI critique and
-              generation will be added later, but your own draft gives stronger
-              personalization.
+              Written drafts are the recommended starting point. AI critique can
+              help you improve specificity, alignment, and readability.
             </CardDescription>
           </CardHeader>
         </Card>
+
+        {error === "missing-content" ? (
+          <Card className="border-destructive/30">
+            <CardHeader>
+              <CardTitle>Cover letter content is required</CardTitle>
+              <CardDescription>
+                Add cover letter text before generating an AI critique.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        ) : null}
+
+        {error === "empty-ai-feedback" ? (
+          <Card className="border-destructive/30">
+            <CardHeader>
+              <CardTitle>AI critique was empty</CardTitle>
+              <CardDescription>
+                The AI request completed without usable feedback. Try
+                generating the critique again.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        ) : null}
+
+        {error === "ai-failed" ? (
+          <Card className="border-destructive/30">
+            <CardHeader>
+              <CardTitle>AI critique could not be generated</CardTitle>
+              <CardDescription>
+                Something went wrong while generating feedback. Try again in a
+                moment.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        ) : null}
+
+        {query.ai === "generated" ? (
+          <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+            AI critique saved.
+          </p>
+        ) : null}
 
         <Card>
           <CardHeader>
@@ -205,6 +257,40 @@ export default async function EditCoverLetterPage({
                 <Button type="submit">Save changes</Button>
               </div>
             </form>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <CardTitle>AI critique</CardTitle>
+                <CardDescription>
+                  Saved feedback for this cover letter version.
+                  {coverLetter.aiFeedbackAt
+                    ? ` Generated ${coverLetter.aiFeedbackAt.toLocaleString("hr-HR")}.`
+                    : ""}
+                </CardDescription>
+              </div>
+
+              <form action={generateCoverLetterAiFeedbackWithId}>
+                <Button type="submit" variant="outline" size="sm">
+                  {coverLetter.aiFeedback ? "Refresh critique" : "AI critique"}
+                </Button>
+              </form>
+            </div>
+          </CardHeader>
+
+          <CardContent>
+            {coverLetter.aiFeedback ? (
+              <div className="whitespace-pre-wrap rounded-md border bg-muted/30 p-4 text-sm leading-6">
+                {coverLetter.aiFeedback}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No AI critique has been generated for this cover letter yet.
+              </p>
+            )}
           </CardContent>
         </Card>
 
