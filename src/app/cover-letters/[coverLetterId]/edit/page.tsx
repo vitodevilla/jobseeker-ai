@@ -31,6 +31,18 @@ type EditCoverLetterPageProps = {
   }>;
 };
 
+function getModeDescription(mode: string) {
+  if (mode === "GENERATED") {
+    return "AI-generated first draft";
+  }
+
+  if (mode === "WRITTEN") {
+    return "Written draft";
+  }
+
+  return "Uploaded document";
+}
+
 export default async function EditCoverLetterPage({
   params,
   searchParams,
@@ -152,11 +164,18 @@ export default async function EditCoverLetterPage({
           </p>
         ) : null}
 
+        {query.ai === "draft-generated" ? (
+          <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+            AI first draft created. Review and edit it before sending.
+          </p>
+        ) : null}
+
         <Card>
           <CardHeader>
             <CardTitle>Cover letter details</CardTitle>
             <CardDescription>
-              Fields marked with * are required.
+              Fields marked with * are required. Current mode:{" "}
+              {getModeDescription(coverLetter.mode)}.
             </CardDescription>
           </CardHeader>
 
@@ -204,9 +223,11 @@ export default async function EditCoverLetterPage({
                     <option value="UPLOADED">
                       Uploaded document — upload later
                     </option>
-                    <option value="GENERATED">
-                      AI-generated draft — coming later
-                    </option>
+                    {coverLetter.mode === "GENERATED" ? (
+                      <option value="GENERATED">
+                        AI-generated first draft
+                      </option>
+                    ) : null}
                   </select>
                 </div>
 

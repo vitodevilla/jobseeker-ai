@@ -14,6 +14,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+function formatCoverLetterMode(mode: string) {
+  if (mode === "GENERATED") {
+    return "AI-generated first draft";
+  }
+
+  if (mode === "WRITTEN") {
+    return "Written draft";
+  }
+
+  return "Uploaded document";
+}
+
 export default async function CoverLettersPage() {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -70,8 +82,8 @@ export default async function CoverLettersPage() {
             <CardTitle>Writing guidance</CardTitle>
             <CardDescription>
               For best results, start with your own draft. JobSeeker AI can
-              critique cover letters for improvement; user-written drafts
-              usually provide stronger personalization.
+              critique your writing for improvement or generate a separate
+              first draft when you need a starting point.
             </CardDescription>
           </CardHeader>
         </Card>
@@ -82,7 +94,8 @@ export default async function CoverLettersPage() {
               <CardTitle>No cover letters yet</CardTitle>
               <CardDescription>
                 Create a cover letter for one of your applications. Written
-                drafts are recommended; AI generation will come later.
+                drafts are recommended, and AI can create a separate first
+                draft if you need a starting point.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -109,7 +122,7 @@ export default async function CoverLettersPage() {
 
                   <CardContent className="space-y-4">
                     <div className="space-y-1 text-sm text-muted-foreground">
-                      <p>Mode: {coverLetter.mode}</p>
+                      <p>Mode: {formatCoverLetterMode(coverLetter.mode)}</p>
                       <p>Version: {coverLetter.version}</p>
                       <p>{coverLetter.isFinal ? "Final version" : "Draft"}</p>
                     </div>

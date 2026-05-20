@@ -5,8 +5,13 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { generateCoverLetterCritique } from "@/lib/ai/cover-letter-critique";
+import { generateCoverLetterDraft } from "@/lib/ai/cover-letter-generation";
 import { prisma } from "@/lib/prisma";
-import { coverLetterFormSchema } from "@/lib/validations/cover-letter";
+import {
+  coverLetterFormSchema,
+  coverLetterGenerationSchema,
+  manualCoverLetterFormSchema,
+} from "@/lib/validations/cover-letter";
 
 async function getSignedInUserId() {
   const session = await auth.api.getSession({
@@ -42,7 +47,7 @@ async function verifyApplicationOwnership(
 export async function createCoverLetter(formData: FormData) {
   const userId = await getSignedInUserId();
 
-  const parsed = coverLetterFormSchema.parse({
+  const parsed = manualCoverLetterFormSchema.parse({
     applicationId: formData.get("applicationId"),
     title: formData.get("title"),
     mode: formData.get("mode"),
@@ -62,6 +67,152 @@ export async function createCoverLetter(formData: FormData) {
 
   revalidatePath("/cover-letters");
   redirect("/cover-letters");
+}
+
+export async function generateCoverLetterDraftForApplication(
+  formData: FormData,
+) {
+  const userId = await getSignedInUserId();
+
+  const parsed = coverLetterGenerationSchema.safeParse({
+    applicationId: formData.get("applicationId"),
+  });
+
+  if (!parsed.success) {
+    redirect("/cover-letters/new?error=missing-application");
+  }
+
+  const application = await prisma.application.findFirst({
+    where: {
+      id: parsed.data.applicationId,
+      userId,
+    },
+    select: {
+      id: true,
+      status: true,
+      priority: true,
+      notes: true,
+      user: {
+        select: {
+          targetRole: true,
+          currentRole: true,
+          targetLocations: true,
+          yearsOfExperience: true,
+          preferredWorkMode: true,
+        },
+      },
+      resume: {
+        select: {
+          userId: true,
+          name: true,
+          content: true,
+        },
+      },
+      jobPosting: {
+        select: {
+          title: true,
+          description: true,
+          location: true,
+          workMode: true,
+          seniorityLevel: true,
+          salaryMin: true,
+          salaryMax: true,
+          salaryCurrency: true,
+          company: {
+            select: {
+              name: true,
+              industry: true,
+              website: true,
+              notes: true,
+            },
+          },
+        },
+      },
+      coverLetters: {
+        select: {
+          version: true,
+        },
+        orderBy: {
+          version: "desc",
+        },
+        take: 1,
+      },
+    },
+  });
+
+  if (!application) {
+    redirect("/cover-letters/new?error=missing-application");
+  }
+
+  const resumeContext =
+    application.resume && application.resume.userId === userId
+      ? {
+          name: application.resume.name,
+          content: application.resume.content,
+        }
+      : null;
+
+  let generatedDraft: string;
+
+  try {
+    generatedDraft = await generateCoverLetterDraft({
+      careerContext: {
+        targetRole: application.user.targetRole,
+        currentRole: application.user.currentRole,
+        targetLocations: application.user.targetLocations,
+        yearsOfExperience: application.user.yearsOfExperience,
+        preferredWorkMode: application.user.preferredWorkMode,
+      },
+      applicationContext: {
+        status: application.status,
+        priority: application.priority,
+        notes: application.notes,
+      },
+      resumeContext,
+      jobPostingContext: {
+        title: application.jobPosting.title,
+        description: application.jobPosting.description,
+        location: application.jobPosting.location,
+        workMode: application.jobPosting.workMode,
+        seniorityLevel: application.jobPosting.seniorityLevel,
+        salaryMin: application.jobPosting.salaryMin,
+        salaryMax: application.jobPosting.salaryMax,
+        salaryCurrency: application.jobPosting.salaryCurrency,
+        company: {
+          name: application.jobPosting.company.name,
+          industry: application.jobPosting.company.industry,
+          website: application.jobPosting.company.website,
+          notes: application.jobPosting.company.notes,
+        },
+      },
+    });
+  } catch {
+    redirect("/cover-letters/new?error=ai-generation-failed");
+  }
+
+  if (!generatedDraft) {
+    redirect("/cover-letters/new?error=empty-ai-generation");
+  }
+
+  const latestVersion = application.coverLetters[0]?.version ?? 0;
+
+  const coverLetter = await prisma.coverLetter.create({
+    data: {
+      userId,
+      applicationId: application.id,
+      title: `First draft for ${application.jobPosting.title} at ${application.jobPosting.company.name}`,
+      mode: "GENERATED",
+      content: generatedDraft,
+      version: latestVersion + 1,
+      isFinal: false,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  revalidatePath("/cover-letters");
+  redirect(`/cover-letters/${coverLetter.id}/edit?ai=draft-generated`);
 }
 
 export async function updateCoverLetter(
