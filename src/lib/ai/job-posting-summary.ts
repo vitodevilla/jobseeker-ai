@@ -104,24 +104,24 @@ ${formatCompanyContext(jobPostingContext.company)}
 Write the summary with these markdown sections:
 
 ## Overall role snapshot
-Write 1 short paragraph summarizing what the role appears to be from the saved context.
+Write 1-2 short sentences summarizing what the role appears to be from the saved context.
 
 ## Key responsibilities
-List 3-5 bullets. If responsibilities are unclear, say what is not specified instead of inventing details.
+List 3 bullets maximum. If responsibilities are unclear, say what is not specified instead of inventing details.
 
 ## Required skills and qualifications
-List 3-5 bullets based only on explicit saved context.
+List 3 bullets maximum based only on explicit saved context.
 
 ## Nice-to-have signals
-List 2-4 bullets based only on explicit saved context. If there are no clear nice-to-have signals, say that they are not specified.
+List 2 bullets maximum based only on explicit saved context. If there are no clear nice-to-have signals, say that they are not specified.
 
 ## Company/context notes
-List 2-4 bullets about the company and saved role context.
+List 2 bullets maximum about the company and saved role context.
 
 ## Questions to clarify
-List 2-4 practical questions an applicant may want to investigate later. These are not follow-up questions to the user.
+List 2 practical questions maximum that an applicant may want to investigate later. These are not follow-up questions to the user.
 
-Do not invent facts. Do not compare this job to a resume. Do not assess user fit. Do not produce a match score. Do not ask the user follow-up questions. Keep the response practical and complete. Aim for 120-220 words, and do not exceed 300 words.`;
+Do not invent facts. Do not compare this job to a resume. Do not assess user fit. Do not produce a match score. Do not ask the user follow-up questions. Keep the response practical and complete. Aim for 180-300 words, and do not exceed 350 words.`;
 }
 
 export async function generateJobPostingSummary(
@@ -137,7 +137,7 @@ export async function generateJobPostingSummary(
       "You summarize saved job postings using only provided database context. Do not act like a chatbot. Do not ask follow-up questions. Do not invent facts. Do not assess user fit, compare against resumes, or produce match scores. Never imply that you visited a URL.",
     prompt: buildJobPostingSummaryPrompt(input),
     temperature: 0.3,
-    maxOutputTokens: 3500,
+    maxOutputTokens: 2000,
   });
 
   return text.trim();
