@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { generateJobPostingAiSummary } from "@/app/job-postings/actions";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -227,44 +228,61 @@ export default async function JobPostingsPage({
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              {jobPostings.map((jobPosting) => (
-                <Card key={jobPosting.id}>
-                  <CardHeader>
-                    <CardTitle>{jobPosting.title}</CardTitle>
-                    <CardDescription>
-                      {jobPosting.company.name}
-                      {jobPosting.location ? ` · ${jobPosting.location}` : ""}
-                    </CardDescription>
-                  </CardHeader>
+              {jobPostings.map((jobPosting) => {
+                const generateJobPostingAiSummaryWithId =
+                  generateJobPostingAiSummary.bind(null, jobPosting.id);
 
-                  <CardContent className="space-y-4">
-                    <div className="space-y-1 text-sm text-muted-foreground">
-                      {jobPosting.workMode ? (
-                        <p>Work mode: {jobPosting.workMode}</p>
-                      ) : null}
-                      {jobPosting.seniorityLevel ? (
-                        <p>Seniority: {jobPosting.seniorityLevel}</p>
-                      ) : null}
-                      {jobPosting.deadline ? (
-                        <p>
-                          Deadline:{" "}
-                          {jobPosting.deadline.toLocaleDateString("hr-HR")}
-                        </p>
-                      ) : null}
-                    </div>
+                return (
+                  <Card key={jobPosting.id}>
+                    <CardHeader>
+                      <CardTitle>{jobPosting.title}</CardTitle>
+                      <CardDescription>
+                        {jobPosting.company.name}
+                        {jobPosting.location
+                          ? ` · ${jobPosting.location}`
+                          : ""}
+                      </CardDescription>
+                    </CardHeader>
 
-                    <p className="line-clamp-4 text-sm text-muted-foreground">
-                      {jobPosting.description}
-                    </p>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-1 text-sm text-muted-foreground">
+                        {jobPosting.workMode ? (
+                          <p>Work mode: {jobPosting.workMode}</p>
+                        ) : null}
+                        {jobPosting.seniorityLevel ? (
+                          <p>Seniority: {jobPosting.seniorityLevel}</p>
+                        ) : null}
+                        {jobPosting.deadline ? (
+                          <p>
+                            Deadline:{" "}
+                            {jobPosting.deadline.toLocaleDateString("hr-HR")}
+                          </p>
+                        ) : null}
+                      </div>
 
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={`/job-postings/${jobPosting.id}/edit`}>
-                        Edit
-                      </Link>
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+                      <p className="line-clamp-4 text-sm text-muted-foreground">
+                        {jobPosting.description}
+                      </p>
+
+                      <div className="flex flex-wrap gap-2">
+                        <Button variant="outline" size="sm" asChild>
+                          <Link href={`/job-postings/${jobPosting.id}/edit`}>
+                            Edit
+                          </Link>
+                        </Button>
+
+                        <form action={generateJobPostingAiSummaryWithId}>
+                          <Button type="submit" variant="outline" size="sm">
+                            {jobPosting.aiSummary
+                              ? "Refresh summary"
+                              : "AI summary"}
+                          </Button>
+                        </form>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

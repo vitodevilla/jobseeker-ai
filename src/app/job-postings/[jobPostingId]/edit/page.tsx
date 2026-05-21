@@ -4,7 +4,11 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { AppShell } from "@/components/app-shell";
-import { deleteJobPosting, updateJobPosting } from "@/app/job-postings/actions";
+import {
+  deleteJobPosting,
+  generateJobPostingAiSummary,
+  updateJobPosting,
+} from "@/app/job-postings/actions";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -21,6 +25,10 @@ type EditJobPostingPageProps = {
   params: Promise<{
     jobPostingId: string;
   }>;
+  searchParams: Promise<{
+    ai?: string;
+    error?: string;
+  }>;
 };
 
 function toDateInputValue(date: Date | null) {
@@ -33,6 +41,7 @@ function toDateInputValue(date: Date | null) {
 
 export default async function EditJobPostingPage({
   params,
+  searchParams,
 }: EditJobPostingPageProps) {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -43,6 +52,8 @@ export default async function EditJobPostingPage({
   }
 
   const { jobPostingId } = await params;
+  const query = await searchParams;
+  const error = query.error;
 
   const [jobPosting, companies] = await Promise.all([
     prisma.jobPosting.findFirst({
@@ -67,6 +78,10 @@ export default async function EditJobPostingPage({
 
   const updateJobPostingWithId = updateJobPosting.bind(null, jobPosting.id);
   const deleteJobPostingWithId = deleteJobPosting.bind(null, jobPosting.id);
+  const generateJobPostingAiSummaryWithId = generateJobPostingAiSummary.bind(
+    null,
+    jobPosting.id,
+  );
 
   return (
     <AppShell userName={session.user.name} userEmail={session.user.email}>
@@ -86,6 +101,48 @@ export default async function EditJobPostingPage({
             Update the saved role details and job description.
           </p>
         </div>
+
+        {error === "missing-job-context" ? (
+          <Card className="border-destructive/30">
+            <CardHeader>
+              <CardTitle>More job context is needed</CardTitle>
+              <CardDescription>
+                Add a job description or more saved role and company details
+                before generating an AI summary.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        ) : null}
+
+        {error === "empty-ai-summary" ? (
+          <Card className="border-destructive/30">
+            <CardHeader>
+              <CardTitle>AI summary was empty</CardTitle>
+              <CardDescription>
+                The AI request completed without a usable summary. Try
+                generating the summary again.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        ) : null}
+
+        {error === "ai-summary-failed" ? (
+          <Card className="border-destructive/30">
+            <CardHeader>
+              <CardTitle>AI summary could not be generated</CardTitle>
+              <CardDescription>
+                Something went wrong while generating the summary. Try again in
+                a moment.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        ) : null}
+
+        {query.ai === "summary-generated" ? (
+          <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+            AI summary saved.
+          </p>
+        ) : null}
 
         <Card>
           <CardHeader>
@@ -246,6 +303,40 @@ export default async function EditJobPostingPage({
                 <Button type="submit">Save changes</Button>
               </div>
             </form>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <CardTitle>AI summary</CardTitle>
+                <CardDescription>
+                  Saved summary for this job posting.
+                  {jobPosting.aiSummaryAt
+                    ? ` Generated ${jobPosting.aiSummaryAt.toLocaleString("hr-HR")}.`
+                    : ""}
+                </CardDescription>
+              </div>
+
+              <form action={generateJobPostingAiSummaryWithId}>
+                <Button type="submit" variant="outline" size="sm">
+                  {jobPosting.aiSummary ? "Refresh summary" : "AI summary"}
+                </Button>
+              </form>
+            </div>
+          </CardHeader>
+
+          <CardContent>
+            {jobPosting.aiSummary ? (
+              <div className="whitespace-pre-wrap rounded-md border bg-muted/30 p-4 text-sm leading-6">
+                {jobPosting.aiSummary}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No AI summary has been generated for this job posting yet.
+              </p>
+            )}
           </CardContent>
         </Card>
 
