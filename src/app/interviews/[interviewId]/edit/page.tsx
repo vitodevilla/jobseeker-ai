@@ -4,7 +4,11 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { AppShell } from "@/components/app-shell";
-import { deleteInterview, updateInterview } from "@/app/interviews/actions";
+import {
+  deleteInterview,
+  generateInterviewPrepNotes,
+  updateInterview,
+} from "@/app/interviews/actions";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -21,6 +25,10 @@ type EditInterviewPageProps = {
   params: Promise<{
     interviewId: string;
   }>;
+  searchParams: Promise<{
+    ai?: string;
+    error?: string;
+  }>;
 };
 
 function toDateTimeLocalValue(date: Date) {
@@ -32,6 +40,7 @@ function toDateTimeLocalValue(date: Date) {
 
 export default async function EditInterviewPage({
   params,
+  searchParams,
 }: EditInterviewPageProps) {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -42,6 +51,8 @@ export default async function EditInterviewPage({
   }
 
   const { interviewId } = await params;
+  const query = await searchParams;
+  const error = query.error;
 
   const [interview, applications] = await Promise.all([
     prisma.interview.findFirst({
@@ -73,6 +84,10 @@ export default async function EditInterviewPage({
 
   const updateInterviewWithId = updateInterview.bind(null, interview.id);
   const deleteInterviewWithId = deleteInterview.bind(null, interview.id);
+  const generateInterviewPrepNotesWithId = generateInterviewPrepNotes.bind(
+    null,
+    interview.id,
+  );
 
   return (
     <AppShell userName={session.user.name} userEmail={session.user.email}>
@@ -92,6 +107,61 @@ export default async function EditInterviewPage({
             Update interview scheduling, preparation, outcome, and feedback.
           </p>
         </div>
+
+        {error === "missing-application-context" ? (
+          <Card className="border-destructive/30">
+            <CardHeader>
+              <CardTitle>Application context is missing</CardTitle>
+              <CardDescription>
+                This interview needs a saved application owned by your account
+                before AI can generate prep notes.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        ) : null}
+
+        {error === "missing-job-context" ? (
+          <Card className="border-destructive/30">
+            <CardHeader>
+              <CardTitle>Job context is missing</CardTitle>
+              <CardDescription>
+                This interview needs a linked job posting and company before AI
+                can generate prep notes.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        ) : null}
+
+        {error === "ai-prep-failed" ? (
+          <Card className="border-destructive/30">
+            <CardHeader>
+              <CardTitle>AI prep notes could not be generated</CardTitle>
+              <CardDescription>
+                Something went wrong while generating interview prep notes. Try
+                again in a moment.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        ) : null}
+
+        {error === "empty-ai-prep" ? (
+          <Card className="border-destructive/30">
+            <CardHeader>
+              <CardTitle>AI prep notes were empty</CardTitle>
+              <CardDescription>
+                The AI request completed without usable prep notes. Try
+                generating the notes again.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        ) : null}
+
+        {query.ai === "prep-generated" ? (
+          <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+            Interview prep notes saved. Review and edit them before the
+            interview.
+          </p>
+        ) : null}
 
         <Card>
           <CardHeader>
@@ -214,15 +284,20 @@ export default async function EditInterviewPage({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="prepNotes">Prep notes</Label>
+                <Label htmlFor="prepNotes">Prep notes / personal edits</Label>
                 <textarea
                   id="prepNotes"
                   name="prepNotes"
                   rows={5}
                   defaultValue={interview.prepNotes ?? ""}
-                  placeholder="What should you prepare before this interview?"
+                  placeholder="Add personal reminders or edit generated prep notes..."
                   className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 />
+                <p className="text-sm text-muted-foreground">
+                  You can edit generated prep notes here or add your own
+                  reminders. The AI interview prep card below is the readable
+                  saved-notes view.
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -244,6 +319,42 @@ export default async function EditInterviewPage({
                 <Button type="submit">Save changes</Button>
               </div>
             </form>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <CardTitle>AI interview prep</CardTitle>
+                <CardDescription>
+                  Creates saved prep notes using the last saved interview,
+                  application, job, company, resume, and career context.
+                  Refreshing replaces the saved prep notes. This creates saved
+                  notes, not a chat.
+                </CardDescription>
+              </div>
+
+              <form action={generateInterviewPrepNotesWithId}>
+                <Button type="submit" variant="outline" size="sm">
+                  {interview.prepNotes
+                    ? "Refresh prep notes"
+                    : "Generate prep notes"}
+                </Button>
+              </form>
+            </div>
+          </CardHeader>
+
+          <CardContent>
+            {interview.prepNotes ? (
+              <div className="whitespace-pre-wrap rounded-md border bg-muted/30 p-4 text-sm leading-6">
+                {interview.prepNotes}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No AI prep notes have been generated for this interview yet.
+              </p>
+            )}
           </CardContent>
         </Card>
 
