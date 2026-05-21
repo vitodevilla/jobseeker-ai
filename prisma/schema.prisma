@@ -186,8 +186,9 @@ model Resume {
   updatedAt DateTime @updatedAt
 
   // Relations
-  applications   Application[]
-  primaryForUser User?         @relation("PrimaryResume")
+  applications      Application[]
+  primaryForUser    User?         @relation("PrimaryResume")
+  jobPostingMatches JobPosting[]  @relation("JobPostingMatchResume")
 
   @@index([userId])
 }
@@ -243,10 +244,13 @@ model JobPosting {
   savedAt  DateTime  @default(now()) // when YOU saved it
 
   // Cached AI outputs (regenerated on demand, stored to avoid recomputation)
-  aiSummary    String?
-  aiSummaryAt  DateTime?
-  matchScore   Int? // 0-100, against user's primary resume
-  matchScoreAt DateTime?
+  aiSummary     String?
+  aiSummaryAt   DateTime?
+  matchScore    Int? // 0-100, against the selected resume
+  matchScoreAt  DateTime?
+  matchAnalysis String?
+  matchResumeId String?
+  matchResume   Resume?   @relation("JobPostingMatchResume", fields: [matchResumeId], references: [id], onDelete: SetNull)
 
   // Future: vector embedding for semantic matching
   // embedding    Unsupported("vector(1536)")?

@@ -252,6 +252,9 @@ export default async function JobPostingsPage({
                         {jobPosting.seniorityLevel ? (
                           <p>Seniority: {jobPosting.seniorityLevel}</p>
                         ) : null}
+                        {jobPosting.matchScore !== null ? (
+                          <p>Match: {jobPosting.matchScore}/100</p>
+                        ) : null}
                         {jobPosting.deadline ? (
                           <p>
                             Deadline:{" "}

@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { AppShell } from "@/components/app-shell";
 import {
+  analyzeResumeJobMatch,
   deleteJobPosting,
   generateJobPostingAiSummary,
   updateJobPosting,
@@ -55,11 +56,19 @@ export default async function EditJobPostingPage({
   const query = await searchParams;
   const error = query.error;
 
-  const [jobPosting, companies] = await Promise.all([
+  const [jobPosting, companies, resumes, user] = await Promise.all([
     prisma.jobPosting.findFirst({
       where: {
         id: jobPostingId,
         userId: session.user.id,
+      },
+      include: {
+        matchResume: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
     }),
     prisma.company.findMany({
@@ -70,10 +79,34 @@ export default async function EditJobPostingPage({
         name: "asc",
       },
     }),
+    prisma.resume.findMany({
+      where: {
+        userId: session.user.id,
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    }),
+    prisma.user.findUnique({
+      where: {
+        id: session.user.id,
+      },
+      select: {
+        primaryResumeId: true,
+      },
+    }),
   ]);
 
   if (!jobPosting) {
     notFound();
+  }
+
+  if (!user) {
+    redirect("/sign-in");
   }
 
   const updateJobPostingWithId = updateJobPosting.bind(null, jobPosting.id);
@@ -82,6 +115,17 @@ export default async function EditJobPostingPage({
     null,
     jobPosting.id,
   );
+  const analyzeResumeJobMatchWithId = analyzeResumeJobMatch.bind(
+    null,
+    jobPosting.id,
+  );
+  const resumeIds = new Set(resumes.map((resume) => resume.id));
+  const defaultResumeId =
+    jobPosting.matchResumeId && resumeIds.has(jobPosting.matchResumeId)
+      ? jobPosting.matchResumeId
+      : user.primaryResumeId && resumeIds.has(user.primaryResumeId)
+        ? user.primaryResumeId
+        : "";
 
   return (
     <AppShell userName={session.user.name} userEmail={session.user.email}>
@@ -108,7 +152,30 @@ export default async function EditJobPostingPage({
               <CardTitle>More job context is needed</CardTitle>
               <CardDescription>
                 Add a job description or more saved role and company details
-                before generating an AI summary.
+                before running AI analysis.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        ) : null}
+
+        {error === "missing-resume" ? (
+          <Card className="border-destructive/30">
+            <CardHeader>
+              <CardTitle>Select a resume</CardTitle>
+              <CardDescription>
+                Choose one of your saved resumes before analyzing the match.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        ) : null}
+
+        {error === "missing-resume-content" ? (
+          <Card className="border-destructive/30">
+            <CardHeader>
+              <CardTitle>Resume content is required</CardTitle>
+              <CardDescription>
+                The selected resume has no usable text. Edit the resume or
+                upload a readable PDF before analyzing the match.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -138,9 +205,51 @@ export default async function EditJobPostingPage({
           </Card>
         ) : null}
 
+        {error === "empty-ai-match" ? (
+          <Card className="border-destructive/30">
+            <CardHeader>
+              <CardTitle>AI match analysis was empty</CardTitle>
+              <CardDescription>
+                The AI request completed without usable match analysis. Try
+                analyzing the match again.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        ) : null}
+
+        {error === "invalid-ai-match" ? (
+          <Card className="border-destructive/30">
+            <CardHeader>
+              <CardTitle>AI match analysis was invalid</CardTitle>
+              <CardDescription>
+                The AI response did not include a valid score and analysis.
+                Try analyzing the match again.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        ) : null}
+
+        {error === "ai-match-failed" ? (
+          <Card className="border-destructive/30">
+            <CardHeader>
+              <CardTitle>AI match analysis could not be generated</CardTitle>
+              <CardDescription>
+                Something went wrong while analyzing the resume and job posting.
+                Try again in a moment.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        ) : null}
+
         {query.ai === "summary-generated" ? (
           <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
             AI summary saved.
+          </p>
+        ) : null}
+
+        {query.ai === "match-generated" ? (
+          <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+            Resume match analysis saved.
           </p>
         ) : null}
 
@@ -335,6 +444,91 @@ export default async function EditJobPostingPage({
             ) : (
               <p className="text-sm text-muted-foreground">
                 No AI summary has been generated for this job posting yet.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Resume match</CardTitle>
+            <CardDescription>
+              Analyze how well one saved resume matches this job posting.
+              {jobPosting.matchScoreAt
+                ? ` Generated ${jobPosting.matchScoreAt.toLocaleString("hr-HR")}.`
+                : ""}
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="space-y-4">
+            {resumes.length === 0 ? (
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Add a resume before analyzing match quality for this job
+                  posting.
+                </p>
+                <Button asChild>
+                  <Link href="/resumes/new">Add resume</Link>
+                </Button>
+              </div>
+            ) : (
+              <form action={analyzeResumeJobMatchWithId} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="resumeId">Resume</Label>
+                  <select
+                    id="resumeId"
+                    name="resumeId"
+                    required
+                    defaultValue={defaultResumeId}
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                  >
+                    <option value="">Select a resume</option>
+                    {resumes.map((resume) => (
+                      <option key={resume.id} value={resume.id}>
+                        {resume.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <Button type="submit" variant="outline" size="sm">
+                  {jobPosting.matchScore === null
+                    ? "Analyze match"
+                    : "Refresh match"}
+                </Button>
+              </form>
+            )}
+
+            {jobPosting.matchScore !== null ? (
+              <div className="space-y-3">
+                <div className="space-y-1 text-sm text-muted-foreground">
+                  <p className="font-medium text-foreground">
+                    Match score: {jobPosting.matchScore}/100
+                  </p>
+                  {jobPosting.matchScoreAt ? (
+                    <p>
+                      Generated:{" "}
+                      {jobPosting.matchScoreAt.toLocaleString("hr-HR")}
+                    </p>
+                  ) : null}
+                  {jobPosting.matchResume ? (
+                    <p>Resume: {jobPosting.matchResume.name}</p>
+                  ) : null}
+                </div>
+
+                {jobPosting.matchAnalysis ? (
+                  <div className="whitespace-pre-wrap rounded-md border bg-muted/30 p-4 text-sm leading-6">
+                    {jobPosting.matchAnalysis}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    No saved match analysis text is available yet.
+                  </p>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No resume match has been generated for this job posting yet.
               </p>
             )}
           </CardContent>
