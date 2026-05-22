@@ -56,8 +56,6 @@ export const resumeJobMatchResultSchema = z.object({
   overallFit: nonEmptyString,
   strongMatches: z.array(nonEmptyString).min(1).max(6),
   gaps: z.array(nonEmptyString).min(1).max(6),
-  suggestedImprovements: z.array(nonEmptyString).min(1).max(6),
-  keywords: z.array(nonEmptyString).max(12),
 });
 
 export type ResumeJobMatchResult = z.infer<
@@ -181,13 +179,11 @@ Return a practical resume/job match analysis as a structured object with:
 - score: integer from 0 to 100
 - overallFit: concise paragraph
 - strongMatches: 3-5 concise bullets
-- gaps: 3-5 concise bullets
-- suggestedImprovements: 3-5 concise resume tailoring ideas
-- keywords: up to 10 keywords or phrases to consider
+- gaps: 3-5 concise bullets covering missing evidence, risks, or unclear alignment
 
 If no strong matches are evident, include one strongMatches item exactly like this: "No strong matches identified from the provided context."
 
-Score the match using evidence from the resume and job posting. Do not invent resume experience, job requirements, employers, tools, metrics, achievements, credentials, or locations. If information is missing or unclear, say so in the relevant field. Suggested improvements must be advice only, not automatic resume rewriting. Do not generate a cover letter. Avoid overconfident claims.`;
+Score the match using evidence from the resume and job posting. Keep this diagnostic: answer how well this resume matches this job. Do not suggest resume edits; detailed tailoring advice belongs to a separate tailoring feature. Do not invent resume experience, job requirements, employers, tools, metrics, achievements, credentials, or locations. If information is missing or unclear, say so in the relevant field. Do not generate a cover letter. Avoid overconfident claims.`;
 }
 
 function normalizeString(value: string) {
@@ -204,8 +200,6 @@ function validateResumeJobMatchResult(output: ResumeJobMatchResult) {
     overallFit: normalizeString(output.overallFit),
     strongMatches: normalizeList(output.strongMatches),
     gaps: normalizeList(output.gaps),
-    suggestedImprovements: normalizeList(output.suggestedImprovements),
-    keywords: normalizeList(output.keywords),
   });
 
   if (!parsed.success) {
@@ -230,13 +224,7 @@ ${result.overallFit}
 ${formatList(result.strongMatches)}
 
 ## Gaps or risks
-${formatList(result.gaps)}
-
-## Suggested resume improvements
-${formatList(result.suggestedImprovements)}
-
-## Keywords/phrasing to consider
-${result.keywords.length > 0 ? formatList(result.keywords) : "- No clear keyword suggestions from the provided context."}`;
+${formatList(result.gaps)}`;
 }
 
 export async function generateResumeJobMatch(
@@ -255,7 +243,7 @@ export async function generateResumeJobMatch(
         description: "A concise resume to job posting match analysis.",
       }),
       system:
-        "You are a senior resume and job fit analyst. Compare a resume against one saved job posting using only provided context. Do not act like a chatbot. Do not ask follow-up questions. Do not invent facts. Do not browse URLs. Do not rewrite the resume or generate cover letters.",
+        "You are a senior resume and job fit analyst. Compare a resume against one saved job posting using only provided context. Do not act like a chatbot. Do not ask follow-up questions. Do not invent facts. Do not browse URLs. Do not suggest resume edits, rewrite the resume, or generate cover letters.",
       prompt: buildResumeJobMatchPrompt(input),
       temperature: 0.2,
       maxOutputTokens: 3500,

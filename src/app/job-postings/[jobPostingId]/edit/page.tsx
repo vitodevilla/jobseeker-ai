@@ -8,6 +8,7 @@ import {
   analyzeResumeJobMatch,
   deleteJobPosting,
   generateJobPostingAiSummary,
+  generateResumeTailoringSuggestions,
   updateJobPosting,
 } from "@/app/job-postings/actions";
 import { Button } from "@/components/ui/button";
@@ -69,6 +70,12 @@ export default async function EditJobPostingPage({
             name: true,
           },
         },
+        tailoringResume: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
     }),
     prisma.company.findMany({
@@ -119,6 +126,8 @@ export default async function EditJobPostingPage({
     null,
     jobPosting.id,
   );
+  const generateResumeTailoringSuggestionsWithId =
+    generateResumeTailoringSuggestions.bind(null, jobPosting.id);
   const resumeIds = new Set(resumes.map((resume) => resume.id));
   const defaultResumeId =
     jobPosting.matchResumeId && resumeIds.has(jobPosting.matchResumeId)
@@ -126,6 +135,15 @@ export default async function EditJobPostingPage({
       : user.primaryResumeId && resumeIds.has(user.primaryResumeId)
         ? user.primaryResumeId
         : "";
+  const defaultTailoringResumeId =
+    jobPosting.tailoringResumeId &&
+    resumeIds.has(jobPosting.tailoringResumeId)
+      ? jobPosting.tailoringResumeId
+      : jobPosting.matchResumeId && resumeIds.has(jobPosting.matchResumeId)
+        ? jobPosting.matchResumeId
+        : user.primaryResumeId && resumeIds.has(user.primaryResumeId)
+          ? user.primaryResumeId
+          : "";
 
   return (
     <AppShell userName={session.user.name} userEmail={session.user.email}>
@@ -163,7 +181,8 @@ export default async function EditJobPostingPage({
             <CardHeader>
               <CardTitle>Select a resume</CardTitle>
               <CardDescription>
-                Choose one of your saved resumes before analyzing the match.
+                Choose one of your saved resumes before running resume
+                analysis.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -175,7 +194,7 @@ export default async function EditJobPostingPage({
               <CardTitle>Resume content is required</CardTitle>
               <CardDescription>
                 The selected resume has no usable text. Edit the resume or
-                upload a readable PDF before analyzing the match.
+                upload a readable PDF before running resume analysis.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -241,6 +260,32 @@ export default async function EditJobPostingPage({
           </Card>
         ) : null}
 
+        {error === "empty-ai-tailoring" ? (
+          <Card className="border-destructive/30">
+            <CardHeader>
+              <CardTitle>AI tailoring suggestions were empty</CardTitle>
+              <CardDescription>
+                The AI request completed without usable tailoring suggestions.
+                Try generating suggestions again.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        ) : null}
+
+        {error === "ai-tailoring-failed" ? (
+          <Card className="border-destructive/30">
+            <CardHeader>
+              <CardTitle>
+                AI tailoring suggestions could not be generated
+              </CardTitle>
+              <CardDescription>
+                Something went wrong while generating resume tailoring
+                suggestions. Try again in a moment.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        ) : null}
+
         {query.ai === "summary-generated" ? (
           <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
             AI summary saved.
@@ -250,6 +295,12 @@ export default async function EditJobPostingPage({
         {query.ai === "match-generated" ? (
           <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
             Resume match analysis saved.
+          </p>
+        ) : null}
+
+        {query.ai === "tailoring-generated" ? (
+          <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+            Resume tailoring suggestions saved.
           </p>
         ) : null}
 
@@ -494,8 +545,14 @@ export default async function EditJobPostingPage({
                 <Button type="submit" variant="outline" size="sm">
                   {jobPosting.matchScore === null
                     ? "Analyze match"
-                    : "Refresh match"}
+                    : "Reanalyze match"}
                 </Button>
+                {jobPosting.matchScore !== null ? (
+                  <p className="text-sm text-muted-foreground">
+                    Reanalyzing regenerates the AI assessment and may slightly
+                    change the score.
+                  </p>
+                ) : null}
               </form>
             )}
 
@@ -529,6 +586,89 @@ export default async function EditJobPostingPage({
             ) : (
               <p className="text-sm text-muted-foreground">
                 No resume match has been generated for this job posting yet.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Resume tailoring suggestions</CardTitle>
+            <CardDescription>
+              Get advice on what to change or emphasize for this saved job
+              posting.
+              {jobPosting.tailoringSuggestionsAt
+                ? ` Generated ${jobPosting.tailoringSuggestionsAt.toLocaleString("hr-HR")}.`
+                : ""}
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="space-y-4">
+            {resumes.length === 0 ? (
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Add a resume before generating tailoring suggestions for this
+                  job posting.
+                </p>
+                <Button asChild>
+                  <Link href="/resumes/new">Add resume</Link>
+                </Button>
+              </div>
+            ) : (
+              <form
+                action={generateResumeTailoringSuggestionsWithId}
+                className="space-y-4"
+              >
+                <div className="space-y-2">
+                  <Label htmlFor="tailoringResumeId">Resume</Label>
+                  <select
+                    id="tailoringResumeId"
+                    name="resumeId"
+                    required
+                    defaultValue={defaultTailoringResumeId}
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                  >
+                    <option value="">Select a resume</option>
+                    {resumes.map((resume) => (
+                      <option key={resume.id} value={resume.id}>
+                        {resume.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <Button type="submit" variant="outline" size="sm">
+                  {jobPosting.tailoringSuggestions
+                    ? "Refresh tailoring suggestions"
+                    : "Suggest resume tailoring"}
+                </Button>
+              </form>
+            )}
+
+            {jobPosting.tailoringSuggestions ? (
+              <div className="space-y-3">
+                <div className="space-y-1 text-sm text-muted-foreground">
+                  {jobPosting.tailoringSuggestionsAt ? (
+                    <p>
+                      Generated:{" "}
+                      {jobPosting.tailoringSuggestionsAt.toLocaleString(
+                        "hr-HR",
+                      )}
+                    </p>
+                  ) : null}
+                  {jobPosting.tailoringResume ? (
+                    <p>Resume: {jobPosting.tailoringResume.name}</p>
+                  ) : null}
+                </div>
+
+                <div className="whitespace-pre-wrap rounded-md border bg-muted/30 p-4 text-sm leading-6">
+                  {jobPosting.tailoringSuggestions}
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No resume tailoring suggestions have been generated for this
+                job posting yet.
               </p>
             )}
           </CardContent>
