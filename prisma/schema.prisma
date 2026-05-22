@@ -186,9 +186,10 @@ model Resume {
   updatedAt DateTime @updatedAt
 
   // Relations
-  applications      Application[]
-  primaryForUser    User?         @relation("PrimaryResume")
-  jobPostingMatches JobPosting[]  @relation("JobPostingMatchResume")
+  applications         Application[]
+  primaryForUser       User?         @relation("PrimaryResume")
+  jobPostingMatches    JobPosting[]  @relation("JobPostingMatchResume")
+  jobPostingTailorings JobPosting[]  @relation("JobPostingTailoringResume")
 
   @@index([userId])
 }
@@ -251,6 +252,11 @@ model JobPosting {
   matchAnalysis String?
   matchResumeId String?
   matchResume   Resume?   @relation("JobPostingMatchResume", fields: [matchResumeId], references: [id], onDelete: SetNull)
+
+  tailoringSuggestions   String?
+  tailoringSuggestionsAt DateTime?
+  tailoringResumeId      String?
+  tailoringResume        Resume?   @relation("JobPostingTailoringResume", fields: [tailoringResumeId], references: [id], onDelete: SetNull)
 
   // Future: vector embedding for semantic matching
   // embedding    Unsupported("vector(1536)")?
