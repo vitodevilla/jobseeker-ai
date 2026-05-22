@@ -167,7 +167,11 @@ export async function updateJobPosting(
       id: jobPostingId,
       userId,
     },
-    data: parsed,
+    data: {
+      ...parsed,
+      embeddedAt: null,
+      embeddingTextHash: null,
+    },
   });
 
   if (result.count === 0) {

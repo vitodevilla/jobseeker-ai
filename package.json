@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "backfill:embeddings": "tsx scripts/backfill-embeddings.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.75",

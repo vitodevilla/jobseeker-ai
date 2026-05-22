@@ -136,6 +136,8 @@ export async function updateResume(resumeId: string, formData: FormData) {
     data: {
       name: parsed.name,
       content: finalContent,
+      embeddedAt: null,
+      embeddingTextHash: null,
       ...(fileUrl ? { fileUrl } : {}),
     },
   });

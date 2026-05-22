@@ -179,8 +179,10 @@ model Resume {
   aiFeedback   String? // markdown text of AI suggestions
   aiFeedbackAt DateTime?
 
-  // Future: vector embedding for semantic matching (Week 5+)
-  // embedding    Unsupported("vector(1536)")?
+  // Semantic retrieval embedding
+  embedding         Unsupported("vector(3072)")?
+  embeddedAt        DateTime?
+  embeddingTextHash String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -258,8 +260,10 @@ model JobPosting {
   tailoringResumeId      String?
   tailoringResume        Resume?   @relation("JobPostingTailoringResume", fields: [tailoringResumeId], references: [id], onDelete: SetNull)
 
-  // Future: vector embedding for semantic matching
-  // embedding    Unsupported("vector(1536)")?
+  // Semantic retrieval embedding
+  embedding         Unsupported("vector(3072)")?
+  embeddedAt        DateTime?
+  embeddingTextHash String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
