@@ -3,6 +3,12 @@ import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  findSimilarResumesToJobPosting,
+  getJobPostingSemanticSearchStatus,
+  type JobPostingSemanticSearchStatus,
+  type SimilarResumeResult,
+} from "@/lib/retrieval/semantic-search";
 import { AppShell } from "@/components/app-shell";
 import {
   analyzeResumeJobMatch,
@@ -33,12 +39,69 @@ type EditJobPostingPageProps = {
   }>;
 };
 
+const SIMILAR_RECORDS_LIMIT = 5;
+
+type SimilarResumesState =
+  | {
+      status: "available";
+      semanticStatus: JobPostingSemanticSearchStatus;
+      resumes: SimilarResumeResult[];
+    }
+  | {
+      status: "unavailable";
+    };
+
 function toDateInputValue(date: Date | null) {
   if (!date) {
     return "";
   }
 
   return date.toISOString().slice(0, 10);
+}
+
+function formatSimilarityPercent(similarity: number) {
+  const boundedSimilarity = Math.min(1, Math.max(0, similarity));
+  return `${Math.round(boundedSimilarity * 100)}%`;
+}
+
+function getSimilarResumesEmptyMessage(
+  status: JobPostingSemanticSearchStatus,
+) {
+  if (!status.sourceJobPostingHasCurrentEmbedding) {
+    return "Similar resumes will appear after embeddings are generated for this job posting and saved resumes. Run pnpm backfill:embeddings after creating or editing records.";
+  }
+
+  if (!status.resumeEmbeddingsExist) {
+    return "No saved resume embeddings are available yet. Run pnpm backfill:embeddings after saving resumes.";
+  }
+
+  return "No semantically similar resumes were found from the saved embeddings yet.";
+}
+
+async function getSimilarResumesState(
+  userId: string,
+  jobPostingId: string,
+): Promise<SimilarResumesState> {
+  try {
+    const [semanticStatus, resumes] = await Promise.all([
+      getJobPostingSemanticSearchStatus(userId, jobPostingId),
+      findSimilarResumesToJobPosting(
+        userId,
+        jobPostingId,
+        SIMILAR_RECORDS_LIMIT,
+      ),
+    ]);
+
+    return {
+      status: "available",
+      semanticStatus,
+      resumes,
+    };
+  } catch {
+    return {
+      status: "unavailable",
+    };
+  }
 }
 
 export default async function EditJobPostingPage({
@@ -115,6 +178,11 @@ export default async function EditJobPostingPage({
   if (!user) {
     redirect("/sign-in");
   }
+
+  const similarResumesState = await getSimilarResumesState(
+    session.user.id,
+    jobPosting.id,
+  );
 
   const updateJobPostingWithId = updateJobPosting.bind(null, jobPosting.id);
   const deleteJobPostingWithId = deleteJobPosting.bind(null, jobPosting.id);
@@ -669,6 +737,49 @@ export default async function EditJobPostingPage({
               <p className="text-sm text-muted-foreground">
                 No resume tailoring suggestions have been generated for this
                 job posting yet.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Similar resumes</CardTitle>
+            <CardDescription>
+              Semantically similar records based on saved embeddings. Scores are
+              approximate.
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent>
+            {similarResumesState.status === "unavailable" ? (
+              <p className="text-sm text-muted-foreground">
+                Similar resumes are unavailable right now. The rest of this page
+                is still available.
+              </p>
+            ) : similarResumesState.resumes.length > 0 ? (
+              <ul className="divide-y rounded-md border">
+                {similarResumesState.resumes.map((resume) => (
+                  <li key={resume.id}>
+                    <Link
+                      href={`/resumes/${resume.id}/edit`}
+                      className="group flex flex-col gap-2 p-3 transition-colors hover:bg-muted/50 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <p className="min-w-0 font-medium text-foreground underline-offset-4 group-hover:underline">
+                        {resume.name}
+                      </p>
+                      <p className="shrink-0 text-sm font-medium text-muted-foreground">
+                        Similarity: {formatSimilarityPercent(resume.similarity)}
+                      </p>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                {getSimilarResumesEmptyMessage(
+                  similarResumesState.semanticStatus,
+                )}
               </p>
             )}
           </CardContent>

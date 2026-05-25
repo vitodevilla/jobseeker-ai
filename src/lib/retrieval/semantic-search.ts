@@ -24,6 +24,14 @@ type EmbeddingPresenceRow = {
   hasEmbedding: boolean;
 };
 
+type CurrentEmbeddingPresenceRow = {
+  hasCurrentEmbedding: boolean;
+};
+
+type CandidateEmbeddingPresenceRow = {
+  hasCandidateEmbeddings: boolean;
+};
+
 type SimilarJobPostingRow = {
   id: string;
   title: string;
@@ -52,6 +60,16 @@ export type SimilarResumeResult = {
   name: string;
   distance: number;
   similarity: number;
+};
+
+export type ResumeSemanticSearchStatus = {
+  sourceResumeHasCurrentEmbedding: boolean;
+  jobPostingEmbeddingsExist: boolean;
+};
+
+export type JobPostingSemanticSearchStatus = {
+  sourceJobPostingHasCurrentEmbedding: boolean;
+  resumeEmbeddingsExist: boolean;
 };
 
 function boundedLimit(limit: number | undefined) {
@@ -102,6 +120,67 @@ async function jobPostingHasEmbedding(
   `;
 
   return rows[0]?.hasEmbedding ?? false;
+}
+
+export async function getResumeSemanticSearchStatus(
+  userId: string,
+  resumeId: string,
+): Promise<ResumeSemanticSearchStatus> {
+  const [sourceRows, candidateRows] = await Promise.all([
+    prisma.$queryRaw<CurrentEmbeddingPresenceRow[]>`
+      SELECT ("embedding" IS NOT NULL AND "embeddingTextHash" IS NOT NULL) AS "hasCurrentEmbedding"
+      FROM "Resume"
+      WHERE "id" = ${resumeId}
+        AND "userId" = ${userId}
+      LIMIT 1
+    `,
+    prisma.$queryRaw<CandidateEmbeddingPresenceRow[]>`
+      SELECT EXISTS (
+        SELECT 1
+        FROM "JobPosting"
+        WHERE "userId" = ${userId}
+          AND "embedding" IS NOT NULL
+          AND "embeddingTextHash" IS NOT NULL
+      ) AS "hasCandidateEmbeddings"
+    `,
+  ]);
+
+  return {
+    sourceResumeHasCurrentEmbedding:
+      sourceRows[0]?.hasCurrentEmbedding ?? false,
+    jobPostingEmbeddingsExist:
+      candidateRows[0]?.hasCandidateEmbeddings ?? false,
+  };
+}
+
+export async function getJobPostingSemanticSearchStatus(
+  userId: string,
+  jobPostingId: string,
+): Promise<JobPostingSemanticSearchStatus> {
+  const [sourceRows, candidateRows] = await Promise.all([
+    prisma.$queryRaw<CurrentEmbeddingPresenceRow[]>`
+      SELECT ("embedding" IS NOT NULL AND "embeddingTextHash" IS NOT NULL) AS "hasCurrentEmbedding"
+      FROM "JobPosting"
+      WHERE "id" = ${jobPostingId}
+        AND "userId" = ${userId}
+      LIMIT 1
+    `,
+    prisma.$queryRaw<CandidateEmbeddingPresenceRow[]>`
+      SELECT EXISTS (
+        SELECT 1
+        FROM "Resume"
+        WHERE "userId" = ${userId}
+          AND "embedding" IS NOT NULL
+          AND "embeddingTextHash" IS NOT NULL
+      ) AS "hasCandidateEmbeddings"
+    `,
+  ]);
+
+  return {
+    sourceJobPostingHasCurrentEmbedding:
+      sourceRows[0]?.hasCurrentEmbedding ?? false,
+    resumeEmbeddingsExist: candidateRows[0]?.hasCandidateEmbeddings ?? false,
+  };
 }
 
 async function clearResumeEmbeddingMetadata(

@@ -3,6 +3,12 @@ import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  findSimilarJobPostingsToResume,
+  getResumeSemanticSearchStatus,
+  type ResumeSemanticSearchStatus,
+  type SimilarJobPostingResult,
+} from "@/lib/retrieval/semantic-search";
 import { AppShell } from "@/components/app-shell";
 import {
   deleteResume,
@@ -31,6 +37,61 @@ type EditResumePageProps = {
   }>;
 };
 
+const SIMILAR_RECORDS_LIMIT = 5;
+
+type SimilarJobPostingsState =
+  | {
+      status: "available";
+      semanticStatus: ResumeSemanticSearchStatus;
+      jobPostings: SimilarJobPostingResult[];
+    }
+  | {
+      status: "unavailable";
+    };
+
+function formatSimilarityPercent(similarity: number) {
+  const boundedSimilarity = Math.min(1, Math.max(0, similarity));
+  return `${Math.round(boundedSimilarity * 100)}%`;
+}
+
+function getSimilarSavedJobsEmptyMessage(status: ResumeSemanticSearchStatus) {
+  if (!status.sourceResumeHasCurrentEmbedding) {
+    return "Similar saved jobs will appear after embeddings are generated for this resume and saved jobs. Run pnpm backfill:embeddings after creating or editing records.";
+  }
+
+  if (!status.jobPostingEmbeddingsExist) {
+    return "No saved job embeddings are available yet. Run pnpm backfill:embeddings after saving job postings.";
+  }
+
+  return "No semantically similar saved jobs were found from the saved embeddings yet.";
+}
+
+async function getSimilarJobPostingsState(
+  userId: string,
+  resumeId: string,
+): Promise<SimilarJobPostingsState> {
+  try {
+    const [semanticStatus, jobPostings] = await Promise.all([
+      getResumeSemanticSearchStatus(userId, resumeId),
+      findSimilarJobPostingsToResume(
+        userId,
+        resumeId,
+        SIMILAR_RECORDS_LIMIT,
+      ),
+    ]);
+
+    return {
+      status: "available",
+      semanticStatus,
+      jobPostings,
+    };
+  } catch {
+    return {
+      status: "unavailable",
+    };
+  }
+}
+
 export default async function EditResumePage({
   params,
   searchParams,
@@ -57,6 +118,11 @@ export default async function EditResumePage({
   if (!resume) {
     notFound();
   }
+
+  const similarJobPostingsState = await getSimilarJobPostingsState(
+    session.user.id,
+    resume.id,
+  );
 
   const updateResumeWithId = updateResume.bind(null, resume.id);
   const deleteResumeWithId = deleteResume.bind(null, resume.id);
@@ -216,6 +282,55 @@ export default async function EditResumePage({
             ) : (
               <p className="text-sm text-muted-foreground">
                 No AI critique has been generated for this resume yet.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Similar saved jobs</CardTitle>
+            <CardDescription>
+              Semantically similar records based on saved embeddings. Scores are
+              approximate.
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent>
+            {similarJobPostingsState.status === "unavailable" ? (
+              <p className="text-sm text-muted-foreground">
+                Similar saved jobs are unavailable right now. The rest of this
+                page is still available.
+              </p>
+            ) : similarJobPostingsState.jobPostings.length > 0 ? (
+              <ul className="divide-y rounded-md border">
+                {similarJobPostingsState.jobPostings.map((jobPosting) => (
+                  <li key={jobPosting.id}>
+                    <Link
+                      href={`/job-postings/${jobPosting.id}/edit`}
+                      className="group flex flex-col gap-2 p-3 transition-colors hover:bg-muted/50 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <div className="min-w-0 space-y-1">
+                        <p className="font-medium text-foreground underline-offset-4 group-hover:underline">
+                          {jobPosting.title}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {jobPosting.companyName}
+                        </p>
+                      </div>
+                      <p className="shrink-0 text-sm font-medium text-muted-foreground">
+                        Similarity:{" "}
+                        {formatSimilarityPercent(jobPosting.similarity)}
+                      </p>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                {getSimilarSavedJobsEmptyMessage(
+                  similarJobPostingsState.semanticStatus,
+                )}
               </p>
             )}
           </CardContent>
