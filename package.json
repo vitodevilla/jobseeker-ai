@@ -7,7 +7,8 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
-    "backfill:embeddings": "tsx scripts/backfill-embeddings.ts"
+    "backfill:embeddings": "tsx scripts/backfill-embeddings.ts",
+    "seed:semantic-test-data": "tsx scripts/seed-semantic-test-data.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.75",
