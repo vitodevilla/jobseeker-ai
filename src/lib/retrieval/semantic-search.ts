@@ -53,6 +53,11 @@ type SemanticJobPostingSearchCountRow = {
   hasEmbeddedJobPostings: boolean;
 };
 
+type SemanticResumeSearchCountRow = {
+  totalCount: unknown;
+  hasEmbeddedResumes: boolean;
+};
+
 type SemanticJobPostingSearchRow = {
   id: string;
   title: string;
@@ -67,6 +72,18 @@ type SemanticJobPostingSearchRow = {
   companyId: string;
   companyName: string;
   companyIndustry: string | null;
+  distance: unknown;
+  similarity: unknown;
+};
+
+type SemanticResumeSearchRow = {
+  id: string;
+  name: string;
+  content: string;
+  fileUrl: string | null;
+  aiFeedbackAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
   distance: unknown;
   similarity: unknown;
 };
@@ -131,6 +148,29 @@ export type SearchJobPostingsBySemanticQueryResult = {
   hasEmbeddedJobPostings: boolean;
 };
 
+export type SearchResumesBySemanticQueryInput = {
+  userId: string;
+  query: string;
+  limit?: number;
+  offset?: number;
+};
+
+export type SearchResumesBySemanticQueryResult = {
+  resumes: Array<{
+    id: string;
+    name: string;
+    content: string;
+    fileUrl: string | null;
+    aiFeedbackAt: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+    distance: number;
+    similarity: number;
+  }>;
+  totalCount: number;
+  hasEmbeddedResumes: boolean;
+};
+
 function boundedLimit(limit: number | undefined) {
   if (limit === undefined || !Number.isFinite(limit)) {
     return DEFAULT_SIMILARITY_LIMIT;
@@ -191,6 +231,16 @@ function buildJobPostingSemanticFilterSql(
   if (filters?.companyId) {
     conditions.push(Prisma.sql`jp."companyId" = ${filters.companyId}`);
   }
+
+  return Prisma.join(conditions, " AND ");
+}
+
+function buildResumeSemanticFilterSql(userId: string) {
+  const conditions: Prisma.Sql[] = [
+    Prisma.sql`r."userId" = ${userId}`,
+    Prisma.sql`r."embedding" IS NOT NULL`,
+    Prisma.sql`r."embeddingTextHash" IS NOT NULL`,
+  ];
 
   return Prisma.join(conditions, " AND ");
 }
@@ -608,6 +658,82 @@ export async function findSimilarResumesToJobPosting(
     distance: toNumber(row.distance),
     similarity: toNumber(row.similarity),
   }));
+}
+
+export async function searchResumesBySemanticQuery({
+  userId,
+  query,
+  limit,
+  offset,
+}: SearchResumesBySemanticQueryInput): Promise<SearchResumesBySemanticQueryResult> {
+  const trimmedQuery = query.trim();
+
+  if (!trimmedQuery) {
+    throw new Error("Semantic search query must not be empty.");
+  }
+
+  const safeLimit = boundedLimit(limit);
+  const safeOffset = boundedOffset(offset);
+  const whereSql = buildResumeSemanticFilterSql(userId);
+
+  const countRows = await prisma.$queryRaw<SemanticResumeSearchCountRow[]>(
+    Prisma.sql`
+      SELECT COUNT(*)::int AS "totalCount",
+             COUNT(*) > 0 AS "hasEmbeddedResumes"
+      FROM "Resume" r
+      WHERE ${whereSql}
+    `,
+  );
+
+  const totalCount = toCount(countRows[0]?.totalCount ?? 0);
+  const hasEmbeddedResumes = countRows[0]?.hasEmbeddedResumes ?? false;
+
+  if (!hasEmbeddedResumes) {
+    return {
+      resumes: [],
+      totalCount,
+      hasEmbeddedResumes,
+    };
+  }
+
+  const queryEmbedding = await generateEmbedding(trimmedQuery);
+  const serializedQueryEmbedding = serializeVectorForPg(queryEmbedding);
+
+  const rows = await prisma.$queryRaw<SemanticResumeSearchRow[]>(
+    Prisma.sql`
+      SELECT r."id",
+             r."name",
+             r."content",
+             r."fileUrl",
+             r."aiFeedbackAt",
+             r."createdAt",
+             r."updatedAt",
+             r."embedding" <=> ${serializedQueryEmbedding}::vector AS "distance",
+             1 - (r."embedding" <=> ${serializedQueryEmbedding}::vector) AS "similarity"
+      FROM "Resume" r
+      WHERE ${whereSql}
+      ORDER BY r."embedding" <=> ${serializedQueryEmbedding}::vector ASC,
+               r."updatedAt" DESC
+      LIMIT ${safeLimit}
+      OFFSET ${safeOffset}
+    `,
+  );
+
+  return {
+    resumes: rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      content: row.content,
+      fileUrl: row.fileUrl,
+      aiFeedbackAt: row.aiFeedbackAt,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      distance: toNumber(row.distance),
+      similarity: toNumber(row.similarity),
+    })),
+    totalCount,
+    hasEmbeddedResumes,
+  };
 }
 
 export async function searchJobPostingsBySemanticQuery({
