@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "backfill:embeddings": "tsx scripts/backfill-embeddings.ts",
+    "evaluate:retrieval": "tsx scripts/evaluate-retrieval.ts",
     "seed:semantic-test-data": "tsx scripts/seed-semantic-test-data.ts"
   },
   "dependencies": {
