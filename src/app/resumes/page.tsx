@@ -232,21 +232,21 @@ export default async function ResumesPage({ searchParams }: ResumesPageProps) {
   const missingSemanticEmbeddings =
     shouldRunSemanticSearch && !semanticSearchUnavailable && !hasEmbeddedResumes;
   const emptyStateTitle = missingSemanticEmbeddings
-    ? "No embedded resumes"
+    ? "No resume semantic data"
     : isShowingSemanticResults
       ? "No semantic results"
       : hasListConstraints
         ? "No matching resumes"
         : "No resumes yet";
   const emptyStateDescription = missingSemanticEmbeddings
-    ? "Semantic search results appear after embeddings are generated. Run pnpm backfill:embeddings after creating or editing records."
+    ? "Semantic search results will appear after saved resumes have semantic data. Open a resume and choose Update semantic data after editing."
     : isShowingSemanticResults
       ? "Try a different semantic search phrase."
       : hasListConstraints
         ? "Try a different search term or clear the search."
         : "Add your first resume version by pasting resume text or uploading a readable PDF.";
   const resultSummary = isShowingSemanticResults
-    ? "Showing the closest semantic results based on saved embeddings. Scores are approximate."
+    ? "Showing the closest semantic results based on saved semantic data. Scores are approximate."
     : `Showing ${resumes.length} of ${totalResumes} ${
         hasListConstraints ? "matching " : ""
       }resumes`;
@@ -278,7 +278,7 @@ export default async function ResumesPage({ searchParams }: ResumesPageProps) {
             <CardTitle>Search resumes</CardTitle>
             <CardDescription>
               Search by resume title or content. Semantic search uses saved
-              embeddings and approximate similarity.
+              semantic data and approximate similarity.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -310,7 +310,7 @@ export default async function ResumesPage({ searchParams }: ResumesPageProps) {
 
               {searchMode === "semantic" ? (
                 <p className="text-sm text-muted-foreground">
-                  Semantic search uses saved embeddings and approximate
+                  Semantic search uses saved semantic data and approximate
                   similarity.
                 </p>
               ) : null}

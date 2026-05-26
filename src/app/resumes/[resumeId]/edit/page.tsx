@@ -13,6 +13,7 @@ import { AppShell } from "@/components/app-shell";
 import {
   deleteResume,
   generateResumeAiFeedback,
+  refreshResumeSemanticData,
   updateResume,
 } from "@/app/resumes/actions";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ type EditResumePageProps = {
   searchParams: Promise<{
     ai?: string;
     error?: string;
+    semantic?: string;
   }>;
 };
 
@@ -56,14 +58,14 @@ function formatSimilarityPercent(similarity: number) {
 
 function getSimilarSavedJobsEmptyMessage(status: ResumeSemanticSearchStatus) {
   if (!status.sourceResumeHasCurrentEmbedding) {
-    return "Similar saved jobs will appear after embeddings are generated for this resume and saved jobs. Run pnpm backfill:embeddings after creating or editing records.";
+    return "Semantic results will appear after semantic data is refreshed.";
   }
 
   if (!status.jobPostingEmbeddingsExist) {
-    return "No saved job embeddings are available yet. Run pnpm backfill:embeddings after saving job postings.";
+    return "Similar saved jobs will appear after your saved jobs have semantic data.";
   }
 
-  return "No semantically similar saved jobs were found from the saved embeddings yet.";
+  return "No semantically similar saved jobs were found yet.";
 }
 
 async function getSimilarJobPostingsState(
@@ -130,6 +132,13 @@ export default async function EditResumePage({
     null,
     resume.id,
   );
+  const refreshResumeSemanticDataWithId = refreshResumeSemanticData.bind(
+    null,
+    resume.id,
+  );
+  const resumeSemanticDataNeedsRefresh =
+    similarJobPostingsState.status === "available" &&
+    !similarJobPostingsState.semanticStatus.sourceResumeHasCurrentEmbedding;
 
   return (
     <AppShell userName={session.user.name} userEmail={session.user.email}>
@@ -186,9 +195,43 @@ export default async function EditResumePage({
           </Card>
         ) : null}
 
+        {error === "semantic-empty" ? (
+          <Card className="border-destructive/30">
+            <CardHeader>
+              <CardTitle>Semantic data needs content</CardTitle>
+              <CardDescription>
+                This record needs content before semantic data can be generated.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        ) : null}
+
+        {error === "semantic-failed" ? (
+          <Card className="border-destructive/30">
+            <CardHeader>
+              <CardTitle>Semantic data could not be updated</CardTitle>
+              <CardDescription>
+                Semantic data could not be updated right now.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        ) : null}
+
         {query.ai === "generated" ? (
           <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
             AI critique saved.
+          </p>
+        ) : null}
+
+        {query.semantic === "updated" ? (
+          <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+            Semantic data updated.
+          </p>
+        ) : null}
+
+        {query.semantic === "fresh" ? (
+          <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+            Semantic data was already up to date.
           </p>
         ) : null}
 
@@ -291,8 +334,8 @@ export default async function EditResumePage({
           <CardHeader>
             <CardTitle>Similar saved jobs</CardTitle>
             <CardDescription>
-              Semantically similar records based on saved embeddings. Scores are
-              approximate.
+              Semantically similar records based on saved semantic data. Scores
+              are approximate.
             </CardDescription>
           </CardHeader>
 
@@ -302,6 +345,17 @@ export default async function EditResumePage({
                 Similar saved jobs are unavailable right now. The rest of this
                 page is still available.
               </p>
+            ) : resumeSemanticDataNeedsRefresh ? (
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Semantic data needs refreshing after recent edits.
+                </p>
+                <form action={refreshResumeSemanticDataWithId}>
+                  <Button type="submit" variant="outline" size="sm">
+                    Update semantic data
+                  </Button>
+                </form>
+              </div>
             ) : similarJobPostingsState.jobPostings.length > 0 ? (
               <ul className="divide-y rounded-md border">
                 {similarJobPostingsState.jobPostings.map((jobPosting) => (

@@ -368,21 +368,21 @@ export default async function JobPostingsPage({
   const missingSemanticEmbeddings =
     shouldRunSemanticSearch && !semanticSearchUnavailable && !hasEmbeddedJobPostings;
   const emptyStateTitle = missingSemanticEmbeddings
-    ? "No embedded job postings"
+    ? "No job posting semantic data"
     : isShowingSemanticResults
       ? "No semantic results"
       : hasListConstraints
         ? "No matching job postings"
         : "No job postings yet";
   const emptyStateDescription = missingSemanticEmbeddings
-    ? "Semantic search results appear after embeddings are generated. Run pnpm backfill:embeddings after creating or editing records."
+    ? "Semantic search results will appear after saved job postings have semantic data. Open a job posting and choose Update semantic data after editing."
     : isShowingSemanticResults
       ? "Try a different semantic search phrase or adjust filters."
       : hasListConstraints
         ? "Try a different search term, adjust filters, or clear the search."
         : "Save your first job posting after adding at least one company.";
   const resultSummary = isShowingSemanticResults
-    ? "Showing the closest semantic results based on saved embeddings. Scores are approximate."
+    ? "Showing the closest semantic results based on saved semantic data. Scores are approximate."
     : `Showing ${jobPostings.length} of ${totalJobPostings} ${
         hasListConstraints ? "matching " : ""
       }job postings`;
@@ -417,7 +417,7 @@ export default async function JobPostingsPage({
             <CardDescription>
               Search by title, description, company, industry, location,
               seniority, URL, or salary currency. Semantic search uses saved
-              embeddings and approximate similarity.
+              semantic data and approximate similarity.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -482,7 +482,7 @@ export default async function JobPostingsPage({
 
               {searchMode === "semantic" ? (
                 <p className="text-sm text-muted-foreground">
-                  Semantic search uses saved embeddings and approximate
+                  Semantic search uses saved semantic data and approximate
                   similarity.
                 </p>
               ) : null}
