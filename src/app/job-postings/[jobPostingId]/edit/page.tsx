@@ -15,6 +15,7 @@ import {
   deleteJobPosting,
   generateJobPostingAiSummary,
   generateResumeTailoringSuggestions,
+  refreshJobPostingSemanticData,
   updateJobPosting,
 } from "@/app/job-postings/actions";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ type EditJobPostingPageProps = {
   searchParams: Promise<{
     ai?: string;
     error?: string;
+    semantic?: string;
   }>;
 };
 
@@ -68,14 +70,14 @@ function getSimilarResumesEmptyMessage(
   status: JobPostingSemanticSearchStatus,
 ) {
   if (!status.sourceJobPostingHasCurrentEmbedding) {
-    return "Similar resumes will appear after embeddings are generated for this job posting and saved resumes. Run pnpm backfill:embeddings after creating or editing records.";
+    return "Semantic results will appear after semantic data is refreshed.";
   }
 
   if (!status.resumeEmbeddingsExist) {
-    return "No saved resume embeddings are available yet. Run pnpm backfill:embeddings after saving resumes.";
+    return "Similar resumes will appear after your resumes have semantic data.";
   }
 
-  return "No semantically similar resumes were found from the saved embeddings yet.";
+  return "No semantically similar resumes were found yet.";
 }
 
 async function getSimilarResumesState(
@@ -190,12 +192,17 @@ export default async function EditJobPostingPage({
     null,
     jobPosting.id,
   );
+  const refreshJobPostingSemanticDataWithId =
+    refreshJobPostingSemanticData.bind(null, jobPosting.id);
   const analyzeResumeJobMatchWithId = analyzeResumeJobMatch.bind(
     null,
     jobPosting.id,
   );
   const generateResumeTailoringSuggestionsWithId =
     generateResumeTailoringSuggestions.bind(null, jobPosting.id);
+  const jobPostingSemanticDataNeedsRefresh =
+    similarResumesState.status === "available" &&
+    !similarResumesState.semanticStatus.sourceJobPostingHasCurrentEmbedding;
   const resumeIds = new Set(resumes.map((resume) => resume.id));
   const defaultResumeId =
     jobPosting.matchResumeId && resumeIds.has(jobPosting.matchResumeId)
@@ -354,6 +361,28 @@ export default async function EditJobPostingPage({
           </Card>
         ) : null}
 
+        {error === "semantic-empty" ? (
+          <Card className="border-destructive/30">
+            <CardHeader>
+              <CardTitle>Semantic data needs content</CardTitle>
+              <CardDescription>
+                This record needs content before semantic data can be generated.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        ) : null}
+
+        {error === "semantic-failed" ? (
+          <Card className="border-destructive/30">
+            <CardHeader>
+              <CardTitle>Semantic data could not be updated</CardTitle>
+              <CardDescription>
+                Semantic data could not be updated right now.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        ) : null}
+
         {query.ai === "summary-generated" ? (
           <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
             AI summary saved.
@@ -369,6 +398,18 @@ export default async function EditJobPostingPage({
         {query.ai === "tailoring-generated" ? (
           <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
             Resume tailoring suggestions saved.
+          </p>
+        ) : null}
+
+        {query.semantic === "updated" ? (
+          <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+            Semantic data updated.
+          </p>
+        ) : null}
+
+        {query.semantic === "fresh" ? (
+          <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+            Semantic data was already up to date.
           </p>
         ) : null}
 
@@ -746,8 +787,8 @@ export default async function EditJobPostingPage({
           <CardHeader>
             <CardTitle>Similar resumes</CardTitle>
             <CardDescription>
-              Semantically similar records based on saved embeddings. Scores are
-              approximate.
+              Semantically similar records based on saved semantic data. Scores
+              are approximate.
             </CardDescription>
           </CardHeader>
 
@@ -757,6 +798,17 @@ export default async function EditJobPostingPage({
                 Similar resumes are unavailable right now. The rest of this page
                 is still available.
               </p>
+            ) : jobPostingSemanticDataNeedsRefresh ? (
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Semantic data needs refreshing after recent edits.
+                </p>
+                <form action={refreshJobPostingSemanticDataWithId}>
+                  <Button type="submit" variant="outline" size="sm">
+                    Update semantic data
+                  </Button>
+                </form>
+              </div>
             ) : similarResumesState.resumes.length > 0 ? (
               <ul className="divide-y rounded-md border">
                 {similarResumesState.resumes.map((resume) => (

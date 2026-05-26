@@ -13,6 +13,7 @@ import {
 } from "@/lib/ai/resume-job-match";
 import { generateResumeTailoringSuggestions as generateResumeTailoringSuggestionsWithAi } from "@/lib/ai/resume-tailoring-suggestions";
 import { prisma } from "@/lib/prisma";
+import { generateJobPostingEmbeddingForUser } from "@/lib/retrieval/semantic-search";
 import { jobPostingFormSchema } from "@/lib/validations/job-posting";
 
 const resumeSelectionFormSchema = z.object({
@@ -106,6 +107,13 @@ function hasEnoughResumeJobMatchContext(jobPosting: ResumeJobMatchContext) {
       jobPosting.company.industry ||
       jobPosting.company.notes,
   );
+}
+
+function revalidateJobPostingSemanticDataPaths(jobPostingId: string) {
+  revalidatePath("/job-postings");
+  revalidatePath(`/job-postings/${jobPostingId}/edit`);
+  revalidatePath("/resumes");
+  revalidatePath("/resumes/[resumeId]/edit", "page");
 }
 
 export async function createJobPosting(formData: FormData) {
@@ -571,6 +579,38 @@ export async function generateResumeTailoringSuggestions(
   revalidatePath("/job-postings");
   revalidatePath(editPath);
   redirect(`${editPath}?ai=tailoring-generated`);
+}
+
+export async function refreshJobPostingSemanticData(jobPostingId: string) {
+  const userId = await getSignedInUserId();
+  const editPath = `/job-postings/${jobPostingId}/edit`;
+
+  let result: Awaited<
+    ReturnType<typeof generateJobPostingEmbeddingForUser>
+  > | null = null;
+
+  try {
+    result = await generateJobPostingEmbeddingForUser(userId, jobPostingId);
+  } catch {
+    revalidateJobPostingSemanticDataPaths(jobPostingId);
+    redirect(`${editPath}?error=semantic-failed`);
+  }
+
+  if (!result || result.status === "not_found") {
+    redirect("/job-postings");
+  }
+
+  revalidateJobPostingSemanticDataPaths(jobPostingId);
+
+  if (result.status === "updated") {
+    redirect(`${editPath}?semantic=updated`);
+  }
+
+  if (result.status === "skipped_fresh") {
+    redirect(`${editPath}?semantic=fresh`);
+  }
+
+  redirect(`${editPath}?error=semantic-empty`);
 }
 
 export async function deleteJobPosting(jobPostingId: string) {

@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { generateResumeCritique } from "@/lib/ai/resume-critique";
 import { prisma } from "@/lib/prisma";
+import { generateResumeEmbeddingForUser } from "@/lib/retrieval/semantic-search";
 import { resumeFormSchema } from "@/lib/validations/resume";
 
 const MAX_RESUME_PDF_SIZE_BYTES = 5 * 1024 * 1024;
@@ -57,6 +58,13 @@ async function uploadResumePdf(file: File, userId: string) {
     access: "private",
     addRandomSuffix: true,
   });
+}
+
+function revalidateResumeSemanticDataPaths(resumeId: string) {
+  revalidatePath("/resumes");
+  revalidatePath(`/resumes/${resumeId}/edit`);
+  revalidatePath("/job-postings");
+  revalidatePath("/job-postings/[jobPostingId]/edit", "page");
 }
 
 export async function createResume(formData: FormData) {
@@ -222,6 +230,37 @@ export async function generateResumeAiFeedback(resumeId: string) {
   revalidatePath("/resumes");
   revalidatePath(`/resumes/${resumeId}/edit`);
   redirect(`/resumes/${resumeId}/edit?ai=generated`);
+}
+
+export async function refreshResumeSemanticData(resumeId: string) {
+  const userId = await getSignedInUserId();
+  const editPath = `/resumes/${resumeId}/edit`;
+
+  let result: Awaited<ReturnType<typeof generateResumeEmbeddingForUser>> | null =
+    null;
+
+  try {
+    result = await generateResumeEmbeddingForUser(userId, resumeId);
+  } catch {
+    revalidateResumeSemanticDataPaths(resumeId);
+    redirect(`${editPath}?error=semantic-failed`);
+  }
+
+  if (!result || result.status === "not_found") {
+    redirect("/resumes");
+  }
+
+  revalidateResumeSemanticDataPaths(resumeId);
+
+  if (result.status === "updated") {
+    redirect(`${editPath}?semantic=updated`);
+  }
+
+  if (result.status === "skipped_fresh") {
+    redirect(`${editPath}?semantic=fresh`);
+  }
+
+  redirect(`${editPath}?error=semantic-empty`);
 }
 
 export async function deleteResume(resumeId: string) {
