@@ -6,6 +6,7 @@ import {
   validateEmbeddingVector,
 } from "@/lib/ai/embeddings";
 import { prisma } from "@/lib/prisma";
+import { Prisma, type WorkMode } from "@/generated/prisma";
 
 const DEFAULT_SIMILARITY_LIMIT = 5;
 const MAX_SIMILARITY_LIMIT = 20;
@@ -47,6 +48,29 @@ type SimilarResumeRow = {
   similarity: unknown;
 };
 
+type SemanticJobPostingSearchCountRow = {
+  totalCount: unknown;
+  hasEmbeddedJobPostings: boolean;
+};
+
+type SemanticJobPostingSearchRow = {
+  id: string;
+  title: string;
+  description: string;
+  location: string | null;
+  workMode: WorkMode | null;
+  seniorityLevel: string | null;
+  matchScore: number | null;
+  deadline: Date | null;
+  savedAt: Date;
+  aiSummary: string | null;
+  companyId: string;
+  companyName: string;
+  companyIndustry: string | null;
+  distance: unknown;
+  similarity: unknown;
+};
+
 export type SimilarJobPostingResult = {
   id: string;
   title: string;
@@ -72,12 +96,55 @@ export type JobPostingSemanticSearchStatus = {
   resumeEmbeddingsExist: boolean;
 };
 
+export type SearchJobPostingsBySemanticQueryInput = {
+  userId: string;
+  query: string;
+  limit?: number;
+  offset?: number;
+  filters?: {
+    workMode?: WorkMode;
+    companyId?: string;
+  };
+};
+
+export type SearchJobPostingsBySemanticQueryResult = {
+  jobPostings: Array<{
+    id: string;
+    title: string;
+    description: string;
+    location: string | null;
+    workMode: WorkMode | null;
+    seniorityLevel: string | null;
+    matchScore: number | null;
+    deadline: Date | null;
+    savedAt: Date;
+    aiSummary: string | null;
+    company: {
+      id: string;
+      name: string;
+      industry: string | null;
+    };
+    distance: number;
+    similarity: number;
+  }>;
+  totalCount: number;
+  hasEmbeddedJobPostings: boolean;
+};
+
 function boundedLimit(limit: number | undefined) {
   if (limit === undefined || !Number.isFinite(limit)) {
     return DEFAULT_SIMILARITY_LIMIT;
   }
 
   return Math.min(MAX_SIMILARITY_LIMIT, Math.max(1, Math.trunc(limit)));
+}
+
+function boundedOffset(offset: number | undefined) {
+  if (offset === undefined || !Number.isFinite(offset)) {
+    return 0;
+  }
+
+  return Math.max(0, Math.trunc(offset));
 }
 
 function toNumber(value: unknown) {
@@ -91,8 +158,41 @@ function toNumber(value: unknown) {
   return numericValue;
 }
 
+function toCount(value: unknown) {
+  const numericValue =
+    typeof value === "bigint" ? Number(value) : Number.parseInt(String(value), 10);
+
+  if (!Number.isInteger(numericValue) || numericValue < 0) {
+    throw new Error("Semantic search count query returned an invalid count.");
+  }
+
+  return numericValue;
+}
+
 function serializeVectorForPg(vector: number[]) {
   return `[${validateEmbeddingVector(vector).join(",")}]`;
+}
+
+function buildJobPostingSemanticFilterSql(
+  userId: string,
+  filters: SearchJobPostingsBySemanticQueryInput["filters"],
+) {
+  const conditions: Prisma.Sql[] = [
+    Prisma.sql`jp."userId" = ${userId}`,
+    Prisma.sql`jp."embedding" IS NOT NULL`,
+    Prisma.sql`jp."embeddingTextHash" IS NOT NULL`,
+    Prisma.sql`c."userId" = ${userId}`,
+  ];
+
+  if (filters?.workMode) {
+    conditions.push(Prisma.sql`jp."workMode" = ${filters.workMode}::"WorkMode"`);
+  }
+
+  if (filters?.companyId) {
+    conditions.push(Prisma.sql`jp."companyId" = ${filters.companyId}`);
+  }
+
+  return Prisma.join(conditions, " AND ");
 }
 
 async function resumeHasEmbedding(userId: string, resumeId: string) {
@@ -508,4 +608,102 @@ export async function findSimilarResumesToJobPosting(
     distance: toNumber(row.distance),
     similarity: toNumber(row.similarity),
   }));
+}
+
+export async function searchJobPostingsBySemanticQuery({
+  userId,
+  query,
+  limit,
+  offset,
+  filters,
+}: SearchJobPostingsBySemanticQueryInput): Promise<SearchJobPostingsBySemanticQueryResult> {
+  const trimmedQuery = query.trim();
+
+  if (!trimmedQuery) {
+    throw new Error("Semantic search query must not be empty.");
+  }
+
+  const safeLimit = boundedLimit(limit);
+  const safeOffset = boundedOffset(offset);
+  const whereSql = buildJobPostingSemanticFilterSql(userId, filters);
+
+  const countRows = await prisma.$queryRaw<SemanticJobPostingSearchCountRow[]>(
+    Prisma.sql`
+      SELECT COUNT(*)::int AS "totalCount",
+             COUNT(*) > 0 AS "hasEmbeddedJobPostings"
+      FROM "JobPosting" jp
+      JOIN "Company" c
+        ON c."id" = jp."companyId"
+       AND c."userId" = jp."userId"
+      WHERE ${whereSql}
+    `,
+  );
+
+  const totalCount = toCount(countRows[0]?.totalCount ?? 0);
+  const hasEmbeddedJobPostings =
+    countRows[0]?.hasEmbeddedJobPostings ?? false;
+
+  if (!hasEmbeddedJobPostings) {
+    return {
+      jobPostings: [],
+      totalCount,
+      hasEmbeddedJobPostings,
+    };
+  }
+
+  const queryEmbedding = await generateEmbedding(trimmedQuery);
+  const serializedQueryEmbedding = serializeVectorForPg(queryEmbedding);
+
+  const rows = await prisma.$queryRaw<SemanticJobPostingSearchRow[]>(
+    Prisma.sql`
+      SELECT jp."id",
+             jp."title",
+             jp."description",
+             jp."location",
+             jp."workMode",
+             jp."seniorityLevel",
+             jp."matchScore",
+             jp."deadline",
+             jp."savedAt",
+             jp."aiSummary",
+             c."id" AS "companyId",
+             c."name" AS "companyName",
+             c."industry" AS "companyIndustry",
+             jp."embedding" <=> ${serializedQueryEmbedding}::vector AS "distance",
+             1 - (jp."embedding" <=> ${serializedQueryEmbedding}::vector) AS "similarity"
+      FROM "JobPosting" jp
+      JOIN "Company" c
+        ON c."id" = jp."companyId"
+       AND c."userId" = jp."userId"
+      WHERE ${whereSql}
+      ORDER BY jp."embedding" <=> ${serializedQueryEmbedding}::vector ASC,
+               jp."savedAt" DESC
+      LIMIT ${safeLimit}
+      OFFSET ${safeOffset}
+    `,
+  );
+
+  return {
+    jobPostings: rows.map((row) => ({
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      location: row.location,
+      workMode: row.workMode,
+      seniorityLevel: row.seniorityLevel,
+      matchScore: row.matchScore,
+      deadline: row.deadline,
+      savedAt: row.savedAt,
+      aiSummary: row.aiSummary,
+      company: {
+        id: row.companyId,
+        name: row.companyName,
+        industry: row.companyIndustry,
+      },
+      distance: toNumber(row.distance),
+      similarity: toNumber(row.similarity),
+    })),
+    totalCount,
+    hasEmbeddedJobPostings,
+  };
 }

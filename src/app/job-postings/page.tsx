@@ -3,10 +3,12 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { searchJobPostingsBySemanticQuery } from "@/lib/retrieval/semantic-search";
 import { generateJobPostingAiSummary } from "@/app/job-postings/actions";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -14,18 +16,63 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import type { Prisma, WorkMode } from "@/generated/prisma";
 
 const PAGE_SIZE = 10;
+const SEMANTIC_RESULT_LIMIT = 5;
+const SEARCH_MODES = ["keyword", "semantic"] as const;
+const WORK_MODES = [
+  "REMOTE",
+  "HYBRID",
+  "ONSITE",
+  "FLEXIBLE",
+] as const satisfies readonly WorkMode[];
+const SELECT_CLASS =
+  "flex h-8 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50";
+
+type SearchMode = (typeof SEARCH_MODES)[number];
+
+type JobPostingListItem = {
+  id: string;
+  title: string;
+  description: string;
+  location: string | null;
+  workMode: WorkMode | null;
+  seniorityLevel: string | null;
+  matchScore: number | null;
+  deadline: Date | null;
+  savedAt: Date;
+  aiSummary: string | null;
+  company: {
+    id: string;
+    name: string;
+    industry: string | null;
+  };
+  semanticSimilarity?: number;
+};
+
+type JobPostingFilters = {
+  workMode?: WorkMode;
+  companyId?: string;
+};
 
 type JobPostingsPageProps = {
   searchParams: Promise<{
-    q?: string;
-    page?: string;
+    q?: string | string[];
+    page?: string | string[];
+    mode?: string | string[];
+    workMode?: string | string[];
+    companyId?: string | string[];
   }>;
 };
 
-function getPageNumber(page?: string) {
-  const parsed = Number.parseInt(page ?? "1", 10);
+function getSearchParamValue(value?: string | string[]) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function getPageNumber(page?: string | string[]) {
+  const value = getSearchParamValue(page);
+  const parsed = Number.parseInt(value ?? "1", 10);
 
   if (!Number.isInteger(parsed) || parsed < 1) {
     return 1;
@@ -34,11 +81,61 @@ function getPageNumber(page?: string) {
   return parsed;
 }
 
-function buildPageHref(page: number, query: string) {
+function getSearchMode(mode?: string | string[]): SearchMode {
+  const value = getSearchParamValue(mode);
+
+  return SEARCH_MODES.includes(value as SearchMode)
+    ? (value as SearchMode)
+    : "keyword";
+}
+
+function getWorkMode(workMode?: string | string[]) {
+  const value = getSearchParamValue(workMode);
+
+  return WORK_MODES.includes(value as WorkMode) ? (value as WorkMode) : undefined;
+}
+
+function getCompanyId(
+  companyId: string | string[] | undefined,
+  companies: Array<{ id: string }>,
+) {
+  const value = getSearchParamValue(companyId);
+
+  if (!value) {
+    return undefined;
+  }
+
+  return companies.some((company) => company.id === value) ? value : undefined;
+}
+
+function buildPageHref(
+  page: number,
+  {
+    query,
+    searchMode,
+    workMode,
+    companyId,
+  }: {
+    query: string;
+    searchMode: SearchMode;
+    workMode?: WorkMode;
+    companyId?: string;
+  },
+) {
   const params = new URLSearchParams();
 
   if (query) {
     params.set("q", query);
+  }
+
+  params.set("mode", searchMode);
+
+  if (workMode) {
+    params.set("workMode", workMode);
+  }
+
+  if (companyId) {
+    params.set("companyId", companyId);
   }
 
   params.set("page", page.toString());
@@ -46,24 +143,20 @@ function buildPageHref(page: number, query: string) {
   return `/job-postings?${params.toString()}`;
 }
 
-export default async function JobPostingsPage({
-  searchParams,
-}: JobPostingsPageProps) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+function formatSimilarityPercent(similarity: number) {
+  const boundedSimilarity = Math.min(1, Math.max(0, similarity));
+  return `${Math.round(boundedSimilarity * 100)}%`;
+}
 
-  if (!session) {
-    redirect("/sign-in");
-  }
-
-  const params = await searchParams;
-  const query = params.q?.trim() ?? "";
-  const page = getPageNumber(params.page);
-  const skip = (page - 1) * PAGE_SIZE;
-
-  const where = {
-    userId: session.user.id,
+function buildKeywordJobPostingWhere(
+  userId: string,
+  query: string,
+  filters: JobPostingFilters,
+): Prisma.JobPostingWhereInput {
+  return {
+    userId,
+    ...(filters.workMode ? { workMode: filters.workMode } : {}),
+    ...(filters.companyId ? { companyId: filters.companyId } : {}),
     ...(query
       ? {
           OR: [
@@ -123,12 +216,40 @@ export default async function JobPostingsPage({
         }
       : {}),
   };
+}
+
+async function getKeywordJobPostingResults(
+  userId: string,
+  query: string,
+  filters: JobPostingFilters,
+  skip: number,
+): Promise<{
+  jobPostings: JobPostingListItem[];
+  totalJobPostings: number;
+}> {
+  const where = buildKeywordJobPostingWhere(userId, query, filters);
 
   const [jobPostings, totalJobPostings] = await Promise.all([
     prisma.jobPosting.findMany({
       where,
-      include: {
-        company: true,
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        location: true,
+        workMode: true,
+        seniorityLevel: true,
+        matchScore: true,
+        deadline: true,
+        savedAt: true,
+        aiSummary: true,
+        company: {
+          select: {
+            id: true,
+            name: true,
+            industry: true,
+          },
+        },
       },
       orderBy: {
         savedAt: "desc",
@@ -141,9 +262,137 @@ export default async function JobPostingsPage({
     }),
   ]);
 
+  return {
+    jobPostings,
+    totalJobPostings,
+  };
+}
+
+export default async function JobPostingsPage({
+  searchParams,
+}: JobPostingsPageProps) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) {
+    redirect("/sign-in");
+  }
+
+  const params = await searchParams;
+  const query = getSearchParamValue(params.q)?.trim() ?? "";
+  const searchMode = getSearchMode(params.mode);
+  const selectedWorkMode = getWorkMode(params.workMode);
+  const page = getPageNumber(params.page);
+  const skip = (page - 1) * PAGE_SIZE;
+
+  const companies = await prisma.company.findMany({
+    where: {
+      userId: session.user.id,
+    },
+    select: {
+      id: true,
+      name: true,
+    },
+    orderBy: {
+      name: "asc",
+    },
+  });
+
+  const selectedCompanyId = getCompanyId(params.companyId, companies);
+  const filters = {
+    workMode: selectedWorkMode,
+    companyId: selectedCompanyId,
+  };
+  const shouldRunSemanticSearch = searchMode === "semantic" && query.length > 0;
+  let jobPostings: JobPostingListItem[] = [];
+  let totalJobPostings = 0;
+  let hasEmbeddedJobPostings = true;
+  let semanticSearchUnavailable = false;
+
+  if (shouldRunSemanticSearch) {
+    try {
+      const semanticResult = await searchJobPostingsBySemanticQuery({
+        userId: session.user.id,
+        query,
+        limit: SEMANTIC_RESULT_LIMIT,
+        offset: 0,
+        filters,
+      });
+
+      jobPostings = semanticResult.jobPostings.map((jobPosting) => ({
+        id: jobPosting.id,
+        title: jobPosting.title,
+        description: jobPosting.description,
+        location: jobPosting.location,
+        workMode: jobPosting.workMode,
+        seniorityLevel: jobPosting.seniorityLevel,
+        matchScore: jobPosting.matchScore,
+        deadline: jobPosting.deadline,
+        savedAt: jobPosting.savedAt,
+        aiSummary: jobPosting.aiSummary,
+        company: jobPosting.company,
+        semanticSimilarity: jobPosting.similarity,
+      }));
+      totalJobPostings = semanticResult.totalCount;
+      hasEmbeddedJobPostings = semanticResult.hasEmbeddedJobPostings;
+    } catch {
+      semanticSearchUnavailable = true;
+      const keywordResult = await getKeywordJobPostingResults(
+        session.user.id,
+        query,
+        filters,
+        skip,
+      );
+      jobPostings = keywordResult.jobPostings;
+      totalJobPostings = keywordResult.totalJobPostings;
+    }
+  } else {
+    const keywordResult = await getKeywordJobPostingResults(
+      session.user.id,
+      query,
+      filters,
+      skip,
+    );
+    jobPostings = keywordResult.jobPostings;
+    totalJobPostings = keywordResult.totalJobPostings;
+  }
+
   const totalPages = Math.max(1, Math.ceil(totalJobPostings / PAGE_SIZE));
   const hasPreviousPage = page > 1;
   const hasNextPage = page < totalPages;
+  const hasListConstraints = Boolean(query || selectedWorkMode || selectedCompanyId);
+  const hasActiveSearchControls = hasListConstraints || searchMode !== "keyword";
+  const isShowingSemanticResults =
+    shouldRunSemanticSearch && !semanticSearchUnavailable && hasEmbeddedJobPostings;
+  const missingSemanticEmbeddings =
+    shouldRunSemanticSearch && !semanticSearchUnavailable && !hasEmbeddedJobPostings;
+  const emptyStateTitle = missingSemanticEmbeddings
+    ? "No embedded job postings"
+    : isShowingSemanticResults
+      ? "No semantic results"
+      : hasListConstraints
+        ? "No matching job postings"
+        : "No job postings yet";
+  const emptyStateDescription = missingSemanticEmbeddings
+    ? "Semantic search results appear after embeddings are generated. Run pnpm backfill:embeddings after creating or editing records."
+    : isShowingSemanticResults
+      ? "Try a different semantic search phrase or adjust filters."
+      : hasListConstraints
+        ? "Try a different search term, adjust filters, or clear the search."
+        : "Save your first job posting after adding at least one company.";
+  const resultSummary = isShowingSemanticResults
+    ? "Showing the closest semantic results based on saved embeddings. Scores are approximate."
+    : `Showing ${jobPostings.length} of ${totalJobPostings} ${
+        hasListConstraints ? "matching " : ""
+      }job postings`;
+  const shouldShowPagination = !isShowingSemanticResults;
+  const paginationParams = {
+    query,
+    searchMode,
+    workMode: selectedWorkMode,
+    companyId: selectedCompanyId,
+  };
 
   return (
     <AppShell userName={session.user.name} userEmail={session.user.email}>
@@ -167,43 +416,108 @@ export default async function JobPostingsPage({
             <CardTitle>Search job postings</CardTitle>
             <CardDescription>
               Search by title, description, company, industry, location,
-              seniority, URL, or salary currency.
+              seniority, URL, or salary currency. Semantic search uses saved
+              embeddings and approximate similarity.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form
-              action="/job-postings"
-              className="flex flex-col gap-3 sm:flex-row"
-            >
-              <Input
-                name="q"
-                defaultValue={query}
-                placeholder="Search job postings..."
-              />
-              <Button type="submit">Search</Button>
-              {query ? (
-                <Button variant="outline" asChild>
-                  <Link href="/job-postings">Clear</Link>
-                </Button>
+            <form action="/job-postings" className="space-y-3">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_150px_150px_220px]">
+                <div className="space-y-2">
+                  <Label htmlFor="q">Search</Label>
+                  <Input
+                    id="q"
+                    name="q"
+                    defaultValue={query}
+                    placeholder="Search saved jobs by title, skill, company, or meaning..."
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="mode">Mode</Label>
+                  <select
+                    id="mode"
+                    name="mode"
+                    defaultValue={searchMode}
+                    className={SELECT_CLASS}
+                  >
+                    <option value="keyword">Keyword</option>
+                    <option value="semantic">Semantic</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="workMode">Work mode</Label>
+                  <select
+                    id="workMode"
+                    name="workMode"
+                    defaultValue={selectedWorkMode ?? ""}
+                    className={SELECT_CLASS}
+                  >
+                    <option value="">All work modes</option>
+                    <option value="REMOTE">Remote</option>
+                    <option value="HYBRID">Hybrid</option>
+                    <option value="ONSITE">On-site</option>
+                    <option value="FLEXIBLE">Flexible</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="companyId">Company</Label>
+                  <select
+                    id="companyId"
+                    name="companyId"
+                    defaultValue={selectedCompanyId ?? ""}
+                    className={SELECT_CLASS}
+                  >
+                    <option value="">All companies</option>
+                    {companies.map((company) => (
+                      <option key={company.id} value={company.id}>
+                        {company.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {searchMode === "semantic" ? (
+                <p className="text-sm text-muted-foreground">
+                  Semantic search uses saved embeddings and approximate
+                  similarity.
+                </p>
               ) : null}
+
+              <div className="flex flex-wrap gap-2">
+                <Button type="submit">Search</Button>
+                {hasActiveSearchControls ? (
+                  <Button variant="outline" asChild>
+                    <Link href="/job-postings">Clear</Link>
+                  </Button>
+                ) : null}
+              </div>
             </form>
           </CardContent>
         </Card>
 
+        {semanticSearchUnavailable ? (
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-sm text-muted-foreground">
+                Semantic search is unavailable right now. Showing keyword
+                results instead.
+              </p>
+            </CardContent>
+          </Card>
+        ) : null}
+
         {jobPostings.length === 0 ? (
           <Card>
             <CardHeader>
-              <CardTitle>
-                {query ? "No matching job postings" : "No job postings yet"}
-              </CardTitle>
-              <CardDescription>
-                {query
-                  ? "Try a different search term or clear the search."
-                  : "Save your first job posting after adding at least one company."}
-              </CardDescription>
+              <CardTitle>{emptyStateTitle}</CardTitle>
+              <CardDescription>{emptyStateDescription}</CardDescription>
             </CardHeader>
             <CardContent>
-              {query ? (
+              {hasListConstraints ? (
                 <Button variant="outline" asChild>
                   <Link href="/job-postings">Clear search</Link>
                 </Button>
@@ -217,14 +531,12 @@ export default async function JobPostingsPage({
         ) : (
           <>
             <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <p>
-                Showing {jobPostings.length} of {totalJobPostings}{" "}
-                {query ? "matching " : ""}
-                job postings
-              </p>
-              <p>
-                Page {page} of {totalPages}
-              </p>
+              <p>{resultSummary}</p>
+              {shouldShowPagination ? (
+                <p>
+                  Page {page} of {totalPages}
+                </p>
+              ) : null}
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -246,6 +558,14 @@ export default async function JobPostingsPage({
 
                     <CardContent className="space-y-4">
                       <div className="space-y-1 text-sm text-muted-foreground">
+                        {jobPosting.semanticSimilarity !== undefined ? (
+                          <p>
+                            Approx. similarity:{" "}
+                            {formatSimilarityPercent(
+                              jobPosting.semanticSimilarity,
+                            )}
+                          </p>
+                        ) : null}
                         {jobPosting.workMode ? (
                           <p>Work mode: {jobPosting.workMode}</p>
                         ) : null}
@@ -288,27 +608,33 @@ export default async function JobPostingsPage({
               })}
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <Button variant="outline" disabled={!hasPreviousPage} asChild>
-                {hasPreviousPage ? (
-                  <Link href={buildPageHref(page - 1, query)}>Previous</Link>
-                ) : (
-                  <span>Previous</span>
-                )}
-              </Button>
+            {shouldShowPagination ? (
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <Button variant="outline" disabled={!hasPreviousPage} asChild>
+                  {hasPreviousPage ? (
+                    <Link href={buildPageHref(page - 1, paginationParams)}>
+                      Previous
+                    </Link>
+                  ) : (
+                    <span>Previous</span>
+                  )}
+                </Button>
 
-              <p className="text-center text-sm text-muted-foreground">
-                Page {page} of {totalPages}
-              </p>
+                <p className="text-center text-sm text-muted-foreground">
+                  Page {page} of {totalPages}
+                </p>
 
-              <Button variant="outline" disabled={!hasNextPage} asChild>
-                {hasNextPage ? (
-                  <Link href={buildPageHref(page + 1, query)}>Next</Link>
-                ) : (
-                  <span>Next</span>
-                )}
-              </Button>
-            </div>
+                <Button variant="outline" disabled={!hasNextPage} asChild>
+                  {hasNextPage ? (
+                    <Link href={buildPageHref(page + 1, paginationParams)}>
+                      Next
+                    </Link>
+                  ) : (
+                    <span>Next</span>
+                  )}
+                </Button>
+              </div>
+            ) : null}
           </>
         )}
       </div>
