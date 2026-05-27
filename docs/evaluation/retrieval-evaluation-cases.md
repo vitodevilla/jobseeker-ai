@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document defines the v1 retrieval evaluation cases for JobSeeker AI. The cases use the controlled synthetic semantic dataset from `docs/semantic-test-data.md`, where deterministic records are arranged into known strong, medium, and decoy relationships.
+This document defines the v1 retrieval evaluation cases for JobSeeker AI. The cases use the controlled synthetic semantic dataset from [../data/semantic-test-data.md](../data/semantic-test-data.md), where deterministic records are arranged into known strong, medium, and decoy relationships.
 
 The goal is to evaluate top-N retrieval behavior and cluster quality, not to treat exact similarity percentages as stable truth.
 
@@ -48,7 +48,7 @@ docs/evaluation-results/retrieval-evaluation-latest.md
 
 - 24 semantic demo job postings exist for the selected user.
 - 12 semantic demo resumes exist for the selected user.
-- Deterministic IDs from `docs/semantic-test-data.md` are used.
+- Deterministic IDs from [../data/semantic-test-data.md](../data/semantic-test-data.md) are used.
 - Expected records have both `embedding` and `embeddingTextHash` populated.
 - The script is read-only and does not create, update, delete, or backfill records.
 
