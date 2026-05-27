@@ -4,7 +4,7 @@ JobSeeker AI is a full-stack web application for managing a job search workflow.
 
 The app helps users track companies, job postings, applications, resumes, cover letters, interviews, and follow-up tasks in one authenticated workspace.
 
-The current version focuses on a solid non-AI foundation: authentication, CRUD flows, dashboard aggregation, search/pagination, validation, file upload, and mobile-first usability. AI features will be added on top of this foundation next.
+The current version includes the authenticated CRUD foundation plus task-specific AI, semantic retrieval, hybrid search, and retrieval evaluation support.
 
 ---
 
@@ -29,14 +29,24 @@ The current version focuses on a solid non-AI foundation: authentication, CRUD f
 - Delete confirmation dialogs
 - Mobile-responsive navigation and layout
 - Basic Playwright smoke tests
+- AI resume critique
+- AI cover letter critique and generation
+- AI job posting summary
+- AI resume/job match analysis
+- AI resume tailoring suggestions
+- AI interview prep notes
+- Resume and job posting embeddings with pgvector
+- Semantic similar-record cards
+- Hybrid keyword/semantic search for job postings and resumes
+- Semantic test data and retrieval evaluation harness
 
 ### Deferred / Future Work
 
-- AI resume critique
-- AI cover letter critique and generation
-- AI job matching
-- AI interview preparation
-- Embeddings and vector search with pgvector
+- Background embedding refresh
+- Blended hybrid ranking
+- Larger retrieval evaluation dataset
+- Read-only contextual assistant v1
+- Tool-calling / agentic assistant planning and later implementation
 - More advanced dashboard insights
 - More polished inline form error handling
 - Authenticated private file download route for stored PDFs
@@ -52,7 +62,9 @@ The current version focuses on a solid non-AI foundation: authentication, CRUD f
 - **Authentication:** Better Auth
 - **Database:** PostgreSQL on Neon
 - **ORM:** Prisma 7
-- **Vector extension:** pgvector enabled in database schema
+- **AI:** Vercel AI SDK with Google/Gemini provider
+- **Embeddings:** `gemini-embedding-001`
+- **Vector storage:** pgvector in PostgreSQL
 - **File storage:** Vercel Blob
 - **Validation:** Zod
 - **Testing:** Playwright
@@ -72,6 +84,24 @@ The app currently manages these core entities:
 - **Task** — follow-ups and reminders, standalone or application-linked
 - **Interview** — interview rounds linked to applications
 - **CoverLetter** — application-specific cover letter drafts and versions
+
+---
+
+## Technical Documentation
+
+Technical app documentation lives in:
+
+```txt
+docs/
+```
+
+Start with:
+
+- [docs/README.md](docs/README.md)
+- [docs/ai-system-overview.md](docs/ai-system-overview.md)
+- [docs/ai-feature-inventory.md](docs/ai-feature-inventory.md)
+- [docs/retrieval-architecture.md](docs/retrieval-architecture.md)
+- [docs/evaluation-methodology.md](docs/evaluation-methodology.md)
 
 ---
 
@@ -172,6 +202,24 @@ Run all Playwright tests:
 pnpm exec playwright test
 ```
 
+Seed semantic test data for a local/development user:
+
+```bash
+pnpm seed:semantic-test-data --email test@example.com
+```
+
+Backfill resume and job posting embeddings:
+
+```bash
+pnpm backfill:embeddings
+```
+
+Run retrieval evaluation:
+
+```bash
+pnpm evaluate:retrieval --email test@example.com
+```
+
 ---
 
 ## Database and Prisma Notes
@@ -190,7 +238,7 @@ src/generated/prisma
 
 This generated client is intentionally ignored by ESLint.
 
-The database uses PostgreSQL on Neon with the vector extension enabled for future pgvector-based AI search and matching.
+The database uses PostgreSQL on Neon with pgvector-based semantic retrieval for saved resumes and job postings.
 
 Current migration approach:
 
@@ -231,7 +279,7 @@ These tests check:
 - Sign-up page renders
 - Signed-out users are redirected away from protected dashboard access
 
-The current test suite is intentionally small. Full authenticated CRUD E2E testing is deferred until the core AI layer is underway or stable.
+The current test suite is intentionally small. Full authenticated CRUD E2E testing is deferred until final product polish, because the current smoke tests mainly cover basic route accessibility.
 
 ---
 
@@ -291,11 +339,11 @@ git branch -d feature/example-feature
 
 ---
 
-## Current Pre-AI Milestone
+## Current AI/Retrieval Milestone
 
-The non-AI foundation is nearly complete.
+The app has a complete authenticated CRUD foundation and an implemented AI/retrieval layer.
 
-Before entering the AI layer, the app has:
+The app now has:
 
 - Authenticated user-scoped CRUD for all main entities
 - Searchable/paginated operational lists
@@ -305,13 +353,8 @@ Before entering the AI layer, the app has:
 - Delete confirmations
 - Resume PDF ingestion
 - Basic smoke tests
-
-The next major phase is the AI layer:
-
-- Resume critique
-- Cover letter critique
-- Cover letter generation
-- Job posting summarization
-- Resume/job matching
-- Interview preparation
-- Later: embeddings and vector search
+- Task-specific AI features over saved records
+- Semantic embeddings for resumes and job postings
+- Similar-record retrieval
+- Hybrid keyword/semantic search
+- Retrieval evaluation docs and script

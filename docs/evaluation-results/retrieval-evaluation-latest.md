@@ -6,7 +6,7 @@ Exact similarity scores can drift when embedding models, record text, or surroun
 
 - Run timestamp: 2026-05-26T13:37:09.758Z
 - Target email: test@example.com
-- Target user ID: 2PUZzHnzxkPupa2ZVOzgETXF4PfMEPzW
+- Target user ID: [local test user]
 - Top-N limit: 5
 
 ## Dataset Preflight

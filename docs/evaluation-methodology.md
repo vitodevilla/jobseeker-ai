@@ -1,4 +1,4 @@
-# AI Evaluation Plan
+# AI Evaluation Methodology
 
 ## Thesis Framing
 
@@ -7,9 +7,15 @@ JobSeeker AI uses two categories of AI behavior that need different evaluation m
 1. Generative and reasoning features produce context-sensitive text for a job seeker.
 2. Retrieval and embedding features rank existing records against queries or other records.
 
-This v1 evaluation harness uses a split methodology because the two categories have different evidence shapes. Generated outputs are best reviewed with a qualitative rubric in v1, where a human can judge usefulness, grounding, and hallucination risk in context. Retrieval behavior can be evaluated semi-automatically because the semantic test dataset contains controlled synthetic records with expected strong, medium, and weak relationships.
+This v1 evaluation harness uses a split methodology because the two categories have different evidence shapes. Generated outputs are reviewed with a qualitative rubric in v1, where a human can judge usefulness, grounding, and hallucination risk in context. Retrieval behavior is evaluated semi-automatically because the semantic test dataset contains controlled synthetic records with expected strong, medium, and weak relationships.
 
-The goal is not to prove model quality in a universal sense. The goal is to create repeatable, explainable evidence that the app's AI features are useful, grounded, and aligned with the thesis implementation.
+The retrieval harness is implemented as a local/development script and can produce the latest markdown report in `docs/evaluation-results/retrieval-evaluation-latest.md`. The goal is not to prove model quality in a universal sense. The goal is to create repeatable, explainable evidence that the app's AI features are useful, grounded, and aligned with the implementation.
+
+Related documents:
+
+- Semantic dataset: [data/semantic-test-data.md](data/semantic-test-data.md)
+- Retrieval cases: [evaluation/retrieval-evaluation-cases.md](evaluation/retrieval-evaluation-cases.md)
+- Latest retrieval report: [evaluation-results/retrieval-evaluation-latest.md](evaluation-results/retrieval-evaluation-latest.md)
 
 ## Evaluation Goals
 
@@ -50,7 +56,7 @@ Manual evaluation is appropriate for v1 because these outputs depend on context,
 
 ### Layer 2: Semi-Automated Retrieval Evaluation
 
-Retrieval features are evaluated against the synthetic semantic dataset documented in `docs/semantic-test-data.md`. The dataset uses deterministic IDs and known clusters, allowing a script to compare top-N results with expected strong, medium, and decoy records.
+Retrieval features are evaluated against the synthetic semantic dataset documented in [data/semantic-test-data.md](data/semantic-test-data.md). The dataset uses deterministic IDs and known clusters, allowing a script to compare top-N results with expected strong, medium, and decoy records.
 
 This layer covers:
 
@@ -58,7 +64,7 @@ This layer covers:
 - Hybrid Job Posting Search
 - Hybrid Resume Search
 
-The v1 script evaluates the semantic retrieval branch behind these surfaces. Manual UI checks remain useful for confirming filter behavior, empty states, and presentation.
+The v1 script evaluates the semantic retrieval branch behind these surfaces. The full retrieval case specification lives in [evaluation/retrieval-evaluation-cases.md](evaluation/retrieval-evaluation-cases.md). Manual UI checks remain useful for confirming filter behavior, empty states, and presentation.
 
 ## Manual Generative Rubric
 
@@ -114,6 +120,7 @@ For thesis evidence, capture a small, consistent set of artifacts:
 - Copies of generated AI output for manual rubric scoring.
 - Terminal output from `pnpm evaluate:retrieval --email test@example.com`.
 - Optional markdown report from `pnpm evaluate:retrieval --email test@example.com --write-report`.
+- Latest committed report at [evaluation-results/retrieval-evaluation-latest.md](evaluation-results/retrieval-evaluation-latest.md).
 - Notes about failures, ambiguous cases, missing embeddings, or decoy behavior.
 
 For retrieval tables, prefer top-N hit rates and cluster-quality notes over raw similarity percentages.
