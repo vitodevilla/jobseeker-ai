@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { AppShell } from "@/components/app-shell";
+import { DashboardAssistantCard } from "@/app/dashboard/dashboard-assistant-card";
 import {
   Card,
   CardContent,
@@ -185,6 +186,8 @@ export default async function DashboardPage() {
             </CardContent>
           </Card>
         ) : null}
+
+        <DashboardAssistantCard />
 
         <section className="grid gap-4 lg:grid-cols-2">
           <Card>
