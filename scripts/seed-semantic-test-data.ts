@@ -1,5 +1,11 @@
 import { config } from "dotenv";
-import type { ApplicationStatus, Priority, WorkMode } from "../src/generated/prisma";
+import type {
+  ApplicationStatus,
+  InterviewType,
+  Priority,
+  TaskStatus,
+  WorkMode,
+} from "../src/generated/prisma";
 
 config({ path: ".env.local" });
 
@@ -38,6 +44,12 @@ type ResumeSeed = {
   content: string;
 };
 
+type SeedDateSpec = {
+  offsetDays: number;
+  hourUtc: number;
+  minuteUtc: number;
+};
+
 type JobPostingSeed = {
   id: string;
   companyId: string;
@@ -50,9 +62,9 @@ type JobPostingSeed = {
   salaryMax: number;
   salaryCurrency: string;
   url: string;
-  postedAt: Date;
-  deadline: Date;
-  savedAt: Date;
+  postedAt: SeedDateSpec;
+  deadline: SeedDateSpec;
+  savedAt: SeedDateSpec;
 };
 
 type ApplicationSeed = {
@@ -61,12 +73,36 @@ type ApplicationSeed = {
   resumeId: string;
   status: ApplicationStatus;
   priority: Priority;
-  appliedAt: Date | null;
-  nextActionDate: Date | null;
+  appliedAt: SeedDateSpec | null;
+  nextActionDate: SeedDateSpec | null;
   notes: string;
 };
 
+type TaskSeed = {
+  id: string;
+  applicationId: string | null;
+  title: string;
+  description: string;
+  dueAt: SeedDateSpec | null;
+  status: TaskStatus;
+  priority: Priority;
+};
+
+type InterviewSeed = {
+  id: string;
+  applicationId: string;
+  type: InterviewType;
+  scheduledAt: SeedDateSpec;
+  durationMinutes: number;
+  locationOrLink: string;
+  interviewerName: string;
+  interviewerEmail: string;
+  prepNotes: string;
+};
+
 type DemoDeletionCounts = {
+  tasks: number;
+  interviews: number;
   applications: number;
   jobPostings: number;
   companies: number;
@@ -74,8 +110,6 @@ type DemoDeletionCounts = {
 };
 
 type ResetDeletionCounts = DemoDeletionCounts & {
-  tasks: number;
-  interviews: number;
   coverLetters: number;
 };
 
@@ -84,7 +118,57 @@ type CreationCounts = {
   resumes: number;
   jobPostings: number;
   applications: number;
+  tasks: number;
+  interviews: number;
 };
+
+function getSeedBaseDate(now = new Date()) {
+  return new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+  );
+}
+
+function dateFromSeedBase(
+  baseDate: Date,
+  offsetDays: number,
+  hourUtc: number,
+  minuteUtc = 0,
+) {
+  const date = new Date(baseDate);
+  date.setUTCDate(date.getUTCDate() + offsetDays);
+  date.setUTCHours(hourUtc, minuteUtc, 0, 0);
+
+  return date;
+}
+
+function relativeDate(
+  offsetDays: number,
+  hourUtc: number,
+  minuteUtc = 0,
+): SeedDateSpec {
+  return {
+    offsetDays,
+    hourUtc,
+    minuteUtc,
+  };
+}
+
+function materializeSeedDate(baseDate: Date, spec: SeedDateSpec | null) {
+  if (!spec) {
+    return null;
+  }
+
+  return materializeRequiredSeedDate(baseDate, spec);
+}
+
+function materializeRequiredSeedDate(baseDate: Date, spec: SeedDateSpec) {
+  return dateFromSeedBase(
+    baseDate,
+    spec.offsetDays,
+    spec.hourUtc,
+    spec.minuteUtc,
+  );
+}
 
 const companies: CompanySeed[] = [
   {
@@ -176,9 +260,9 @@ You will pair with senior engineers and designers to implement accessible layout
     salaryMax: 45000,
     salaryCurrency: "EUR",
     url: `${DEMO_BASE_URL}/jobs/frontend-react`,
-    postedAt: new Date("2026-05-03T09:00:00.000Z"),
-    deadline: new Date("2026-06-20T17:00:00.000Z"),
-    savedAt: new Date("2026-05-15T09:00:00.000Z"),
+    postedAt: relativeDate(-26, 9),
+    deadline: relativeDate(22, 17),
+    savedAt: relativeDate(-6, 9),
   },
   {
     id: "semantic-demo-job-frontend-accessibility",
@@ -194,9 +278,9 @@ The ideal candidate understands React and TypeScript, cares about semantic HTML,
     salaryMax: 68000,
     salaryCurrency: "EUR",
     url: `${DEMO_BASE_URL}/jobs/frontend-accessibility`,
-    postedAt: new Date("2026-05-05T09:00:00.000Z"),
-    deadline: new Date("2026-06-24T17:00:00.000Z"),
-    savedAt: new Date("2026-05-15T09:05:00.000Z"),
+    postedAt: relativeDate(-24, 9),
+    deadline: relativeDate(26, 17),
+    savedAt: relativeDate(-6, 9, 5),
   },
   {
     id: "semantic-demo-job-frontend-dashboard",
@@ -212,9 +296,9 @@ The team is looking for someone who can make dense information usable without hi
     salaryMax: 60000,
     salaryCurrency: "EUR",
     url: `${DEMO_BASE_URL}/jobs/frontend-dashboard`,
-    postedAt: new Date("2026-05-07T09:00:00.000Z"),
-    deadline: new Date("2026-06-27T17:00:00.000Z"),
-    savedAt: new Date("2026-05-15T09:10:00.000Z"),
+    postedAt: relativeDate(-22, 9),
+    deadline: relativeDate(29, 17),
+    savedAt: relativeDate(-6, 9, 10),
   },
   {
     id: "semantic-demo-job-fullstack-next-prisma",
@@ -230,9 +314,9 @@ The team values pragmatic engineering over framework novelty. You should be comf
     salaryMax: 76000,
     salaryCurrency: "EUR",
     url: `${DEMO_BASE_URL}/jobs/fullstack-next-prisma`,
-    postedAt: new Date("2026-05-04T09:00:00.000Z"),
-    deadline: new Date("2026-06-21T17:00:00.000Z"),
-    savedAt: new Date("2026-05-15T09:15:00.000Z"),
+    postedAt: relativeDate(-25, 9),
+    deadline: relativeDate(23, 17),
+    savedAt: relativeDate(-5, 9, 15),
   },
   {
     id: "semantic-demo-job-fullstack-product-platform",
@@ -248,9 +332,9 @@ You will investigate rough product requirements, define the smallest useful data
     salaryMax: 82000,
     salaryCurrency: "EUR",
     url: `${DEMO_BASE_URL}/jobs/fullstack-product-platform`,
-    postedAt: new Date("2026-05-08T09:00:00.000Z"),
-    deadline: new Date("2026-06-28T17:00:00.000Z"),
-    savedAt: new Date("2026-05-15T09:20:00.000Z"),
+    postedAt: relativeDate(-21, 9),
+    deadline: relativeDate(30, 17),
+    savedAt: relativeDate(-5, 9, 20),
   },
   {
     id: "semantic-demo-job-fullstack-saas-integrations",
@@ -266,9 +350,9 @@ The best fit is someone who can move between backend reliability and user-facing
     salaryMax: 90000,
     salaryCurrency: "EUR",
     url: `${DEMO_BASE_URL}/jobs/fullstack-saas-integrations`,
-    postedAt: new Date("2026-05-09T09:00:00.000Z"),
-    deadline: new Date("2026-07-01T17:00:00.000Z"),
-    savedAt: new Date("2026-05-15T09:25:00.000Z"),
+    postedAt: relativeDate(-20, 9),
+    deadline: relativeDate(33, 17),
+    savedAt: relativeDate(-5, 9, 25),
   },
   {
     id: "semantic-demo-job-backend-node-api",
@@ -284,9 +368,9 @@ You will design endpoints, improve database queries, write migration-safe change
     salaryMax: 78000,
     salaryCurrency: "EUR",
     url: `${DEMO_BASE_URL}/jobs/backend-node-api`,
-    postedAt: new Date("2026-05-06T09:00:00.000Z"),
-    deadline: new Date("2026-06-26T17:00:00.000Z"),
-    savedAt: new Date("2026-05-15T09:30:00.000Z"),
+    postedAt: relativeDate(-23, 9),
+    deadline: relativeDate(28, 17),
+    savedAt: relativeDate(-5, 9, 30),
   },
   {
     id: "semantic-demo-job-backend-database-services",
@@ -302,9 +386,9 @@ Most work is in TypeScript services backed by Postgres. You will partner with pr
     salaryMax: 88000,
     salaryCurrency: "EUR",
     url: `${DEMO_BASE_URL}/jobs/backend-database-services`,
-    postedAt: new Date("2026-05-10T09:00:00.000Z"),
-    deadline: new Date("2026-07-03T17:00:00.000Z"),
-    savedAt: new Date("2026-05-15T09:35:00.000Z"),
+    postedAt: relativeDate(-19, 9),
+    deadline: relativeDate(35, 17),
+    savedAt: relativeDate(-5, 9, 35),
   },
   {
     id: "semantic-demo-job-backend-payments",
@@ -320,9 +404,9 @@ The work requires calm reasoning about failure states. You will write service co
     salaryMax: 105000,
     salaryCurrency: "EUR",
     url: `${DEMO_BASE_URL}/jobs/backend-payments`,
-    postedAt: new Date("2026-05-11T09:00:00.000Z"),
-    deadline: new Date("2026-07-05T17:00:00.000Z"),
-    savedAt: new Date("2026-05-15T09:40:00.000Z"),
+    postedAt: relativeDate(-18, 9),
+    deadline: relativeDate(37, 17),
+    savedAt: relativeDate(-5, 9, 40),
   },
   {
     id: "semantic-demo-job-data-ai-analyst",
@@ -338,9 +422,9 @@ You will build spreadsheets and lightweight dashboards, define categories for fa
     salaryMax: 60000,
     salaryCurrency: "EUR",
     url: `${DEMO_BASE_URL}/jobs/data-ai-analyst`,
-    postedAt: new Date("2026-05-04T10:00:00.000Z"),
-    deadline: new Date("2026-06-22T17:00:00.000Z"),
-    savedAt: new Date("2026-05-15T09:45:00.000Z"),
+    postedAt: relativeDate(-25, 10),
+    deadline: relativeDate(24, 17),
+    savedAt: relativeDate(-4, 9, 45),
   },
   {
     id: "semantic-demo-job-data-product-analyst",
@@ -356,9 +440,9 @@ The role requires curiosity about user behavior and discipline about data qualit
     salaryMax: 66000,
     salaryCurrency: "EUR",
     url: `${DEMO_BASE_URL}/jobs/data-product-analyst`,
-    postedAt: new Date("2026-05-06T10:00:00.000Z"),
-    deadline: new Date("2026-06-25T17:00:00.000Z"),
-    savedAt: new Date("2026-05-15T09:50:00.000Z"),
+    postedAt: relativeDate(-23, 10),
+    deadline: relativeDate(27, 17),
+    savedAt: relativeDate(-4, 9, 50),
   },
   {
     id: "semantic-demo-job-data-ml-evaluation",
@@ -374,9 +458,9 @@ You will work with product managers and engineers to define what good output mea
     salaryMax: 70000,
     salaryCurrency: "EUR",
     url: `${DEMO_BASE_URL}/jobs/data-ml-evaluation`,
-    postedAt: new Date("2026-05-08T10:00:00.000Z"),
-    deadline: new Date("2026-06-29T17:00:00.000Z"),
-    savedAt: new Date("2026-05-15T09:55:00.000Z"),
+    postedAt: relativeDate(-21, 10),
+    deadline: relativeDate(31, 17),
+    savedAt: relativeDate(-4, 9, 55),
   },
   {
     id: "semantic-demo-job-devops-cloud-ci",
@@ -392,9 +476,9 @@ The role is hands-on and practical. You should be comfortable reading applicatio
     salaryMax: 80000,
     salaryCurrency: "EUR",
     url: `${DEMO_BASE_URL}/jobs/devops-cloud-ci`,
-    postedAt: new Date("2026-05-04T11:00:00.000Z"),
-    deadline: new Date("2026-06-23T17:00:00.000Z"),
-    savedAt: new Date("2026-05-15T10:00:00.000Z"),
+    postedAt: relativeDate(-25, 11),
+    deadline: relativeDate(25, 17),
+    savedAt: relativeDate(-4, 10),
   },
   {
     id: "semantic-demo-job-devops-platform-reliability",
@@ -410,9 +494,9 @@ You will join client engineering teams for short engagements, so communication a
     salaryMax: 92000,
     salaryCurrency: "EUR",
     url: `${DEMO_BASE_URL}/jobs/devops-platform-reliability`,
-    postedAt: new Date("2026-05-07T11:00:00.000Z"),
-    deadline: new Date("2026-06-30T17:00:00.000Z"),
-    savedAt: new Date("2026-05-15T10:05:00.000Z"),
+    postedAt: relativeDate(-22, 11),
+    deadline: relativeDate(32, 17),
+    savedAt: relativeDate(-4, 10, 5),
   },
   {
     id: "semantic-demo-job-devops-release-operations",
@@ -428,9 +512,9 @@ This role uses operational language, but the work is technical. You will diagnos
     salaryMax: 70000,
     salaryCurrency: "EUR",
     url: `${DEMO_BASE_URL}/jobs/devops-release-operations`,
-    postedAt: new Date("2026-05-09T11:00:00.000Z"),
-    deadline: new Date("2026-07-02T17:00:00.000Z"),
-    savedAt: new Date("2026-05-15T10:10:00.000Z"),
+    postedAt: relativeDate(-20, 11),
+    deadline: relativeDate(34, 17),
+    savedAt: relativeDate(-4, 10, 10),
   },
   {
     id: "semantic-demo-job-ux-product-designer",
@@ -446,9 +530,9 @@ The role requires strong product thinking rather than decorative page design. Yo
     salaryMax: 68000,
     salaryCurrency: "EUR",
     url: `${DEMO_BASE_URL}/jobs/ux-product-designer`,
-    postedAt: new Date("2026-05-05T12:00:00.000Z"),
-    deadline: new Date("2026-06-25T17:00:00.000Z"),
-    savedAt: new Date("2026-05-15T10:15:00.000Z"),
+    postedAt: relativeDate(-24, 12),
+    deadline: relativeDate(27, 17),
+    savedAt: relativeDate(-3, 10, 15),
   },
   {
     id: "semantic-demo-job-ux-researcher",
@@ -464,9 +548,9 @@ This role overlaps with psychology because it studies people, decisions, and wor
     salaryMax: 72000,
     salaryCurrency: "EUR",
     url: `${DEMO_BASE_URL}/jobs/ux-researcher`,
-    postedAt: new Date("2026-05-08T12:00:00.000Z"),
-    deadline: new Date("2026-06-29T17:00:00.000Z"),
-    savedAt: new Date("2026-05-15T10:20:00.000Z"),
+    postedAt: relativeDate(-21, 12),
+    deadline: relativeDate(31, 17),
+    savedAt: relativeDate(-3, 10, 20),
   },
   {
     id: "semantic-demo-job-ux-design-systems",
@@ -482,9 +566,9 @@ You will not be expected to own production code, but you should understand enoug
     salaryMax: 66000,
     salaryCurrency: "EUR",
     url: `${DEMO_BASE_URL}/jobs/ux-design-systems`,
-    postedAt: new Date("2026-05-10T12:00:00.000Z"),
-    deadline: new Date("2026-07-03T17:00:00.000Z"),
-    savedAt: new Date("2026-05-15T10:25:00.000Z"),
+    postedAt: relativeDate(-19, 12),
+    deadline: relativeDate(35, 17),
+    savedAt: relativeDate(-3, 10, 25),
   },
   {
     id: "semantic-demo-job-peopleops-hr-coordinator",
@@ -500,9 +584,9 @@ You will maintain process checklists, coordinate offer and onboarding steps, pre
     salaryMax: 50000,
     salaryCurrency: "EUR",
     url: `${DEMO_BASE_URL}/jobs/peopleops-hr-coordinator`,
-    postedAt: new Date("2026-05-03T13:00:00.000Z"),
-    deadline: new Date("2026-06-18T17:00:00.000Z"),
-    savedAt: new Date("2026-05-15T10:30:00.000Z"),
+    postedAt: relativeDate(-26, 13),
+    deadline: relativeDate(20, 17),
+    savedAt: relativeDate(-3, 10, 30),
   },
   {
     id: "semantic-demo-job-peopleops-talent-analyst",
@@ -518,9 +602,9 @@ You will clean spreadsheet exports, define simple metrics, prepare recurring das
     salaryMax: 56000,
     salaryCurrency: "EUR",
     url: `${DEMO_BASE_URL}/jobs/peopleops-talent-analyst`,
-    postedAt: new Date("2026-05-06T13:00:00.000Z"),
-    deadline: new Date("2026-06-27T17:00:00.000Z"),
-    savedAt: new Date("2026-05-15T10:35:00.000Z"),
+    postedAt: relativeDate(-23, 13),
+    deadline: relativeDate(29, 17),
+    savedAt: relativeDate(-3, 10, 35),
   },
   {
     id: "semantic-demo-job-peopleops-psych-research",
@@ -536,9 +620,9 @@ This is not a clinical role and does not involve therapy. It is also not a UX re
     salaryMax: 46000,
     salaryCurrency: "EUR",
     url: `${DEMO_BASE_URL}/jobs/peopleops-psych-research`,
-    postedAt: new Date("2026-05-09T13:00:00.000Z"),
-    deadline: new Date("2026-07-01T17:00:00.000Z"),
-    savedAt: new Date("2026-05-15T10:40:00.000Z"),
+    postedAt: relativeDate(-20, 13),
+    deadline: relativeDate(33, 17),
+    savedAt: relativeDate(-3, 10, 40),
   },
   {
     id: "semantic-demo-job-general-customer-support",
@@ -554,9 +638,9 @@ This is a decoy for engineering searches because it includes SaaS, tickets, prod
     salaryMax: 42000,
     salaryCurrency: "EUR",
     url: `${DEMO_BASE_URL}/jobs/general-customer-support`,
-    postedAt: new Date("2026-05-04T14:00:00.000Z"),
-    deadline: new Date("2026-06-19T17:00:00.000Z"),
-    savedAt: new Date("2026-05-15T10:45:00.000Z"),
+    postedAt: relativeDate(-25, 14),
+    deadline: relativeDate(21, 17),
+    savedAt: relativeDate(-2, 10, 45),
   },
   {
     id: "semantic-demo-job-general-office-operations",
@@ -572,9 +656,9 @@ This role intentionally uses operations language that can overlap with DevOps or
     salaryMax: 38000,
     salaryCurrency: "EUR",
     url: `${DEMO_BASE_URL}/jobs/general-office-operations`,
-    postedAt: new Date("2026-05-07T14:00:00.000Z"),
-    deadline: new Date("2026-06-26T17:00:00.000Z"),
-    savedAt: new Date("2026-05-15T10:50:00.000Z"),
+    postedAt: relativeDate(-22, 14),
+    deadline: relativeDate(28, 17),
+    savedAt: relativeDate(-2, 10, 50),
   },
   {
     id: "semantic-demo-job-general-content-coordinator",
@@ -590,9 +674,9 @@ This role is a weak match for most technical resumes despite words like template
     salaryMax: 44000,
     salaryCurrency: "EUR",
     url: `${DEMO_BASE_URL}/jobs/general-content-coordinator`,
-    postedAt: new Date("2026-05-11T14:00:00.000Z"),
-    deadline: new Date("2026-07-04T17:00:00.000Z"),
-    savedAt: new Date("2026-05-15T10:55:00.000Z"),
+    postedAt: relativeDate(-18, 14),
+    deadline: relativeDate(36, 17),
+    savedAt: relativeDate(-2, 10, 55),
   },
 ];
 
@@ -738,8 +822,8 @@ const applications: ApplicationSeed[] = [
     resumeId: "semantic-demo-resume-junior-frontend",
     status: "APPLIED",
     priority: "HIGH",
-    appliedAt: new Date("2026-05-16T09:00:00.000Z"),
-    nextActionDate: new Date("2026-05-30T09:00:00.000Z"),
+    appliedAt: relativeDate(-6, 9),
+    nextActionDate: relativeDate(0, 23),
     notes: "Strong in-cluster frontend match for retrieval smoke testing.",
   },
   {
@@ -748,8 +832,8 @@ const applications: ApplicationSeed[] = [
     resumeId: "semantic-demo-resume-fullstack-next",
     status: "INTERVIEWING",
     priority: "HIGH",
-    appliedAt: new Date("2026-05-17T09:00:00.000Z"),
-    nextActionDate: new Date("2026-05-27T09:00:00.000Z"),
+    appliedAt: relativeDate(-5, 9),
+    nextActionDate: relativeDate(1, 9),
     notes: "Strong Next.js, Prisma, and Postgres match.",
   },
   {
@@ -758,8 +842,8 @@ const applications: ApplicationSeed[] = [
     resumeId: "semantic-demo-resume-backend-node",
     status: "SCREENING",
     priority: "MEDIUM",
-    appliedAt: new Date("2026-05-18T09:00:00.000Z"),
-    nextActionDate: new Date("2026-05-29T09:00:00.000Z"),
+    appliedAt: relativeDate(-4, 9),
+    nextActionDate: relativeDate(2, 10),
     notes: "Backend API match with some full-stack overlap.",
   },
   {
@@ -769,7 +853,7 @@ const applications: ApplicationSeed[] = [
     status: "INTERESTED",
     priority: "HIGH",
     appliedAt: null,
-    nextActionDate: new Date("2026-05-31T09:00:00.000Z"),
+    nextActionDate: relativeDate(3, 11),
     notes: "AI operations/data evaluation cluster match.",
   },
   {
@@ -778,8 +862,8 @@ const applications: ApplicationSeed[] = [
     resumeId: "semantic-demo-resume-devops-cloud",
     status: "APPLIED",
     priority: "MEDIUM",
-    appliedAt: new Date("2026-05-19T09:00:00.000Z"),
-    nextActionDate: new Date("2026-06-02T09:00:00.000Z"),
+    appliedAt: relativeDate(-3, 9),
+    nextActionDate: relativeDate(5, 10),
     notes: "Technical operations match, useful for DevOps/business operations decoy checks.",
   },
   {
@@ -789,8 +873,130 @@ const applications: ApplicationSeed[] = [
     status: "SAVED",
     priority: "MEDIUM",
     appliedAt: null,
-    nextActionDate: new Date("2026-06-03T09:00:00.000Z"),
+    nextActionDate: relativeDate(6, 13),
     notes: "Medium UX research match with psychology-research decoy nearby.",
+  },
+];
+
+const tasks: TaskSeed[] = [
+  {
+    id: "semantic-demo-task-frontend-follow-up",
+    applicationId: "semantic-demo-application-frontend-react",
+    title: "Follow up on React UI application",
+    description:
+      "Send a concise check-in to Northstar Interfaces and mention continued interest in accessible React product screens.",
+    dueAt: relativeDate(0, 23),
+    status: "PENDING",
+    priority: "HIGH",
+  },
+  {
+    id: "semantic-demo-task-fullstack-technical-prep",
+    applicationId: "semantic-demo-application-fullstack-next",
+    title: "Prepare full-stack technical examples",
+    description:
+      "Review one Next.js server action, one Prisma schema tradeoff, and one Postgres debugging story before the technical interview.",
+    dueAt: relativeDate(1, 12),
+    status: "PENDING",
+    priority: "HIGH",
+  },
+  {
+    id: "semantic-demo-task-backend-screening-confirm",
+    applicationId: "semantic-demo-application-backend-node",
+    title: "Confirm backend screening call details",
+    description:
+      "Reply to confirm the time, ask whether the call covers Node.js API design, and keep availability notes ready.",
+    dueAt: relativeDate(1, 16),
+    status: "PENDING",
+    priority: "MEDIUM",
+  },
+  {
+    id: "semantic-demo-task-data-ai-tailor-application",
+    applicationId: "semantic-demo-application-data-ai",
+    title: "Tailor AI operations application notes",
+    description:
+      "Add a short evidence-based example about model output review, labeling guidelines, and dashboard reporting.",
+    dueAt: relativeDate(2, 11),
+    status: "PENDING",
+    priority: "HIGH",
+  },
+  {
+    id: "semantic-demo-task-devops-follow-up",
+    applicationId: "semantic-demo-application-devops-cloud",
+    title: "Follow up on DevOps CI/CD application",
+    description:
+      "Check whether Cloudlane Reliability wants a brief deployment pipeline example or GitHub Actions project link.",
+    dueAt: relativeDate(4, 10),
+    status: "PENDING",
+    priority: "MEDIUM",
+  },
+  {
+    id: "semantic-demo-task-ux-research-plan",
+    applicationId: "semantic-demo-application-ux-researcher",
+    title: "Draft UX research plan notes",
+    description:
+      "Prepare a lightweight study plan for a hiring workflow: goals, participant profile, interview questions, and synthesis format.",
+    dueAt: relativeDate(5, 14),
+    status: "PENDING",
+    priority: "MEDIUM",
+  },
+  {
+    id: "semantic-demo-task-weekly-priority-review",
+    applicationId: null,
+    title: "Review this week's application priorities",
+    description:
+      "Compare upcoming interviews, high-priority follow-ups, and near-deadline saved roles before deciding where to spend time.",
+    dueAt: relativeDate(2, 17),
+    status: "PENDING",
+    priority: "MEDIUM",
+  },
+  {
+    id: "semantic-demo-task-portfolio-refresh",
+    applicationId: null,
+    title: "Refresh portfolio and GitHub examples",
+    description:
+      "Make the dashboard project README clearer and pin examples that show React, TypeScript, Prisma, and API workflow ownership.",
+    dueAt: relativeDate(6, 15),
+    status: "PENDING",
+    priority: "LOW",
+  },
+];
+
+const interviews: InterviewSeed[] = [
+  {
+    id: "semantic-demo-interview-frontend-phone-screen",
+    applicationId: "semantic-demo-application-frontend-react",
+    type: "PHONE_SCREEN",
+    scheduledAt: relativeDate(2, 13),
+    durationMinutes: 30,
+    locationOrLink: `${DEMO_BASE_URL}/meet/northstar-phone-screen`,
+    interviewerName: "Marta Keller",
+    interviewerEmail: "marta.keller@northstar-interfaces.example",
+    prepNotes:
+      "Be ready to explain the React dashboard project, accessibility habits, and why frontend product engineering is the target path.",
+  },
+  {
+    id: "semantic-demo-interview-fullstack-technical",
+    applicationId: "semantic-demo-application-fullstack-next",
+    type: "TECHNICAL",
+    scheduledAt: relativeDate(4, 14, 30),
+    durationMinutes: 75,
+    locationOrLink: `${DEMO_BASE_URL}/meet/harbor-stack-technical`,
+    interviewerName: "Jonas Meijer",
+    interviewerEmail: "jonas.meijer@harbor-stack-labs.example",
+    prepNotes:
+      "Prepare to discuss server actions, validation, Prisma relations, and how to keep a small product feature maintainable.",
+  },
+  {
+    id: "semantic-demo-interview-backend-phone-screen",
+    applicationId: "semantic-demo-application-backend-node",
+    type: "PHONE_SCREEN",
+    scheduledAt: relativeDate(5, 10, 30),
+    durationMinutes: 30,
+    locationOrLink: `${DEMO_BASE_URL}/meet/ledgerloop-screening`,
+    interviewerName: "Elena Nowak",
+    interviewerEmail: "elena.nowak@ledgerloop-systems.example",
+    prepNotes:
+      "Review API validation, transaction boundaries, and one example of debugging a data consistency issue.",
   },
 ];
 
@@ -798,6 +1004,8 @@ const demoCompanyIds = companies.map((company) => company.id);
 const demoJobPostingIds = jobPostings.map((jobPosting) => jobPosting.id);
 const demoResumeIds = resumes.map((resume) => resume.id);
 const demoApplicationIds = applications.map((application) => application.id);
+const demoTaskIds = tasks.map((task) => task.id);
+const demoInterviewIds = interviews.map((interview) => interview.id);
 
 let disconnectPrisma: (() => Promise<void>) | null = null;
 
@@ -1002,6 +1210,9 @@ async function assertSafeDemoCleanup(
         applicationId: {
           in: demoApplicationIds,
         },
+        id: {
+          notIn: demoInterviewIds,
+        },
       },
       select: {
         id: true,
@@ -1013,6 +1224,9 @@ async function assertSafeDemoCleanup(
         userId,
         applicationId: {
           in: demoApplicationIds,
+        },
+        id: {
+          notIn: demoTaskIds,
         },
       },
       select: {
@@ -1064,75 +1278,113 @@ async function assertDemoIdsAvailableForUser(
   prisma: PrismaClientInstance,
   userId: string,
 ) {
-  const [companyConflicts, resumeConflicts, jobPostingConflicts, applicationConflicts] =
-    await Promise.all([
-      prisma.company.findMany({
-        where: {
-          id: {
-            in: demoCompanyIds,
-          },
-          userId: {
-            not: userId,
-          },
+  const [
+    companyConflicts,
+    resumeConflicts,
+    jobPostingConflicts,
+    applicationConflicts,
+    taskConflicts,
+    interviewConflicts,
+  ] = await Promise.all([
+    prisma.company.findMany({
+      where: {
+        id: {
+          in: demoCompanyIds,
         },
-        select: {
-          id: true,
-          userId: true,
+        userId: {
+          not: userId,
         },
-        take: 5,
-      }),
-      prisma.resume.findMany({
-        where: {
-          id: {
-            in: demoResumeIds,
-          },
-          userId: {
-            not: userId,
-          },
+      },
+      select: {
+        id: true,
+        userId: true,
+      },
+      take: 5,
+    }),
+    prisma.resume.findMany({
+      where: {
+        id: {
+          in: demoResumeIds,
         },
-        select: {
-          id: true,
-          userId: true,
+        userId: {
+          not: userId,
         },
-        take: 5,
-      }),
-      prisma.jobPosting.findMany({
-        where: {
-          id: {
-            in: demoJobPostingIds,
-          },
-          userId: {
-            not: userId,
-          },
+      },
+      select: {
+        id: true,
+        userId: true,
+      },
+      take: 5,
+    }),
+    prisma.jobPosting.findMany({
+      where: {
+        id: {
+          in: demoJobPostingIds,
         },
-        select: {
-          id: true,
-          userId: true,
+        userId: {
+          not: userId,
         },
-        take: 5,
-      }),
-      prisma.application.findMany({
-        where: {
-          id: {
-            in: demoApplicationIds,
-          },
-          userId: {
-            not: userId,
-          },
+      },
+      select: {
+        id: true,
+        userId: true,
+      },
+      take: 5,
+    }),
+    prisma.application.findMany({
+      where: {
+        id: {
+          in: demoApplicationIds,
         },
-        select: {
-          id: true,
-          userId: true,
+        userId: {
+          not: userId,
         },
-        take: 5,
-      }),
-    ]);
+      },
+      select: {
+        id: true,
+        userId: true,
+      },
+      take: 5,
+    }),
+    prisma.task.findMany({
+      where: {
+        id: {
+          in: demoTaskIds,
+        },
+        userId: {
+          not: userId,
+        },
+      },
+      select: {
+        id: true,
+        userId: true,
+      },
+      take: 5,
+    }),
+    prisma.interview.findMany({
+      where: {
+        id: {
+          in: demoInterviewIds,
+        },
+        userId: {
+          not: userId,
+        },
+      },
+      select: {
+        id: true,
+        userId: true,
+      },
+      take: 5,
+    }),
+  ]);
 
   const conflictCount =
     companyConflicts.length +
     resumeConflicts.length +
     jobPostingConflicts.length +
-    applicationConflicts.length;
+    applicationConflicts.length +
+    taskConflicts.length +
+    interviewConflicts.length;
 
   if (conflictCount > 0) {
     throw new Error(
@@ -1150,6 +1402,24 @@ async function deleteDemoRecords(
   userId: string,
 ): Promise<DemoDeletionCounts> {
   await assertSafeDemoCleanup(prisma, userId);
+
+  const deletedTasks = await prisma.task.deleteMany({
+    where: {
+      id: {
+        in: demoTaskIds,
+      },
+      userId,
+    },
+  });
+
+  const deletedInterviews = await prisma.interview.deleteMany({
+    where: {
+      id: {
+        in: demoInterviewIds,
+      },
+      userId,
+    },
+  });
 
   const deletedApplications = await prisma.application.deleteMany({
     where: {
@@ -1188,6 +1458,8 @@ async function deleteDemoRecords(
   });
 
   return {
+    tasks: deletedTasks.count,
+    interviews: deletedInterviews.count,
     applications: deletedApplications.count,
     jobPostings: deletedJobPostings.count,
     companies: deletedCompanies.count,
@@ -1255,6 +1527,7 @@ async function resetUserAppData(
 async function createDemoRecords(
   prisma: PrismaClientInstance,
   userId: string,
+  seedBaseDate: Date,
 ): Promise<CreationCounts> {
   const createdCompanies = await prisma.company.createMany({
     data: companies.map((company) => ({
@@ -1271,15 +1544,38 @@ async function createDemoRecords(
   });
 
   const createdJobPostings = await prisma.jobPosting.createMany({
-    data: jobPostings.map((jobPosting) => ({
+    data: jobPostings.map(({ postedAt, deadline, savedAt, ...jobPosting }) => ({
       ...jobPosting,
+      postedAt: materializeRequiredSeedDate(seedBaseDate, postedAt),
+      deadline: materializeRequiredSeedDate(seedBaseDate, deadline),
+      savedAt: materializeRequiredSeedDate(seedBaseDate, savedAt),
       userId,
     })),
   });
 
   const createdApplications = await prisma.application.createMany({
-    data: applications.map((application) => ({
-      ...application,
+    data: applications.map(
+      ({ appliedAt, nextActionDate, ...application }) => ({
+        ...application,
+        appliedAt: materializeSeedDate(seedBaseDate, appliedAt),
+        nextActionDate: materializeSeedDate(seedBaseDate, nextActionDate),
+        userId,
+      }),
+    ),
+  });
+
+  const createdTasks = await prisma.task.createMany({
+    data: tasks.map(({ dueAt, ...task }) => ({
+      ...task,
+      dueAt: materializeSeedDate(seedBaseDate, dueAt),
+      userId,
+    })),
+  });
+
+  const createdInterviews = await prisma.interview.createMany({
+    data: interviews.map(({ scheduledAt, ...interview }) => ({
+      ...interview,
+      scheduledAt: materializeRequiredSeedDate(seedBaseDate, scheduledAt),
       userId,
     })),
   });
@@ -1289,6 +1585,8 @@ async function createDemoRecords(
     resumes: createdResumes.count,
     jobPostings: createdJobPostings.count,
     applications: createdApplications.count,
+    tasks: createdTasks.count,
+    interviews: createdInterviews.count,
   };
 }
 
@@ -1306,6 +1604,8 @@ async function updateSemanticDemoUserContext(
 
 function printDemoDeletionCounts(label: string, counts: DemoDeletionCounts) {
   console.log(`${label}:`);
+  console.log(`  deleted tasks: ${counts.tasks}`);
+  console.log(`  deleted interviews: ${counts.interviews}`);
   console.log(`  deleted applications: ${counts.applications}`);
   console.log(`  deleted job postings: ${counts.jobPostings}`);
   console.log(`  deleted companies: ${counts.companies}`);
@@ -1329,6 +1629,8 @@ function printCreationCounts(counts: CreationCounts) {
   console.log(`  created resumes: ${counts.resumes}`);
   console.log(`  created job postings: ${counts.jobPostings}`);
   console.log(`  created applications: ${counts.applications}`);
+  console.log(`  created tasks: ${counts.tasks}`);
+  console.log(`  created interviews: ${counts.interviews}`);
 }
 
 function printUserContextUpdate() {
@@ -1393,7 +1695,8 @@ async function main() {
 
   await assertDemoIdsAvailableForUser(prisma, user.id);
 
-  const creationCounts = await createDemoRecords(prisma, user.id);
+  const seedBaseDate = getSeedBaseDate();
+  const creationCounts = await createDemoRecords(prisma, user.id, seedBaseDate);
   printCreationCounts(creationCounts);
 
   await updateSemanticDemoUserContext(prisma, user.id);

@@ -12,6 +12,8 @@ pnpm backfill:embeddings
 
 Rankings should be evaluated by top-N relevance and cluster quality, not by exact similarity scores. Scores can shift when embedding models, formatting, or surrounding records change.
 
+Dashboard-facing dates are relative to the seed run date. The script normalizes one seed-run base date to UTC start of day, then derives job posting dates, application next-action dates, task due dates, and interview times from deterministic offsets. This keeps dashboard-assistant demos current while preserving rerunnable data.
+
 ## Run Commands
 
 Attach demo records to an existing user:
@@ -46,7 +48,7 @@ Default seeding is also rerunnable:
 pnpm seed:semantic-test-data --email test@example.com
 ```
 
-It first deletes and recreates only deterministic semantic demo records for that user. It also updates the selected user's career context to a broad semantic-demo profile for European remote/hybrid technology, product, data, UX, and people operations exploration.
+It first deletes and recreates only deterministic semantic demo records for that user, including seeded dashboard tasks and interviews. It also updates the selected user's career context to a broad semantic-demo profile for European remote/hybrid technology, product, data, UX, and people operations exploration.
 
 ## Reset Warning
 
@@ -66,7 +68,9 @@ Demo records are disposable. Cleanup and reset are intended to remove them. The 
 - Job postings: 24
 - Resumes: 12
 - Applications: 6
-- Cover letters, interviews, tasks: 0
+- Tasks: 8
+- Interviews: 3
+- Cover letters: 0
 
 ## Clusters
 
@@ -121,22 +125,45 @@ Demo records are disposable. Cleanup and reset are intended to remove them. The 
 
 ## Seeded Applications
 
-Six lightweight applications are included only to exercise linked data:
+Six lightweight applications are included to exercise linked data and dashboard assistant follow-up behavior. Their `nextActionDate` values are relative to the seed run date:
 
-- `semantic-demo-application-frontend-react`
-- `semantic-demo-application-fullstack-next`
-- `semantic-demo-application-backend-node`
-- `semantic-demo-application-data-ai`
-- `semantic-demo-application-devops-cloud`
-- `semantic-demo-application-ux-researcher`
+- `semantic-demo-application-frontend-react` - today
+- `semantic-demo-application-fullstack-next` - +1 day
+- `semantic-demo-application-backend-node` - +2 days
+- `semantic-demo-application-data-ai` - +3 days
+- `semantic-demo-application-devops-cloud` - +5 days
+- `semantic-demo-application-ux-researcher` - +6 days
 
-No cover letters, interviews, or tasks are seeded.
+## Seeded Tasks
+
+Eight pending tasks are included for dashboard-assistant prioritization, follow-up, and weekly planning demos:
+
+- `semantic-demo-task-frontend-follow-up`
+- `semantic-demo-task-fullstack-technical-prep`
+- `semantic-demo-task-backend-screening-confirm`
+- `semantic-demo-task-data-ai-tailor-application`
+- `semantic-demo-task-devops-follow-up`
+- `semantic-demo-task-ux-research-plan`
+- `semantic-demo-task-weekly-priority-review`
+- `semantic-demo-task-portfolio-refresh`
+
+Most tasks are linked to seeded applications. The weekly priority review and portfolio refresh tasks are standalone. Due dates are relative to the seed run date.
+
+## Seeded Interviews
+
+Three upcoming interviews are included for dashboard-assistant interview and preparation demos:
+
+- `semantic-demo-interview-frontend-phone-screen`
+- `semantic-demo-interview-fullstack-technical`
+- `semantic-demo-interview-backend-phone-screen`
+
+All seeded interviews are linked to seeded applications and use relative near-future `scheduledAt` values. No completed interviews are seeded.
 
 ## Safety Notes
 
-The seed uses deterministic primary keys such as `semantic-demo-company-frontend`, `semantic-demo-job-frontend-react`, and `semantic-demo-resume-junior-frontend`. Default cleanup only deletes those exact records for the selected user.
+The seed uses deterministic primary keys such as `semantic-demo-company-frontend`, `semantic-demo-job-frontend-react`, `semantic-demo-resume-junior-frontend`, `semantic-demo-task-frontend-follow-up`, and `semantic-demo-interview-frontend-phone-screen`. Default cleanup only deletes those exact records for the selected user.
 
-If non-demo records are attached to demo records, default cleanup refuses to run because deleting a demo record could cascade or mutate those records. Use `--reset-user-data` only with a dedicated local/dev test user when you intentionally want to clear that user's app data.
+If non-demo records are attached to demo records, default cleanup refuses to run because deleting a demo record could cascade or mutate those records. Deterministic seeded tasks and interviews do not block reruns and are deleted before applications. Non-demo tasks or interviews attached to seeded applications still block default cleanup. Use `--reset-user-data` only with a dedicated local/dev test user when you intentionally want to clear that user's app data.
 
 When records are seeded, the selected user's career profile is overwritten with a broad semantic-demo context. Use a dedicated test user if you care about preserving profile fields.
 
