@@ -1,6 +1,12 @@
 import { google } from "@ai-sdk/google";
-import { generateText, Output } from "ai";
+import { generateText, Output, stepCountIs } from "ai";
 import { z } from "zod";
+import {
+  createDashboardAssistantCollectedToolContext,
+  createDashboardAssistantTools,
+  type DashboardAssistantCollectedToolContext,
+  type DashboardAssistantToolRuntime,
+} from "@/lib/assistant/dashboard-tool-calling";
 
 const DASHBOARD_ASSISTANT_MODEL = "gemini-2.5-flash";
 
@@ -19,31 +25,90 @@ export type DashboardAssistantResult = z.infer<
 type GenerateDashboardAssistantAnswerInput = {
   question: string;
   contextText: string;
+  toolRuntime: DashboardAssistantToolRuntime;
 };
+
+type BuildStructuredDashboardAssistantPromptInput =
+  GenerateDashboardAssistantAnswerInput & {
+    collectedToolContext: DashboardAssistantCollectedToolContext;
+  };
 
 function normalizeList(values: string[]) {
   return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)));
 }
 
-function buildDashboardAssistantPrompt({
+function formatToolContextSections({
+  contextSections,
+}: DashboardAssistantCollectedToolContext) {
+  return contextSections.length > 0
+    ? contextSections.join("\n\n")
+    : "- No additional read-only tool results were collected.";
+}
+
+function formatToolLimitations({
+  limitations,
+}: DashboardAssistantCollectedToolContext) {
+  return limitations.length > 0
+    ? limitations.map((limitation) => `- ${limitation}`).join("\n")
+    : "- none";
+}
+
+function buildDashboardAssistantToolGatheringPrompt({
   question,
   contextText,
 }: GenerateDashboardAssistantAnswerInput) {
-  return `Answer this single-turn dashboard assistant question using only the saved JobSeeker AI context provided below.
+  return `Gather saved JobSeeker AI context for this single-turn dashboard assistant question by calling only the read-only tools that are useful.
 
 User question:
 """${question.trim()}"""
 
-Saved read-only context:
+Saved read-only base context:
 """${contextText}"""
+
+Available read-only tools:
+- getUpcomingInterviews: scheduled interviews, interview prep timing, upcoming interview obligations.
+- getPendingTasks: due, overdue, pending, or focus tasks.
+- findApplicationsNeedingAttention: priorities, follow-ups, urgent applications, near-term next actions.
+- searchJobPostings: saved jobs, job requirements, companies, technologies, Docker/containers, role fit, or job details.
+- searchResumes: resumes, resume fit, skills in resumes, or which resume is relevant.
+
+Tool use guidance:
+- Call only the tools needed to answer the user's question.
+- Do not call every tool by default.
+- If the base context is enough, answer without unnecessary tool calls.
+- Tools are read-only and return saved JobSeeker AI records only.
+- Search tools should receive a concise query based on the user's question.
+- Do not perform or offer write actions.
+- After any useful tool calls, reply with a brief context-gathering note. The final user-facing answer will be written in a separate step.`;
+}
+
+function buildDashboardAssistantPrompt({
+  question,
+  contextText,
+  collectedToolContext,
+}: BuildStructuredDashboardAssistantPromptInput) {
+  return `Answer this single-turn dashboard assistant question using only the saved JobSeeker AI base context and collected read-only tool results.
+
+User question:
+"""${question.trim()}"""
+
+Saved read-only base context:
+"""${contextText}"""
+
+Collected read-only tool result context:
+"""${formatToolContextSections(collectedToolContext)}"""
+
+Collected tool limitations:
+${formatToolLimitations(collectedToolContext)}
 
 Return a structured object with:
 - answerMarkdown: concise markdown. Mention relevant saved records by title, name, or company where useful. If the saved data is insufficient, say so. If the question is ambiguous, ask one clarifying question or explain the ambiguity.
-- citedRecordKeys: source keys from the provided context that directly support the answer. Use only exact source keys that appear in the context. Do not include raw record IDs outside source keys.
+- citedRecordKeys: source keys from the base context or tool results that directly support the answer. Use only exact source keys that appeared in the context or tool results. Do not include raw record IDs outside source keys.
 - limitations: concise limitations about missing or unavailable saved data, if important.
 
 Rules:
-- Answer only from the saved JobSeeker AI context above.
+- Answer only from saved JobSeeker AI base context and read-only tool results.
+- The tools are read-only.
 - Do not claim to browse, fetch, scrape, or know external websites.
 - Do not invent records, facts, credentials, employers, dates, scores, requirements, interviews, tasks, or applications.
 - Do not infer that a technology, requirement, status, date, or follow-up exists unless it appears in saved context.
@@ -59,6 +124,24 @@ export async function generateDashboardAssistantAnswer(
     throw new Error("GOOGLE_GENERATIVE_AI_API_KEY is not configured.");
   }
 
+  const collectedToolContext = createDashboardAssistantCollectedToolContext();
+  const tools = createDashboardAssistantTools({
+    ...input.toolRuntime,
+    state: collectedToolContext,
+  });
+
+  await generateText({
+    model: google(DASHBOARD_ASSISTANT_MODEL),
+    tools,
+    toolChoice: "auto",
+    stopWhen: stepCountIs(3),
+    system:
+      "You gather read-only saved JobSeeker AI context by calling relevant read-only tools. Do not perform writes. Do not produce the final user-facing answer.",
+    prompt: buildDashboardAssistantToolGatheringPrompt(input),
+    temperature: 0.2,
+    maxOutputTokens: 1200,
+  });
+
   const generation = await generateText({
     model: google(DASHBOARD_ASSISTANT_MODEL),
     output: Output.object({
@@ -68,8 +151,11 @@ export async function generateDashboardAssistantAnswer(
         "A concise read-only dashboard assistant answer grounded in saved JobSeeker AI records.",
     }),
     system:
-      "You are a read-only dashboard assistant for a job-search tracker. Use only provided saved records. Be honest about missing context. Never browse URLs, invent facts, or suggest write actions.",
-    prompt: buildDashboardAssistantPrompt(input),
+      "You are a read-only dashboard assistant for a job-search tracker. Use only provided saved records and read-only tool results. Be honest about missing context. Never browse URLs, invent facts, or suggest write actions.",
+    prompt: buildDashboardAssistantPrompt({
+      ...input,
+      collectedToolContext,
+    }),
     temperature: 0.2,
     maxOutputTokens: 2200,
   });
@@ -79,6 +165,9 @@ export async function generateDashboardAssistantAnswer(
   return {
     answerMarkdown: parsed.answerMarkdown.trim(),
     citedRecordKeys: normalizeList(parsed.citedRecordKeys),
-    limitations: normalizeList(parsed.limitations),
+    limitations: normalizeList([
+      ...collectedToolContext.limitations,
+      ...parsed.limitations,
+    ]),
   };
 }

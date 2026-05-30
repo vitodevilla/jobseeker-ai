@@ -21,6 +21,7 @@ import {
   createSourceRegistry,
   type DashboardAssistantReferencedRecord,
 } from "@/lib/assistant/source-registry";
+import type { DashboardAssistantToolRuntime } from "@/lib/assistant/dashboard-tool-calling";
 
 export type { DashboardAssistantReferencedRecord };
 
@@ -30,6 +31,11 @@ export type DashboardAssistantContextBundle = {
   limitations: string[];
   hasSavedRecords: boolean;
 };
+
+export type DashboardAssistantBaseContextBundle =
+  DashboardAssistantContextBundle & {
+    toolRuntime: DashboardAssistantToolRuntime;
+  };
 
 type BuildDashboardAssistantContextInput = {
   userId: string;
@@ -149,5 +155,60 @@ export async function buildDashboardAssistantContext({
     sourceMap: registry.sourceMap,
     limitations,
     hasSavedRecords: savedRecordCounts.hasSavedRecords,
+  };
+}
+
+export async function buildDashboardAssistantBaseContext({
+  userId,
+  question,
+  now = new Date(),
+}: BuildDashboardAssistantContextInput): Promise<DashboardAssistantBaseContextBundle> {
+  const terms = getQuestionTerms(question);
+  const registry = createSourceRegistry();
+  const sharedInput = {
+    userId,
+    registry,
+    terms,
+  };
+  const [userCareerContext, savedRecordCounts, primaryResumeContext] =
+    await Promise.all([
+      getUserCareerContext({ userId }),
+      getSavedRecordCounts({ userId }),
+      getPrimaryResumeContext(sharedInput),
+    ]);
+  const orderedContextModules = [
+    userCareerContext,
+    savedRecordCounts,
+    primaryResumeContext,
+  ];
+  const limitations: string[] = [];
+
+  if (!savedRecordCounts.hasSavedRecords) {
+    limitations.push(
+      "No saved job-search records were found, so the assistant can only discuss missing context.",
+    );
+  }
+
+  const contextText = [
+    "JobSeeker AI read-only dashboard assistant base context.",
+    "Use this orientation plus any read-only tool results. Source keys identify records that may be cited.",
+    `Current date: ${formatDate(now)}`,
+    `Current timestamp: ${formatDateTime(now)}`,
+    `Question-targeted keyword terms: ${
+      terms.length > 0 ? terms.join(", ") : "none"
+    }`,
+    ...orderedContextModules.map((result) => result.contextSection),
+  ].join("\n\n");
+
+  return {
+    contextText,
+    sourceMap: registry.sourceMap,
+    limitations,
+    hasSavedRecords: savedRecordCounts.hasSavedRecords,
+    toolRuntime: {
+      userId,
+      registry,
+      now,
+    },
   };
 }
