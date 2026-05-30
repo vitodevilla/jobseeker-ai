@@ -3,7 +3,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { buildDashboardAssistantContext } from "@/lib/assistant/dashboard-context";
+import { buildDashboardAssistantBaseContext } from "@/lib/assistant/dashboard-context";
 import type { DashboardAssistantReferencedRecord } from "@/lib/assistant/dashboard-context";
 import { generateDashboardAssistantAnswer } from "@/lib/ai/dashboard-assistant";
 import { auth } from "@/lib/auth";
@@ -46,11 +46,30 @@ function uniqueStrings(values: string[]) {
 }
 
 function getFriendlyAssistantError(error: unknown) {
-  if (
-    error instanceof Error &&
-    error.message.includes("GOOGLE_GENERATIVE_AI_API_KEY")
-  ) {
+  if (assistantErrorTextIncludes(error, ["GOOGLE_GENERATIVE_AI_API_KEY"])) {
     return "The dashboard assistant is unavailable because the AI provider is not configured.";
+  }
+
+  if (
+    assistantErrorTextIncludes(error, [
+      "quota",
+      "rate limit",
+      "too many requests",
+      "429",
+    ])
+  ) {
+    return "The AI provider rate limit was reached. Please wait a moment and try again.";
+  }
+
+  if (
+    assistantErrorTextIncludes(error, [
+      "503",
+      "service unavailable",
+      "overloaded",
+      "temporarily unavailable",
+    ])
+  ) {
+    return "The AI provider is temporarily unavailable. Please try again shortly.";
   }
 
   return "The dashboard assistant could not answer right now. Try again in a moment.";
@@ -81,6 +100,107 @@ function filterReferencedRecords(
   return referencedRecords;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function getErrorFieldText(error: unknown, fieldName: string) {
+  if (!isRecord(error)) {
+    return null;
+  }
+
+  const value = error[fieldName];
+
+  if (typeof value === "string" || typeof value === "number") {
+    return String(value);
+  }
+
+  return null;
+}
+
+function collectAssistantErrorText(error: unknown, depth = 0): string[] {
+  if (depth > 2) {
+    return [];
+  }
+
+  if (typeof error === "string" || typeof error === "number") {
+    return [String(error)];
+  }
+
+  const parts: string[] = [];
+
+  if (error instanceof Error) {
+    parts.push(error.name, error.message);
+  }
+
+  if (isRecord(error)) {
+    for (const fieldName of [
+      "name",
+      "message",
+      "status",
+      "statusCode",
+      "responseStatus",
+      "code",
+    ]) {
+      const fieldText = getErrorFieldText(error, fieldName);
+
+      if (fieldText) {
+        parts.push(fieldText);
+      }
+    }
+
+    if ("cause" in error) {
+      parts.push(...collectAssistantErrorText(error.cause, depth + 1));
+    }
+
+    if ("response" in error) {
+      parts.push(...collectAssistantErrorText(error.response, depth + 1));
+    }
+  }
+
+  return parts;
+}
+
+function assistantErrorTextIncludes(error: unknown, terms: string[]) {
+  const errorText = collectAssistantErrorText(error).join(" ").toLowerCase();
+
+  return terms.some((term) => errorText.includes(term.toLowerCase()));
+}
+
+function getConciseAssistantErrorLog(error: unknown) {
+  const summary: Record<string, string> = {};
+  const addField = (fieldName: string, fieldValue: string | null) => {
+    if (fieldValue) {
+      summary[fieldName] = fieldValue;
+    }
+  };
+
+  if (error instanceof Error) {
+    addField("name", error.name);
+    addField("message", error.message);
+
+    if (error.cause instanceof Error) {
+      addField("causeName", error.cause.name);
+      addField("causeMessage", error.cause.message);
+    }
+  } else if (typeof error === "string" || typeof error === "number") {
+    addField("value", String(error));
+  }
+
+  if (isRecord(error)) {
+    for (const fieldName of [
+      "status",
+      "statusCode",
+      "responseStatus",
+      "code",
+    ]) {
+      addField(fieldName, getErrorFieldText(error, fieldName));
+    }
+  }
+
+  return Object.keys(summary).length > 0 ? summary : { name: "UnknownError" };
+}
+
 export async function askDashboardAssistant(
   _previousState: DashboardAssistantActionState,
   formData: FormData,
@@ -102,13 +222,14 @@ export async function askDashboardAssistant(
   const userId = await getSignedInUserId();
 
   try {
-    const context = await buildDashboardAssistantContext({
+    const context = await buildDashboardAssistantBaseContext({
       userId,
       question: parsedQuestion.data,
     });
     const answer = await generateDashboardAssistantAnswer({
       question: parsedQuestion.data,
       contextText: context.contextText,
+      toolRuntime: context.toolRuntime,
     });
     const limitations = uniqueStrings([
       ...context.limitations,
@@ -126,6 +247,13 @@ export async function askDashboardAssistant(
       error: null,
     };
   } catch (error) {
+    if (process.env.NODE_ENV !== "production") {
+      console.error(
+        "Dashboard assistant error",
+        getConciseAssistantErrorLog(error),
+      );
+    }
+
     return {
       question: parsedQuestion.data,
       answerMarkdown: null,
