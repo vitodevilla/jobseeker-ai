@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { type FormEvent, useRef, useState } from "react";
+import {
+  type FormEvent,
+  type KeyboardEvent,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { askDashboardAssistant } from "@/app/dashboard/actions";
 import type {
   DashboardAssistantActionState,
@@ -218,13 +224,32 @@ function DashboardAssistantMessage({
 
 export function DashboardAssistantCard() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const transcriptScrollRef = useRef<HTMLDivElement>(null);
   const requestInFlightRef = useRef(false);
+  const isComposingRef = useRef(false);
   const [question, setQuestion] = useState("");
   const [transcript, setTranscript] = useState<DashboardAssistantChatMessage[]>(
     [],
   );
   const [composerError, setComposerError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
+
+  useEffect(() => {
+    const scrollElement = transcriptScrollRef.current;
+
+    if (!scrollElement) {
+      return;
+    }
+
+    const frame = requestAnimationFrame(() => {
+      scrollElement.scrollTo({
+        top: scrollElement.scrollHeight,
+        behavior: "smooth",
+      });
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [transcript]);
 
   function handleQuickPrompt(prompt: string) {
     if (isPending || requestInFlightRef.current) {
@@ -234,6 +259,23 @@ export function DashboardAssistantCard() {
     setQuestion(prompt);
     setComposerError(null);
     textareaRef.current?.focus();
+  }
+
+  function handleTextareaKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key !== "Enter" || event.shiftKey) {
+      return;
+    }
+
+    if (isComposingRef.current || event.nativeEvent.isComposing) {
+      return;
+    }
+
+    if (isPending || requestInFlightRef.current || !question.trim()) {
+      return;
+    }
+
+    event.preventDefault();
+    event.currentTarget.form?.requestSubmit();
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -344,7 +386,11 @@ export function DashboardAssistantCard() {
       </CardHeader>
 
       <CardContent className="space-y-5">
-        <div aria-live="polite" className="space-y-4">
+        <div
+          ref={transcriptScrollRef}
+          aria-live="polite"
+          className="max-h-[28rem] space-y-4 overflow-y-auto pr-1 md:max-h-[32rem]"
+        >
           {transcript.length > 0 ? (
             transcript.map((message) => (
               <DashboardAssistantMessage key={message.id} message={message} />
@@ -372,6 +418,13 @@ export function DashboardAssistantCard() {
               onChange={(event) => {
                 setQuestion(event.target.value);
                 setComposerError(null);
+              }}
+              onKeyDown={handleTextareaKeyDown}
+              onCompositionStart={() => {
+                isComposingRef.current = true;
+              }}
+              onCompositionEnd={() => {
+                isComposingRef.current = false;
               }}
               rows={3}
               maxLength={MAX_QUESTION_LENGTH}
