@@ -21,6 +21,8 @@ import {
   createSourceRegistry,
   type DashboardAssistantReferencedRecord,
 } from "@/lib/assistant/source-registry";
+import { getCurrentPageContext } from "@/lib/assistant/page-context";
+import type { DashboardAssistantPageContextInput } from "@/lib/assistant/page-context-types";
 import type { DashboardAssistantToolRuntime } from "@/lib/assistant/dashboard-tool-calling";
 
 export type { DashboardAssistantReferencedRecord };
@@ -40,6 +42,7 @@ export type DashboardAssistantBaseContextBundle =
 type BuildDashboardAssistantContextInput = {
   userId: string;
   question: string;
+  pageContext?: DashboardAssistantPageContextInput;
   now?: Date;
 };
 
@@ -161,6 +164,7 @@ export async function buildDashboardAssistantContext({
 export async function buildDashboardAssistantBaseContext({
   userId,
   question,
+  pageContext,
   now = new Date(),
 }: BuildDashboardAssistantContextInput): Promise<DashboardAssistantBaseContextBundle> {
   const terms = getQuestionTerms(question);
@@ -176,12 +180,17 @@ export async function buildDashboardAssistantBaseContext({
       getSavedRecordCounts({ userId }),
       getPrimaryResumeContext(sharedInput),
     ]);
+  const currentPageContext = await getCurrentPageContext({
+    ...sharedInput,
+    pageContext,
+  });
   const orderedContextModules = [
     userCareerContext,
     savedRecordCounts,
     primaryResumeContext,
+    ...(currentPageContext ? [currentPageContext] : []),
   ];
-  const limitations: string[] = [];
+  const limitations = currentPageContext ? [...currentPageContext.limitations] : [];
 
   if (!savedRecordCounts.hasSavedRecords) {
     limitations.push(
@@ -192,6 +201,7 @@ export async function buildDashboardAssistantBaseContext({
   const contextText = [
     "JobSeeker AI read-only dashboard assistant base context.",
     "Use this orientation plus any read-only tool results. Source keys identify records that may be cited.",
+    "Current page context, when present, is saved database state only and may not include unsaved form edits.",
     `Current date: ${formatDate(now)}`,
     `Current timestamp: ${formatDateTime(now)}`,
     `Question-targeted keyword terms: ${

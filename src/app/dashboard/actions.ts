@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { buildDashboardAssistantBaseContext } from "@/lib/assistant/dashboard-context";
 import type { DashboardAssistantReferencedRecord } from "@/lib/assistant/dashboard-context";
+import type { DashboardAssistantPageContextInput } from "@/lib/assistant/page-context-types";
 import { generateDashboardAssistantAnswer } from "@/lib/ai/dashboard-assistant";
 import { auth } from "@/lib/auth";
 
@@ -34,6 +35,16 @@ const historyMessageSchema = z.object({
   ),
 });
 
+const pageContextSchema = z
+  .object({
+    type: z.enum(["jobPosting"]),
+    id: z.preprocess(
+      (value) => (typeof value === "string" ? value.trim() : ""),
+      z.string().min(1).max(200),
+    ),
+  })
+  .strict();
+
 export type DashboardAssistantHistoryMessage = {
   role: "user" | "assistant";
   content: string;
@@ -42,6 +53,7 @@ export type DashboardAssistantHistoryMessage = {
 export type DashboardAssistantActionInput = {
   question: string;
   previousMessages?: DashboardAssistantHistoryMessage[];
+  pageContext?: DashboardAssistantPageContextInput;
 };
 
 export type DashboardAssistantActionState = {
@@ -212,6 +224,18 @@ function parsePreviousMessages(
   return messages;
 }
 
+function parsePageContext(
+  value: unknown,
+): DashboardAssistantPageContextInput | undefined {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+
+  const parsed = pageContextSchema.safeParse(value);
+
+  return parsed.success ? parsed.data : undefined;
+}
+
 function getConciseAssistantErrorLog(error: unknown) {
   const summary: Record<string, string> = {};
   const addField = (fieldName: string, fieldValue: string | null) => {
@@ -255,6 +279,9 @@ export async function askDashboardAssistant(
   const previousMessages = parsePreviousMessages(
     isRecord(input) ? input.previousMessages : undefined,
   );
+  const pageContext = parsePageContext(
+    isRecord(input) ? input.pageContext : undefined,
+  );
 
   if (!parsedQuestion.success) {
     return {
@@ -272,6 +299,7 @@ export async function askDashboardAssistant(
     const context = await buildDashboardAssistantBaseContext({
       userId,
       question: parsedQuestion.data,
+      pageContext,
     });
     const answer = await generateDashboardAssistantAnswer({
       question: parsedQuestion.data,

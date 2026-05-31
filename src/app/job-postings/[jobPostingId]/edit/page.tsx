@@ -10,6 +10,7 @@ import {
   type SimilarResumeResult,
 } from "@/lib/retrieval/semantic-search";
 import { AppShell } from "@/components/app-shell";
+import { AssistantChatCard } from "@/components/assistant-chat-card";
 import {
   analyzeResumeJobMatch,
   deleteJobPosting,
@@ -42,6 +43,13 @@ type EditJobPostingPageProps = {
 };
 
 const SIMILAR_RECORDS_LIMIT = 5;
+
+const jobPostingAssistantQuickPrompts = [
+  "Does this job require Docker or containers?",
+  "Which of my resumes fits this job best?",
+  "What are the biggest risks for me in this role?",
+  "How should I prepare for this role?",
+];
 
 type SimilarResumesState =
   | {
@@ -574,6 +582,16 @@ export default async function EditJobPostingPage({
             </form>
           </CardContent>
         </Card>
+
+        <AssistantChatCard
+          title="Ask about this saved job"
+          description="The assistant can answer using this saved job posting and your other saved records. It cannot see unsaved edits or change anything."
+          quickPrompts={jobPostingAssistantQuickPrompts}
+          pageContext={{
+            type: "jobPosting",
+            id: jobPosting.id,
+          }}
+        />
 
         <Card>
           <CardHeader>
