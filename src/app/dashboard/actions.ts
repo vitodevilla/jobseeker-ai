@@ -9,6 +9,8 @@ import { generateDashboardAssistantAnswer } from "@/lib/ai/dashboard-assistant";
 import { auth } from "@/lib/auth";
 
 const MAX_QUESTION_LENGTH = 1500;
+const MAX_HISTORY_MESSAGES = 6;
+const MAX_HISTORY_CONTENT_LENGTH = 1200;
 
 const questionSchema = z.preprocess(
   (value) => (typeof value === "string" ? value.trim() : ""),
@@ -20,6 +22,27 @@ const questionSchema = z.preprocess(
       `Keep the question under ${MAX_QUESTION_LENGTH} characters.`,
     ),
 );
+
+const historyMessageSchema = z.object({
+  role: z.enum(["user", "assistant"]),
+  content: z.preprocess(
+    (value) =>
+      typeof value === "string"
+        ? value.trim().slice(0, MAX_HISTORY_CONTENT_LENGTH)
+        : value,
+    z.string().min(1),
+  ),
+});
+
+export type DashboardAssistantHistoryMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
+
+export type DashboardAssistantActionInput = {
+  question: string;
+  previousMessages?: DashboardAssistantHistoryMessage[];
+};
 
 export type DashboardAssistantActionState = {
   question: string;
@@ -167,6 +190,28 @@ function assistantErrorTextIncludes(error: unknown, terms: string[]) {
   return terms.some((term) => errorText.includes(term.toLowerCase()));
 }
 
+function parsePreviousMessages(
+  value: unknown,
+): DashboardAssistantHistoryMessage[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const messages: DashboardAssistantHistoryMessage[] = [];
+
+  for (const item of value.slice(-MAX_HISTORY_MESSAGES)) {
+    const parsed = historyMessageSchema.safeParse(item);
+
+    if (!parsed.success) {
+      continue;
+    }
+
+    messages.push(parsed.data);
+  }
+
+  return messages;
+}
+
 function getConciseAssistantErrorLog(error: unknown) {
   const summary: Record<string, string> = {};
   const addField = (fieldName: string, fieldValue: string | null) => {
@@ -202,12 +247,14 @@ function getConciseAssistantErrorLog(error: unknown) {
 }
 
 export async function askDashboardAssistant(
-  _previousState: DashboardAssistantActionState,
-  formData: FormData,
+  input: DashboardAssistantActionInput,
 ): Promise<DashboardAssistantActionState> {
-  const rawQuestion = formData.get("question");
+  const rawQuestion = isRecord(input) ? input.question : "";
   const parsedQuestion = questionSchema.safeParse(rawQuestion);
   const question = typeof rawQuestion === "string" ? rawQuestion.trim() : "";
+  const previousMessages = parsePreviousMessages(
+    isRecord(input) ? input.previousMessages : undefined,
+  );
 
   if (!parsedQuestion.success) {
     return {
@@ -230,6 +277,7 @@ export async function askDashboardAssistant(
       question: parsedQuestion.data,
       contextText: context.contextText,
       toolRuntime: context.toolRuntime,
+      recentMessages: previousMessages,
     });
     const limitations = uniqueStrings([
       ...context.limitations,

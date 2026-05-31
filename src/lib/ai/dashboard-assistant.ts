@@ -9,6 +9,8 @@ import {
 } from "@/lib/assistant/dashboard-tool-calling";
 
 const DASHBOARD_ASSISTANT_MODEL = "gemini-2.5-flash";
+const MAX_RECENT_MESSAGES = 6;
+const MAX_RECENT_MESSAGE_LENGTH = 1200;
 
 const nonEmptyString = z.string().trim().min(1);
 
@@ -22,10 +24,16 @@ export type DashboardAssistantResult = z.infer<
   typeof dashboardAssistantResultSchema
 >;
 
+export type DashboardAssistantRecentMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
+
 type GenerateDashboardAssistantAnswerInput = {
   question: string;
   contextText: string;
   toolRuntime: DashboardAssistantToolRuntime;
+  recentMessages?: DashboardAssistantRecentMessage[];
 };
 
 type BuildStructuredDashboardAssistantPromptInput =
@@ -53,13 +61,49 @@ function formatToolLimitations({
     : "- none";
 }
 
+function normalizeRecentMessages(
+  recentMessages: DashboardAssistantRecentMessage[] | undefined,
+) {
+  return (recentMessages ?? [])
+    .slice(-MAX_RECENT_MESSAGES)
+    .map((message) => ({
+      role: message.role,
+      content: message.content.trim().slice(0, MAX_RECENT_MESSAGE_LENGTH),
+    }))
+    .filter(
+      (message) =>
+        (message.role === "user" || message.role === "assistant") &&
+        message.content.length > 0,
+    );
+}
+
+function formatRecentMessages(
+  recentMessages: DashboardAssistantRecentMessage[] | undefined,
+) {
+  const normalizedMessages = normalizeRecentMessages(recentMessages);
+
+  return normalizedMessages.length > 0
+    ? normalizedMessages
+        .map((message, index) => {
+          const label = message.role === "user" ? "User" : "Assistant";
+
+          return `${index + 1}. ${label}: ${message.content}`;
+        })
+        .join("\n")
+    : "- No recent chat history was provided.";
+}
+
 function buildDashboardAssistantToolGatheringPrompt({
   question,
   contextText,
+  recentMessages,
 }: GenerateDashboardAssistantAnswerInput) {
-  return `Gather saved JobSeeker AI context for this single-turn dashboard assistant question by calling only the read-only tools that are useful.
+  return `Gather saved JobSeeker AI context for the current dashboard assistant chat turn by calling only the read-only tools that are useful.
 
-User question:
+Recent chat history, for conversational context only:
+"""${formatRecentMessages(recentMessages)}"""
+
+Current user question:
 """${question.trim()}"""
 
 Saved read-only base context:
@@ -77,7 +121,10 @@ Tool use guidance:
 - Do not call every tool by default.
 - If the base context is enough, answer without unnecessary tool calls.
 - Tools are read-only and return saved JobSeeker AI records only.
-- Search tools should receive a concise query based on the user's question.
+- Search tools should receive a concise query based on the current question and relevant recent history.
+- Use recent chat history only to resolve follow-ups, pronouns, or references in the current question.
+- Do not treat previous assistant answers as saved-record evidence.
+- Gather fresh saved context for this turn when useful, even if a similar previous turn exists.
 - Do not perform or offer write actions.
 - After any useful tool calls, reply with a brief context-gathering note. The final user-facing answer will be written in a separate step.`;
 }
@@ -85,11 +132,15 @@ Tool use guidance:
 function buildDashboardAssistantPrompt({
   question,
   contextText,
+  recentMessages,
   collectedToolContext,
 }: BuildStructuredDashboardAssistantPromptInput) {
-  return `Answer this single-turn dashboard assistant question using only the saved JobSeeker AI base context and collected read-only tool results.
+  return `Answer the current dashboard assistant chat turn using only the saved JobSeeker AI base context and collected read-only tool results from this turn.
 
-User question:
+Recent chat history, for conversational context only:
+"""${formatRecentMessages(recentMessages)}"""
+
+Current user question:
 """${question.trim()}"""
 
 Saved read-only base context:
@@ -108,6 +159,11 @@ Return a structured object with:
 
 Rules:
 - Answer only from saved JobSeeker AI base context and read-only tool results.
+- Recent chat history is conversational context only. Use it to resolve follow-ups and pronouns, not as factual saved-record evidence.
+- Fresh base context and current-turn tool results are authoritative.
+- If recent chat history conflicts with fresh saved data, follow the fresh saved data.
+- Cite only source keys from the current turn's base context or current turn's tool results.
+- Do not cite source keys from previous turns unless they appear again in the current base context or current tool results.
 - The tools are read-only.
 - Do not claim to browse, fetch, scrape, or know external websites.
 - Do not invent records, facts, credentials, employers, dates, scores, requirements, interviews, tasks, or applications.
