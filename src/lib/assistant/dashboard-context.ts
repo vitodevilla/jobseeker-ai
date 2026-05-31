@@ -183,6 +183,7 @@ export async function buildDashboardAssistantBaseContext({
   const currentPageContext = await getCurrentPageContext({
     ...sharedInput,
     pageContext,
+    now,
   });
   const orderedContextModules = [
     userCareerContext,
