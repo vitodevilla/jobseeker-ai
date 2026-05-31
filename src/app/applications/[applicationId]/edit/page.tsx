@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { AppShell } from "@/components/app-shell";
+import { AssistantChatCard } from "@/components/assistant-chat-card";
 import {
   deleteApplication,
   updateApplication,
@@ -25,6 +26,13 @@ type EditApplicationPageProps = {
     applicationId: string;
   }>;
 };
+
+const applicationAssistantQuickPrompts = [
+  "What is the current status and next step?",
+  "What should I do next for this application?",
+  "What tasks or interviews are tied to this application?",
+  "Summarize this opportunity and any risks.",
+];
 
 function toDateInputValue(date: Date | null) {
   if (!date) {
@@ -254,6 +262,16 @@ export default async function EditApplicationPage({
             </form>
           </CardContent>
         </Card>
+
+        <AssistantChatCard
+          title="Ask about this application"
+          description="The assistant can answer using this saved application and related saved records. It cannot see unsaved edits or change anything."
+          quickPrompts={applicationAssistantQuickPrompts}
+          pageContext={{
+            type: "application",
+            id: application.id,
+          }}
+        />
 
         <Card className="border-destructive/30">
           <CardHeader>
