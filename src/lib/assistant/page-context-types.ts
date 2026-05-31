@@ -6,4 +6,8 @@ export type DashboardAssistantPageContextInput =
   | {
       type: "application";
       id: string;
+    }
+  | {
+      type: "resume";
+      id: string;
     };

@@ -37,7 +37,7 @@ const historyMessageSchema = z.object({
 
 const pageContextSchema = z
   .object({
-    type: z.enum(["jobPosting", "application"]),
+    type: z.enum(["jobPosting", "application", "resume"]),
     id: z.preprocess(
       (value) => (typeof value === "string" ? value.trim() : ""),
       z.string().min(1).max(200),
