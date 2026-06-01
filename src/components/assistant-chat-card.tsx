@@ -15,6 +15,7 @@ import type {
   ContextualAssistantHistoryMessage,
   ContextualAssistantPageContextInput,
 } from "@/lib/assistant/contextual-assistant-types";
+import { getAssistantPageContextKey } from "@/lib/assistant/page-context-routing";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -220,12 +221,6 @@ function AssistantChatMessageView({
       </div>
     </div>
   );
-}
-
-function getPageContextKey(
-  pageContext: ContextualAssistantPageContextInput | undefined,
-) {
-  return pageContext ? `${pageContext.type}:${pageContext.id}` : "dashboard";
 }
 
 function AssistantChatCardState({
@@ -474,7 +469,7 @@ function AssistantChatCardState({
 export function AssistantChatCard(props: AssistantChatCardProps) {
   return (
     <AssistantChatCardState
-      key={getPageContextKey(props.pageContext)}
+      key={getAssistantPageContextKey(props.pageContext)}
       {...props}
     />
   );

@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { createJobPostingAssistantPageContext } from "@/lib/assistant/page-context-routing";
 import {
   findSimilarResumesToJobPosting,
   getJobPostingSemanticSearchStatus,
@@ -587,10 +588,7 @@ export default async function EditJobPostingPage({
           title="Ask about this saved job"
           description="The assistant can answer using this saved job posting and your other saved records. It cannot see unsaved edits or change anything."
           quickPrompts={jobPostingAssistantQuickPrompts}
-          pageContext={{
-            type: "jobPosting",
-            id: jobPosting.id,
-          }}
+          pageContext={createJobPostingAssistantPageContext(jobPosting.id)}
         />
 
         <Card>
