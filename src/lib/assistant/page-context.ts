@@ -8,9 +8,9 @@ import {
   section,
   truncateText,
 } from "@/lib/assistant/context-formatters";
-import type { DashboardAssistantContextModuleResult } from "@/lib/assistant/dashboard-tools";
-import type { DashboardAssistantPageContextInput } from "@/lib/assistant/page-context-types";
-import type { DashboardAssistantSourceRegistry } from "@/lib/assistant/source-registry";
+import type { ContextualAssistantContextModuleResult } from "@/lib/assistant/dashboard-tools";
+import type { ContextualAssistantPageContextInput } from "@/lib/assistant/page-context-types";
+import type { ContextualAssistantSourceRegistry } from "@/lib/assistant/source-registry";
 import { prisma } from "@/lib/prisma";
 
 const APPLICATION_NOTES_EXCERPT_LENGTH = 300;
@@ -25,29 +25,29 @@ const RELATED_RESUME_JOB_CONTEXT_LIMIT = 5;
 const RELATED_RESUME_JOB_ANALYSIS_EXCERPT_LENGTH = 500;
 
 type JobPostingPageContextInput = Extract<
-  DashboardAssistantPageContextInput,
+  ContextualAssistantPageContextInput,
   { type: "jobPosting" }
 >;
 
 type ApplicationPageContextInput = Extract<
-  DashboardAssistantPageContextInput,
+  ContextualAssistantPageContextInput,
   { type: "application" }
 >;
 
 type ResumePageContextInput = Extract<
-  DashboardAssistantPageContextInput,
+  ContextualAssistantPageContextInput,
   { type: "resume" }
 >;
 
 type BuildAssistantPageContextInput = {
   userId: string;
-  registry: DashboardAssistantSourceRegistry;
+  registry: ContextualAssistantSourceRegistry;
   terms: string[];
   now?: Date;
-  pageContext?: DashboardAssistantPageContextInput;
+  pageContext?: ContextualAssistantPageContextInput;
 };
 
-function buildUnavailableCurrentPageContext(): DashboardAssistantContextModuleResult {
+function buildUnavailableCurrentPageContext(): ContextualAssistantContextModuleResult {
   const limitation = "Current page context could not be loaded or was unavailable.";
 
   return {
@@ -252,7 +252,7 @@ async function getCurrentJobPostingContext({
   pageContext,
 }: BuildAssistantPageContextInput & {
   pageContext: JobPostingPageContextInput;
-}): Promise<DashboardAssistantContextModuleResult> {
+}): Promise<ContextualAssistantContextModuleResult> {
   const jobPosting = await prisma.jobPosting.findFirst({
     where: {
       id: pageContext.id,
@@ -297,7 +297,7 @@ async function getCurrentResumeContext({
   pageContext,
 }: BuildAssistantPageContextInput & {
   pageContext: ResumePageContextInput;
-}): Promise<DashboardAssistantContextModuleResult> {
+}): Promise<ContextualAssistantContextModuleResult> {
   const resume = await prisma.resume.findFirst({
     where: {
       id: pageContext.id,
@@ -695,7 +695,7 @@ async function getCurrentApplicationContext({
   pageContext,
 }: BuildAssistantPageContextInput & {
   pageContext: ApplicationPageContextInput;
-}): Promise<DashboardAssistantContextModuleResult> {
+}): Promise<ContextualAssistantContextModuleResult> {
   const application = await prisma.application.findFirst({
     where: {
       id: pageContext.id,
@@ -831,7 +831,7 @@ async function getCurrentApplicationContext({
 export async function getCurrentPageContext({
   pageContext,
   ...input
-}: BuildAssistantPageContextInput): Promise<DashboardAssistantContextModuleResult | null> {
+}: BuildAssistantPageContextInput): Promise<ContextualAssistantContextModuleResult | null> {
   if (!pageContext) {
     return null;
   }

@@ -19,13 +19,17 @@ import {
 } from "@/lib/assistant/dashboard-tools";
 import {
   createSourceRegistry,
+  type ContextualAssistantReferencedRecord,
   type DashboardAssistantReferencedRecord,
 } from "@/lib/assistant/source-registry";
 import { getCurrentPageContext } from "@/lib/assistant/page-context";
-import type { DashboardAssistantPageContextInput } from "@/lib/assistant/page-context-types";
+import type { ContextualAssistantPageContextInput } from "@/lib/assistant/page-context-types";
 import type { DashboardAssistantToolRuntime } from "@/lib/assistant/dashboard-tool-calling";
 
-export type { DashboardAssistantReferencedRecord };
+export type {
+  ContextualAssistantReferencedRecord,
+  DashboardAssistantReferencedRecord,
+};
 
 export type DashboardAssistantContextBundle = {
   contextText: string;
@@ -34,17 +38,26 @@ export type DashboardAssistantContextBundle = {
   hasSavedRecords: boolean;
 };
 
+export type ContextualAssistantContextBundle =
+  DashboardAssistantContextBundle;
+
 export type DashboardAssistantBaseContextBundle =
   DashboardAssistantContextBundle & {
     toolRuntime: DashboardAssistantToolRuntime;
   };
 
-type BuildDashboardAssistantContextInput = {
+export type ContextualAssistantBaseContextBundle =
+  DashboardAssistantBaseContextBundle;
+
+export type BuildDashboardAssistantContextInput = {
   userId: string;
   question: string;
-  pageContext?: DashboardAssistantPageContextInput;
+  pageContext?: ContextualAssistantPageContextInput;
   now?: Date;
 };
+
+export type BuildContextualAssistantContextInput =
+  BuildDashboardAssistantContextInput;
 
 function getModuleLimitations(
   results: DashboardAssistantContextModuleResult[],
@@ -222,4 +235,10 @@ export async function buildDashboardAssistantBaseContext({
       now,
     },
   };
+}
+
+export async function buildContextualAssistantBaseContext(
+  input: BuildContextualAssistantContextInput,
+): Promise<ContextualAssistantBaseContextBundle> {
+  return buildDashboardAssistantBaseContext(input);
 }

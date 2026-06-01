@@ -9,12 +9,12 @@ import {
   useRef,
   useState,
 } from "react";
-import { askDashboardAssistant } from "@/app/dashboard/actions";
+import { askContextualAssistant } from "@/app/assistant/actions";
 import type {
-  DashboardAssistantActionState,
-  DashboardAssistantHistoryMessage,
-} from "@/app/dashboard/actions";
-import type { DashboardAssistantPageContextInput } from "@/lib/assistant/page-context-types";
+  ContextualAssistantActionState,
+  ContextualAssistantHistoryMessage,
+  ContextualAssistantPageContextInput,
+} from "@/lib/assistant/contextual-assistant-types";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -34,7 +34,7 @@ type AssistantChatCardProps = {
   title: string;
   description: string;
   quickPrompts: string[];
-  pageContext?: DashboardAssistantPageContextInput;
+  pageContext?: ContextualAssistantPageContextInput;
 };
 
 type AssistantChatMessage =
@@ -48,7 +48,7 @@ type AssistantChatMessage =
       role: "assistant";
       content: string;
       status: "pending" | "complete" | "error";
-      referencedRecords: DashboardAssistantActionState["referencedRecords"];
+      referencedRecords: ContextualAssistantActionState["referencedRecords"];
       limitations: string[];
     };
 
@@ -72,14 +72,14 @@ function truncateHistoryContent(content: string) {
 }
 
 function isHistoryMessage(
-  message: DashboardAssistantHistoryMessage | null,
-): message is DashboardAssistantHistoryMessage {
+  message: ContextualAssistantHistoryMessage | null,
+): message is ContextualAssistantHistoryMessage {
   return message !== null;
 }
 
 function toHistoryMessage(
   message: AssistantChatMessage,
-): DashboardAssistantHistoryMessage | null {
+): ContextualAssistantHistoryMessage | null {
   if (message.role === "user") {
     const content = truncateHistoryContent(message.content);
 
@@ -119,7 +119,7 @@ function buildAssistantMessageFromResponse({
   response,
 }: {
   id: string;
-  response: DashboardAssistantActionState;
+  response: ContextualAssistantActionState;
 }): AssistantChatMessage {
   if (response.error) {
     return {
@@ -223,7 +223,7 @@ function AssistantChatMessageView({
 }
 
 function getPageContextKey(
-  pageContext: DashboardAssistantPageContextInput | undefined,
+  pageContext: ContextualAssistantPageContextInput | undefined,
 ) {
   return pageContext ? `${pageContext.type}:${pageContext.id}` : "dashboard";
 }
@@ -331,7 +331,7 @@ function AssistantChatCardState({
     setIsPending(true);
 
     try {
-      const response = await askDashboardAssistant({
+      const response = await askContextualAssistant({
         question: trimmedQuestion,
         previousMessages,
         pageContext,
