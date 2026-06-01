@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AssistantShell } from "@/components/assistant-shell";
 import { LogoutButton } from "@/components/logout-button";
 import { MobileNav } from "@/components/mobile-nav";
 
@@ -108,6 +109,7 @@ export function AppShell({ userName, userEmail, children }: AppShellProps) {
       </header>
 
       <main className="mx-auto max-w-5xl px-4 py-8">{children}</main>
+      <AssistantShell />
     </div>
   );
 }

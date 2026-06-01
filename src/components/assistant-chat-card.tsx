@@ -16,10 +16,10 @@ import type {
   ContextualAssistantPageContextInput,
 } from "@/lib/assistant/contextual-assistant-types";
 import { getAssistantPageContextKey } from "@/lib/assistant/page-context-routing";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -36,6 +36,14 @@ type AssistantChatCardProps = {
   description: string;
   quickPrompts: string[];
   pageContext?: ContextualAssistantPageContextInput;
+};
+
+type AssistantChatPanelProps = {
+  quickPrompts: string[];
+  pageContext?: ContextualAssistantPageContextInput;
+  resetKey?: string;
+  className?: string;
+  transcriptClassName?: string;
 };
 
 type AssistantChatMessage =
@@ -223,12 +231,12 @@ function AssistantChatMessageView({
   );
 }
 
-function AssistantChatCardState({
-  title,
-  description,
+function AssistantChatPanelState({
   quickPrompts,
   pageContext,
-}: AssistantChatCardProps) {
+  className,
+  transcriptClassName,
+}: Omit<AssistantChatPanelProps, "resetKey">) {
   const textareaId = useId();
   const composerErrorId = useId();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -370,107 +378,130 @@ function AssistantChatCardState({
   }
 
   return (
+    <div className={cn("flex flex-col gap-5", className)}>
+      {transcript.length > 0 ? (
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={isPending}
+            onClick={handleClearChat}
+          >
+            Clear chat
+          </Button>
+        </div>
+      ) : null}
+
+      <div
+        ref={transcriptScrollRef}
+        aria-live="polite"
+        className={cn(
+          "max-h-[28rem] space-y-4 overflow-y-auto pr-1 md:max-h-[32rem]",
+          transcriptClassName,
+        )}
+      >
+        {transcript.length > 0 ? (
+          transcript.map((message) => (
+            <AssistantChatMessageView key={message.id} message={message} />
+          ))
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Ask a question to get a grounded answer from your saved records.
+          </p>
+        )}
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <div className="space-y-2">
+          <label htmlFor={textareaId} className="text-sm font-medium">
+            Message
+          </label>
+          <textarea
+            ref={textareaRef}
+            id={textareaId}
+            name="question"
+            value={question}
+            onChange={(event) => {
+              setQuestion(event.target.value);
+              setComposerError(null);
+            }}
+            onKeyDown={handleTextareaKeyDown}
+            onCompositionStart={() => {
+              isComposingRef.current = true;
+            }}
+            onCompositionEnd={() => {
+              isComposingRef.current = false;
+            }}
+            rows={3}
+            maxLength={MAX_QUESTION_LENGTH}
+            aria-invalid={Boolean(composerError)}
+            aria-describedby={composerError ? composerErrorId : undefined}
+            placeholder="Ask what to prioritize, which records need attention, or whether a saved job mentions a requirement..."
+            className="flex min-h-24 w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
+          />
+          {composerError ? (
+            <p id={composerErrorId} className="text-sm text-destructive">
+              {composerError}
+            </p>
+          ) : null}
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {quickPrompts.map((prompt) => (
+            <Button
+              key={prompt}
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-auto max-w-full justify-start whitespace-normal text-left leading-snug"
+              disabled={isPending}
+              onClick={() => handleQuickPrompt(prompt)}
+            >
+              {prompt}
+            </Button>
+          ))}
+        </div>
+
+        <Button type="submit" disabled={isPending}>
+          {isPending ? "Sending..." : "Send"}
+        </Button>
+      </form>
+    </div>
+  );
+}
+
+export function AssistantChatPanel({
+  resetKey,
+  ...props
+}: AssistantChatPanelProps) {
+  return (
+    <AssistantChatPanelState
+      key={resetKey ?? getAssistantPageContextKey(props.pageContext)}
+      {...props}
+    />
+  );
+}
+
+export function AssistantChatCard({
+  title,
+  description,
+  quickPrompts,
+  pageContext,
+}: AssistantChatCardProps) {
+  return (
     <Card>
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
-        {transcript.length > 0 ? (
-          <CardAction>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={isPending}
-              onClick={handleClearChat}
-            >
-              Clear chat
-            </Button>
-          </CardAction>
-        ) : null}
       </CardHeader>
 
-      <CardContent className="space-y-5">
-        <div
-          ref={transcriptScrollRef}
-          aria-live="polite"
-          className="max-h-[28rem] space-y-4 overflow-y-auto pr-1 md:max-h-[32rem]"
-        >
-          {transcript.length > 0 ? (
-            transcript.map((message) => (
-              <AssistantChatMessageView key={message.id} message={message} />
-            ))
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              Ask a question to get a grounded answer from your saved records.
-            </p>
-          )}
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <div className="space-y-2">
-            <label htmlFor={textareaId} className="text-sm font-medium">
-              Message
-            </label>
-            <textarea
-              ref={textareaRef}
-              id={textareaId}
-              name="question"
-              value={question}
-              onChange={(event) => {
-                setQuestion(event.target.value);
-                setComposerError(null);
-              }}
-              onKeyDown={handleTextareaKeyDown}
-              onCompositionStart={() => {
-                isComposingRef.current = true;
-              }}
-              onCompositionEnd={() => {
-                isComposingRef.current = false;
-              }}
-              rows={3}
-              maxLength={MAX_QUESTION_LENGTH}
-              aria-invalid={Boolean(composerError)}
-              aria-describedby={composerError ? composerErrorId : undefined}
-              placeholder="Ask what to prioritize, which records need attention, or whether a saved job mentions a requirement..."
-              className="flex min-h-24 w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
-            />
-            {composerError ? (
-              <p id={composerErrorId} className="text-sm text-destructive">
-                {composerError}
-              </p>
-            ) : null}
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {quickPrompts.map((prompt) => (
-              <Button
-                key={prompt}
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-auto max-w-full justify-start whitespace-normal text-left leading-snug"
-                disabled={isPending}
-                onClick={() => handleQuickPrompt(prompt)}
-              >
-                {prompt}
-              </Button>
-            ))}
-          </div>
-
-          <Button type="submit" disabled={isPending}>
-            {isPending ? "Sending..." : "Send"}
-          </Button>
-        </form>
+      <CardContent>
+        <AssistantChatPanel
+          quickPrompts={quickPrompts}
+          pageContext={pageContext}
+        />
       </CardContent>
     </Card>
-  );
-}
-
-export function AssistantChatCard(props: AssistantChatCardProps) {
-  return (
-    <AssistantChatCardState
-      key={getAssistantPageContextKey(props.pageContext)}
-      {...props}
-    />
   );
 }
