@@ -24,10 +24,15 @@ export type DashboardAssistantToolRuntime = {
   now: Date;
 };
 
+export type ContextualAssistantToolRuntime = DashboardAssistantToolRuntime;
+
 export type DashboardAssistantCollectedToolContext = {
   contextSections: string[];
   limitations: string[];
 };
+
+export type ContextualAssistantCollectedToolContext =
+  DashboardAssistantCollectedToolContext;
 
 type CreateDashboardAssistantToolsInput = DashboardAssistantToolRuntime & {
   state: DashboardAssistantCollectedToolContext;
@@ -39,6 +44,9 @@ export function createDashboardAssistantCollectedToolContext(): DashboardAssista
     limitations: [],
   };
 }
+
+export const createContextualAssistantCollectedToolContext =
+  createDashboardAssistantCollectedToolContext;
 
 function rememberToolResult(
   state: DashboardAssistantCollectedToolContext,
@@ -282,3 +290,5 @@ export function createDashboardAssistantTools({
     }),
   };
 }
+
+export const createContextualAssistantTools = createDashboardAssistantTools;

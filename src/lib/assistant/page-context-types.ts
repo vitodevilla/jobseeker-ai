@@ -1,4 +1,4 @@
-export type DashboardAssistantPageContextInput =
+export type ContextualAssistantPageContextInput =
   | {
       type: "jobPosting";
       id: string;
@@ -11,3 +11,6 @@ export type DashboardAssistantPageContextInput =
       type: "resume";
       id: string;
     };
+
+export type DashboardAssistantPageContextInput =
+  ContextualAssistantPageContextInput;

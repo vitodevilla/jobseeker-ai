@@ -48,6 +48,9 @@ export type DashboardAssistantContextModuleResult = {
   status: "ok" | "empty" | "partial" | "error";
 };
 
+export type ContextualAssistantContextModuleResult =
+  DashboardAssistantContextModuleResult;
+
 type Counts = {
   companies: number;
   jobPostings: number;

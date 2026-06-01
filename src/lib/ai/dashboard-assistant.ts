@@ -24,17 +24,24 @@ export type DashboardAssistantResult = z.infer<
   typeof dashboardAssistantResultSchema
 >;
 
+export type ContextualAssistantResult = DashboardAssistantResult;
+
 export type DashboardAssistantRecentMessage = {
   role: "user" | "assistant";
   content: string;
 };
 
-type GenerateDashboardAssistantAnswerInput = {
+export type ContextualAssistantRecentMessage = DashboardAssistantRecentMessage;
+
+export type GenerateDashboardAssistantAnswerInput = {
   question: string;
   contextText: string;
   toolRuntime: DashboardAssistantToolRuntime;
   recentMessages?: DashboardAssistantRecentMessage[];
 };
+
+export type GenerateContextualAssistantAnswerInput =
+  GenerateDashboardAssistantAnswerInput;
 
 type BuildStructuredDashboardAssistantPromptInput =
   GenerateDashboardAssistantAnswerInput & {
@@ -247,4 +254,10 @@ export async function generateDashboardAssistantAnswer(
       ...parsed.limitations,
     ]),
   };
+}
+
+export async function generateContextualAssistantAnswer(
+  input: GenerateContextualAssistantAnswerInput,
+): Promise<ContextualAssistantResult> {
+  return generateDashboardAssistantAnswer(input);
 }

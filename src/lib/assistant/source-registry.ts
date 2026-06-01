@@ -9,6 +9,8 @@ export type DashboardAssistantSourceType =
   | "company"
   | "coverLetter";
 
+export type ContextualAssistantSourceType = DashboardAssistantSourceType;
+
 export type DashboardAssistantReferencedRecord = {
   key: string;
   type: DashboardAssistantSourceType;
@@ -16,6 +18,9 @@ export type DashboardAssistantReferencedRecord = {
   href: string;
   description: string | null;
 };
+
+export type ContextualAssistantReferencedRecord =
+  DashboardAssistantReferencedRecord;
 
 type SourceInput = {
   type: DashboardAssistantSourceType;
@@ -173,3 +178,6 @@ export function createSourceRegistry() {
 export type DashboardAssistantSourceRegistry = ReturnType<
   typeof createSourceRegistry
 >;
+
+export type ContextualAssistantSourceRegistry =
+  DashboardAssistantSourceRegistry;
