@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { createApplicationAssistantPageContext } from "@/lib/assistant/page-context-routing";
 import { AppShell } from "@/components/app-shell";
 import { AssistantChatCard } from "@/components/assistant-chat-card";
 import {
@@ -267,10 +268,7 @@ export default async function EditApplicationPage({
           title="Ask about this application"
           description="The assistant can answer using this saved application and related saved records. It cannot see unsaved edits or change anything."
           quickPrompts={applicationAssistantQuickPrompts}
-          pageContext={{
-            type: "application",
-            id: application.id,
-          }}
+          pageContext={createApplicationAssistantPageContext(application.id)}
         />
 
         <Card className="border-destructive/30">

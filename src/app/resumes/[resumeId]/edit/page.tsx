@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { createResumeAssistantPageContext } from "@/lib/assistant/page-context-routing";
 import {
   findSimilarJobPostingsToResume,
   getResumeSemanticSearchStatus,
@@ -308,10 +309,7 @@ export default async function EditResumePage({
           title="Ask about this resume"
           description="The assistant can answer using this saved resume and related saved records. It cannot see unsaved edits or change anything."
           quickPrompts={resumeAssistantQuickPrompts}
-          pageContext={{
-            type: "resume",
-            id: resume.id,
-          }}
+          pageContext={createResumeAssistantPageContext(resume.id)}
         />
 
         <Card>
