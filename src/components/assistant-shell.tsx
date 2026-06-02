@@ -14,12 +14,31 @@ const shellQuickPrompts = [
   "What risks should I watch for?",
 ];
 
+function getAssistantShellContextLabel(
+  pageContext: ReturnType<typeof resolveAssistantPageContextFromPathname>,
+) {
+  if (pageContext?.type === "jobPosting") {
+    return "Context: Current job posting";
+  }
+
+  if (pageContext?.type === "application") {
+    return "Context: Current application";
+  }
+
+  if (pageContext?.type === "resume") {
+    return "Context: Current resume";
+  }
+
+  return "Context: General saved job-search data";
+}
+
 export function AssistantShell() {
   const pathname = usePathname();
   const titleId = useId();
   const descriptionId = useId();
   const [open, setOpen] = useState(false);
   const pageContext = resolveAssistantPageContextFromPathname(pathname);
+  const contextLabel = getAssistantShellContextLabel(pageContext);
   const resetKey = pathname ?? "unknown-route";
 
   useEffect(() => {
@@ -74,9 +93,12 @@ export function AssistantShell() {
                 <h2 id={titleId} className="text-base font-semibold">
                   Assistant
                 </h2>
+                <p className="mt-2 inline-flex rounded-full border px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                  {contextLabel}
+                </p>
                 <p
                   id={descriptionId}
-                  className="mt-1 text-sm text-muted-foreground"
+                  className="mt-2 text-sm text-muted-foreground"
                 >
                   Ask about your saved job-search data. I can use the current
                   page when available, but I cannot see unsaved edits or change
