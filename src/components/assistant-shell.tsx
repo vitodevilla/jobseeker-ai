@@ -7,16 +7,55 @@ import { AssistantChatPanel } from "@/components/assistant-chat-card";
 import { Button } from "@/components/ui/button";
 import { resolveAssistantPageContextFromPathname } from "@/lib/assistant/page-context-routing";
 
-const shellQuickPrompts = [
+type AssistantShellPageContext = ReturnType<
+  typeof resolveAssistantPageContextFromPathname
+>;
+
+const generalAssistantShellQuickPrompts = [
   "What should I prioritize this week?",
-  "What should I know about this page?",
   "Which records need follow-up?",
+  "Which interviews or tasks are coming up?",
   "What risks should I watch for?",
 ];
 
-function getAssistantShellContextLabel(
-  pageContext: ReturnType<typeof resolveAssistantPageContextFromPathname>,
-) {
+const jobPostingAssistantShellQuickPrompts = [
+  "Does this job mention Docker or containers?",
+  "Which resume fits this job best?",
+  "What are the risks in this role?",
+  "How should I prepare for this opportunity?",
+];
+
+const applicationAssistantShellQuickPrompts = [
+  "What is the current status and next step?",
+  "What tasks or interviews are tied to this application?",
+  "What should I prepare for next?",
+  "What risks should I watch for in this application?",
+];
+
+const resumeAssistantShellQuickPrompts = [
+  "What are the strongest signals in this resume?",
+  "What gaps should I watch for against my target role?",
+  "Which saved jobs seem most relevant to this resume?",
+  "Where has this resume been used in my applications?",
+];
+
+function getAssistantShellQuickPrompts(pageContext: AssistantShellPageContext) {
+  if (pageContext?.type === "jobPosting") {
+    return jobPostingAssistantShellQuickPrompts;
+  }
+
+  if (pageContext?.type === "application") {
+    return applicationAssistantShellQuickPrompts;
+  }
+
+  if (pageContext?.type === "resume") {
+    return resumeAssistantShellQuickPrompts;
+  }
+
+  return generalAssistantShellQuickPrompts;
+}
+
+function getAssistantShellContextLabel(pageContext: AssistantShellPageContext) {
   if (pageContext?.type === "jobPosting") {
     return "Context: Current job posting";
   }
@@ -39,6 +78,7 @@ export function AssistantShell() {
   const [open, setOpen] = useState(false);
   const pageContext = resolveAssistantPageContextFromPathname(pathname);
   const contextLabel = getAssistantShellContextLabel(pageContext);
+  const quickPrompts = getAssistantShellQuickPrompts(pageContext);
   const resetKey = pathname ?? "unknown-route";
 
   useEffect(() => {
@@ -119,7 +159,7 @@ export function AssistantShell() {
 
             <div className="min-h-0 flex-1 p-4">
               <AssistantChatPanel
-                quickPrompts={shellQuickPrompts}
+                quickPrompts={quickPrompts}
                 pageContext={pageContext}
                 resetKey={resetKey}
                 className="h-full min-h-0"
