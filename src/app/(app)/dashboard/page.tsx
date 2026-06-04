@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { DashboardAssistantCard } from "@/app/(app)/dashboard/dashboard-assistant-card";
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -45,106 +46,89 @@ export default async function DashboardPage() {
 
   const userId = session.user.id;
 
-  const [
-    user,
-    upcomingInterviews,
-    dueTasks,
-    recentApplications,
-    recentJobPostings,
-  ] = await Promise.all([
-    prisma.user.findUnique({
-      where: {
-        id: userId,
-      },
-      select: {
-        name: true,
-        email: true,
-        targetRole: true,
-        targetLocations: true,
-        yearsOfExperience: true,
-        currentRole: true,
-        preferredWorkMode: true,
-      },
-    }),
-    prisma.interview.findMany({
-      where: {
-        userId,
-        scheduledAt: {
-          gte: new Date(),
+  const [user, upcomingInterviews, dueTasks, recentApplications] =
+    await Promise.all([
+      prisma.user.findUnique({
+        where: {
+          id: userId,
         },
-      },
-      include: {
-        application: {
-          include: {
-            jobPosting: {
-              include: {
-                company: true,
+        select: {
+          name: true,
+          email: true,
+          targetRole: true,
+          targetLocations: true,
+          yearsOfExperience: true,
+          currentRole: true,
+          preferredWorkMode: true,
+        },
+      }),
+      prisma.interview.findMany({
+        where: {
+          userId,
+          scheduledAt: {
+            gte: new Date(),
+          },
+        },
+        include: {
+          application: {
+            include: {
+              jobPosting: {
+                include: {
+                  company: true,
+                },
               },
             },
           },
         },
-      },
-      orderBy: {
-        scheduledAt: "asc",
-      },
-      take: 5,
-    }),
-    prisma.task.findMany({
-      where: {
-        userId,
-        status: "PENDING",
-      },
-      include: {
-        application: {
-          include: {
-            jobPosting: {
-              include: {
-                company: true,
+        orderBy: {
+          scheduledAt: "asc",
+        },
+        take: 3,
+      }),
+      prisma.task.findMany({
+        where: {
+          userId,
+          status: "PENDING",
+        },
+        include: {
+          application: {
+            include: {
+              jobPosting: {
+                include: {
+                  company: true,
+                },
               },
             },
           },
         },
-      },
-      orderBy: [
-        {
-          dueAt: "asc",
-        },
-        {
-          createdAt: "desc",
-        },
-      ],
-      take: 5,
-    }),
-    prisma.application.findMany({
-      where: {
-        userId,
-      },
-      include: {
-        jobPosting: {
-          include: {
-            company: true,
+        orderBy: [
+          {
+            dueAt: "asc",
           },
+          {
+            createdAt: "desc",
+          },
+        ],
+        take: 3,
+      }),
+      prisma.application.findMany({
+        where: {
+          userId,
         },
-        resume: true,
-      },
-      orderBy: {
-        updatedAt: "desc",
-      },
-      take: 5,
-    }),
-    prisma.jobPosting.findMany({
-      where: {
-        userId,
-      },
-      include: {
-        company: true,
-      },
-      orderBy: {
-        savedAt: "desc",
-      },
-      take: 5,
-    }),
-  ]);
+        include: {
+          jobPosting: {
+            include: {
+              company: true,
+            },
+          },
+          resume: true,
+        },
+        orderBy: {
+          updatedAt: "desc",
+        },
+        take: 3,
+      }),
+    ]);
 
   if (!user) {
     redirect("/sign-in");
@@ -186,8 +170,6 @@ export default async function DashboardPage() {
           </Card>
         ) : null}
 
-        <DashboardAssistantCard />
-
         <section className="grid gap-4 lg:grid-cols-2">
           <Card>
             <CardHeader>
@@ -195,13 +177,23 @@ export default async function DashboardPage() {
               <CardDescription>
                 The next scheduled interview rounds.
               </CardDescription>
+              <CardAction>
+                <Button variant="link" size="sm" asChild>
+                  <Link href="/interviews">View all</Link>
+                </Button>
+              </CardAction>
             </CardHeader>
 
             <CardContent>
               {upcomingInterviews.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  No upcoming interviews.
-                </p>
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    No upcoming interviews.
+                  </p>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href="/interviews">View interviews</Link>
+                  </Button>
+                </div>
               ) : (
                 <div className="space-y-4">
                   {upcomingInterviews.map((interview) => (
@@ -218,7 +210,7 @@ export default async function DashboardPage() {
                         </div>
                         <Button variant="outline" size="sm" asChild>
                           <Link href={`/interviews/${interview.id}/edit`}>
-                            Open
+                            Open interview
                           </Link>
                         </Button>
                       </div>
@@ -238,13 +230,23 @@ export default async function DashboardPage() {
               <CardDescription>
                 Follow-ups and reminders that still need action.
               </CardDescription>
+              <CardAction>
+                <Button variant="link" size="sm" asChild>
+                  <Link href="/tasks">View all</Link>
+                </Button>
+              </CardAction>
             </CardHeader>
 
             <CardContent>
               {dueTasks.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  No pending tasks.
-                </p>
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    No pending tasks.
+                  </p>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href="/tasks">View tasks</Link>
+                  </Button>
+                </div>
               ) : (
                 <div className="space-y-4">
                   {dueTasks.map((task) => (
@@ -261,7 +263,7 @@ export default async function DashboardPage() {
                           </p>
                         </div>
                         <Button variant="outline" size="sm" asChild>
-                          <Link href={`/tasks/${task.id}/edit`}>Open</Link>
+                          <Link href={`/tasks/${task.id}/edit`}>Open task</Link>
                         </Button>
                       </div>
 
@@ -280,101 +282,65 @@ export default async function DashboardPage() {
               )}
             </CardContent>
           </Card>
+        </section>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent applications</CardTitle>
-              <CardDescription>
-                Recently updated application records.
-              </CardDescription>
-            </CardHeader>
+        <DashboardAssistantCard />
 
-            <CardContent>
-              {recentApplications.length === 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent applications</CardTitle>
+            <CardDescription>
+              Recently updated application records.
+            </CardDescription>
+            <CardAction>
+              <Button variant="link" size="sm" asChild>
+                <Link href="/applications">View all</Link>
+              </Button>
+            </CardAction>
+          </CardHeader>
+
+          <CardContent>
+            {recentApplications.length === 0 ? (
+              <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
                   No applications yet.
                 </p>
-              ) : (
-                <div className="space-y-4">
-                  {recentApplications.map((application) => (
-                    <div key={application.id} className="space-y-1">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="wrap-break-word text-sm font-medium">
-                            {application.jobPosting.title}
-                          </p>
-                          <p className="wrap-break-word text-sm text-muted-foreground">
-                            {application.jobPosting.company.name} ·{" "}
-                            {formatStatus(application.status)}
-                          </p>
-                        </div>
-                        <Button variant="outline" size="sm" asChild>
-                          <Link href={`/applications/${application.id}/edit`}>
-                            Open
-                          </Link>
-                        </Button>
-                      </div>
-
-                      {application.resume ? (
-                        <p className="text-sm text-muted-foreground">
-                          Resume: {application.resume.name}
+                <Button size="sm" asChild>
+                  <Link href="/applications/new">Add application</Link>
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {recentApplications.map((application) => (
+                  <div key={application.id} className="space-y-1">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="wrap-break-word text-sm font-medium">
+                          {application.jobPosting.title}
                         </p>
-                      ) : null}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent job postings</CardTitle>
-              <CardDescription>
-                Recently saved roles to review or turn into applications.
-              </CardDescription>
-            </CardHeader>
-
-            <CardContent>
-              {recentJobPostings.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  No job postings yet.
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  {recentJobPostings.map((jobPosting) => (
-                    <div key={jobPosting.id} className="space-y-1">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="wrap-break-word text-sm font-medium">
-                            {jobPosting.title}
-                          </p>
-                          <p className="wrap-break-word text-sm text-muted-foreground">
-                            {jobPosting.company.name}
-                            {jobPosting.location
-                              ? ` · ${jobPosting.location}`
-                              : ""}
-                          </p>
-                        </div>
-                        <Button variant="outline" size="sm" asChild>
-                          <Link href={`/job-postings/${jobPosting.id}/edit`}>
-                            Open
-                          </Link>
-                        </Button>
+                        <p className="wrap-break-word text-sm text-muted-foreground">
+                          {application.jobPosting.company.name} ·{" "}
+                          {formatStatus(application.status)}
+                        </p>
                       </div>
-
-                      <p className="text-sm text-muted-foreground">
-                        {jobPosting.deadline
-                          ? `Deadline: ${formatDate(jobPosting.deadline)}`
-                          : `Saved: ${formatDate(jobPosting.savedAt)}`}
-                      </p>
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/applications/${application.id}/edit`}>
+                          Open application
+                        </Link>
+                      </Button>
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </section>
+
+                    {application.resume ? (
+                      <p className="text-sm text-muted-foreground">
+                        Resume: {application.resume.name}
+                      </p>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </>
   );

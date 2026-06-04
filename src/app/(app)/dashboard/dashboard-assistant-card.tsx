@@ -3,10 +3,10 @@
 import { AssistantChatCard } from "@/components/assistant-chat-card";
 
 const quickPrompts = [
-  "What should I prioritize this week?",
-  "Which applications need follow-up?",
-  "Which interviews are coming up?",
-  "Which saved jobs seem most relevant to my profile?",
+  "What should I focus on today?",
+  "Which follow-ups need attention?",
+  "Which interviews should I prepare for?",
+  "What is my next best action?",
 ];
 
 export function DashboardAssistantCard() {
