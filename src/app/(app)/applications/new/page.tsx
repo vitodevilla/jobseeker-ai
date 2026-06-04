@@ -77,7 +77,7 @@ export default async function NewApplicationPage() {
             </CardHeader>
             <CardContent>
               <Button asChild>
-                <Link href="/job-postings/new">Create job posting</Link>
+                <Link href="/job-postings/new">Add job posting</Link>
               </Button>
             </CardContent>
           </Card>

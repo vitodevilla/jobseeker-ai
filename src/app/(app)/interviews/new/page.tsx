@@ -65,7 +65,7 @@ export default async function NewInterviewPage() {
               <CardTitle>No applications yet</CardTitle>
               <CardDescription>
                 Interviews must be linked to an application. Create an
-                application first.
+                application first, then return to schedule the interview round.
               </CardDescription>
             </CardHeader>
             <CardContent>

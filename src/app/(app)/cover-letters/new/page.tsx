@@ -17,12 +17,40 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { StatusMessage } from "@/components/ui/status-message";
 
 type NewCoverLetterPageProps = {
   searchParams: Promise<{
     error?: string;
   }>;
 };
+
+const coverLetterNewErrorMessages = {
+  "missing-application": {
+    title: "Application is required",
+    description: "Select an application before generating a first draft.",
+  },
+  "ai-generation-failed": {
+    title: "AI draft could not be generated",
+    description:
+      "Something went wrong while generating the first draft. Try again in a moment.",
+  },
+  "empty-ai-generation": {
+    title: "AI draft was empty",
+    description:
+      "The AI request completed without usable cover letter text. Try generating the draft again.",
+  },
+} as const;
+
+function getCoverLetterNewErrorMessage(error?: string) {
+  if (!error || !(error in coverLetterNewErrorMessages)) {
+    return null;
+  }
+
+  return coverLetterNewErrorMessages[
+    error as keyof typeof coverLetterNewErrorMessages
+  ];
+}
 
 export default async function NewCoverLetterPage({
   searchParams,
@@ -53,6 +81,7 @@ export default async function NewCoverLetterPage({
 
   const query = await searchParams;
   const error = query.error;
+  const errorMessage = getCoverLetterNewErrorMessage(error);
 
   return (
     <>
@@ -74,39 +103,12 @@ export default async function NewCoverLetterPage({
           </p>
         </div>
 
-        {error === "missing-application" ? (
-          <Card className="border-destructive/30">
-            <CardHeader>
-              <CardTitle>Application is required</CardTitle>
-              <CardDescription>
-                Select an application before generating a first draft.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        ) : null}
-
-        {error === "ai-generation-failed" ? (
-          <Card className="border-destructive/30">
-            <CardHeader>
-              <CardTitle>AI draft could not be generated</CardTitle>
-              <CardDescription>
-                Something went wrong while generating the first draft. Try again
-                in a moment.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        ) : null}
-
-        {error === "empty-ai-generation" ? (
-          <Card className="border-destructive/30">
-            <CardHeader>
-              <CardTitle>AI draft was empty</CardTitle>
-              <CardDescription>
-                The AI request completed without usable cover letter text. Try
-                generating the draft again.
-              </CardDescription>
-            </CardHeader>
-          </Card>
+        {errorMessage ? (
+          <StatusMessage
+            variant="error"
+            title={errorMessage.title}
+            description={errorMessage.description}
+          />
         ) : null}
 
         {applications.length === 0 ? (
@@ -115,7 +117,8 @@ export default async function NewCoverLetterPage({
               <CardTitle>No applications yet</CardTitle>
               <CardDescription>
                 Cover letters must be linked to an application. Create an
-                application first.
+                application first, then return to write or generate a cover
+                letter.
               </CardDescription>
             </CardHeader>
             <CardContent>

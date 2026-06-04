@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { StatusMessage } from "@/components/ui/status-message";
 
 type NewResumePageProps = {
   searchParams: Promise<{
@@ -17,11 +18,43 @@ type NewResumePageProps = {
   }>;
 };
 
+const resumeFormErrorMessages = {
+  "missing-content": {
+    title: "Resume content is required",
+    description:
+      "Upload a readable PDF or paste resume text manually before creating a resume.",
+  },
+  "invalid-file-type": {
+    title: "Upload a PDF file",
+    description:
+      "Resume upload only supports PDF files. Choose a PDF or paste resume text manually.",
+  },
+  "file-too-large": {
+    title: "Resume PDF is too large",
+    description: "Upload a PDF up to 5 MB, or paste resume text manually.",
+  },
+  "pdf-extraction-failed": {
+    title: "PDF text could not be extracted",
+    description: "Try another PDF or paste resume text manually.",
+  },
+} as const;
+
+function getResumeFormErrorMessage(error?: string) {
+  if (!error || !(error in resumeFormErrorMessages)) {
+    return null;
+  }
+
+  return resumeFormErrorMessages[
+    error as keyof typeof resumeFormErrorMessages
+  ];
+}
+
 export default async function NewResumePage({
   searchParams,
 }: NewResumePageProps) {
   const params = await searchParams;
   const error = params.error;
+  const errorMessage = getResumeFormErrorMessage(error);
 
   return (
     <>
@@ -41,16 +74,21 @@ export default async function NewResumePage({
           </p>
         </div>
 
-        {error === "missing-content" ? (
-          <Card className="border-destructive/30">
-            <CardHeader>
-              <CardTitle>Resume content is required</CardTitle>
-              <CardDescription>
-                Upload a readable PDF or paste resume text manually before
-                creating a resume.
-              </CardDescription>
-            </CardHeader>
-          </Card>
+        {errorMessage ? (
+          <StatusMessage
+            variant="error"
+            title={errorMessage.title}
+            description={errorMessage.description}
+          >
+            <div className="flex flex-wrap gap-3 font-medium">
+              <a href="#pdfFile" className="underline underline-offset-4">
+                Choose PDF
+              </a>
+              <a href="#content" className="underline underline-offset-4">
+                Paste resume text
+              </a>
+            </div>
+          </StatusMessage>
         ) : null}
 
         <Card>

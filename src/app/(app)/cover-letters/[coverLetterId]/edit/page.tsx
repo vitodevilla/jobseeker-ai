@@ -19,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DeleteConfirmationForm } from "@/components/delete-confirmation-form";
+import { StatusMessage } from "@/components/ui/status-message";
 
 type EditCoverLetterPageProps = {
   params: Promise<{
@@ -42,6 +43,33 @@ function getModeDescription(mode: string) {
   return "Uploaded document";
 }
 
+const coverLetterEditErrorMessages = {
+  "missing-content": {
+    title: "Cover letter content is required",
+    description: "Add cover letter text before generating an AI critique.",
+  },
+  "empty-ai-feedback": {
+    title: "AI critique was empty",
+    description:
+      "The AI request completed without usable feedback. Try generating the critique again.",
+  },
+  "ai-failed": {
+    title: "AI critique could not be generated",
+    description:
+      "Something went wrong while generating feedback. Try again in a moment.",
+  },
+} as const;
+
+function getCoverLetterEditErrorMessage(error?: string) {
+  if (!error || !(error in coverLetterEditErrorMessages)) {
+    return null;
+  }
+
+  return coverLetterEditErrorMessages[
+    error as keyof typeof coverLetterEditErrorMessages
+  ];
+}
+
 export default async function EditCoverLetterPage({
   params,
   searchParams,
@@ -57,6 +85,13 @@ export default async function EditCoverLetterPage({
   const { coverLetterId } = await params;
   const query = await searchParams;
   const error = query.error;
+  const errorMessage = getCoverLetterEditErrorMessage(error);
+  const aiSuccessMessage =
+    query.ai === "generated"
+      ? "AI critique saved."
+      : query.ai === "draft-generated"
+        ? "AI first draft created. Review and edit it before sending."
+        : null;
 
   const [coverLetter, applications] = await Promise.all([
     prisma.coverLetter.findFirst({
@@ -122,51 +157,16 @@ export default async function EditCoverLetterPage({
           </CardHeader>
         </Card>
 
-        {error === "missing-content" ? (
-          <Card className="border-destructive/30">
-            <CardHeader>
-              <CardTitle>Cover letter content is required</CardTitle>
-              <CardDescription>
-                Add cover letter text before generating an AI critique.
-              </CardDescription>
-            </CardHeader>
-          </Card>
+        {errorMessage ? (
+          <StatusMessage
+            variant="error"
+            title={errorMessage.title}
+            description={errorMessage.description}
+          />
         ) : null}
 
-        {error === "empty-ai-feedback" ? (
-          <Card className="border-destructive/30">
-            <CardHeader>
-              <CardTitle>AI critique was empty</CardTitle>
-              <CardDescription>
-                The AI request completed without usable feedback. Try
-                generating the critique again.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        ) : null}
-
-        {error === "ai-failed" ? (
-          <Card className="border-destructive/30">
-            <CardHeader>
-              <CardTitle>AI critique could not be generated</CardTitle>
-              <CardDescription>
-                Something went wrong while generating feedback. Try again in a
-                moment.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        ) : null}
-
-        {query.ai === "generated" ? (
-          <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
-            AI critique saved.
-          </p>
-        ) : null}
-
-        {query.ai === "draft-generated" ? (
-          <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
-            AI first draft created. Review and edit it before sending.
-          </p>
+        {aiSuccessMessage ? (
+          <StatusMessage variant="success" title={aiSuccessMessage} />
         ) : null}
 
         <Card>

@@ -30,6 +30,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DeleteConfirmationForm } from "@/components/delete-confirmation-form";
+import { StatusMessage } from "@/components/ui/status-message";
 
 type EditJobPostingPageProps = {
   params: Promise<{
@@ -114,6 +115,78 @@ async function getSimilarResumesState(
   }
 }
 
+const jobPostingEditErrorMessages = {
+  "missing-job-context": {
+    title: "More job context is needed",
+    description:
+      "Add a job description or more saved role and company details before running AI analysis.",
+  },
+  "missing-resume": {
+    title: "Select a resume",
+    description:
+      "Choose one of your saved resumes before running resume analysis.",
+  },
+  "missing-resume-content": {
+    title: "Resume content is required",
+    description:
+      "The selected resume has no usable text. Edit the resume or upload a readable PDF before running resume analysis.",
+  },
+  "empty-ai-summary": {
+    title: "AI summary was empty",
+    description:
+      "The AI request completed without a usable summary. Try generating the summary again.",
+  },
+  "ai-summary-failed": {
+    title: "AI summary could not be generated",
+    description:
+      "Something went wrong while generating the summary. Try again in a moment.",
+  },
+  "empty-ai-match": {
+    title: "AI match analysis was empty",
+    description:
+      "The AI request completed without usable match analysis. Try analyzing the match again.",
+  },
+  "invalid-ai-match": {
+    title: "AI match analysis was invalid",
+    description:
+      "The AI response did not include a valid score and analysis. Try analyzing the match again.",
+  },
+  "ai-match-failed": {
+    title: "AI match analysis could not be generated",
+    description:
+      "Something went wrong while analyzing the resume and job posting. Try again in a moment.",
+  },
+  "empty-ai-tailoring": {
+    title: "AI tailoring suggestions were empty",
+    description:
+      "The AI request completed without usable tailoring suggestions. Try generating suggestions again.",
+  },
+  "ai-tailoring-failed": {
+    title: "AI tailoring suggestions could not be generated",
+    description:
+      "Something went wrong while generating resume tailoring suggestions. Try again in a moment.",
+  },
+  "semantic-empty": {
+    title: "Semantic data needs content",
+    description:
+      "This job posting needs saved content before semantic data can be generated.",
+  },
+  "semantic-failed": {
+    title: "Semantic data could not be updated",
+    description: "Semantic data could not be updated right now. Try again later.",
+  },
+} as const;
+
+function getJobPostingEditErrorMessage(error?: string) {
+  if (!error || !(error in jobPostingEditErrorMessages)) {
+    return null;
+  }
+
+  return jobPostingEditErrorMessages[
+    error as keyof typeof jobPostingEditErrorMessages
+  ];
+}
+
 export default async function EditJobPostingPage({
   params,
   searchParams,
@@ -129,6 +202,21 @@ export default async function EditJobPostingPage({
   const { jobPostingId } = await params;
   const query = await searchParams;
   const error = query.error;
+  const errorMessage = getJobPostingEditErrorMessage(error);
+  const aiSuccessMessage =
+    query.ai === "summary-generated"
+      ? "AI summary saved."
+      : query.ai === "match-generated"
+        ? "Resume match analysis saved."
+        : query.ai === "tailoring-generated"
+          ? "Resume tailoring suggestions saved."
+          : null;
+  const semanticSuccessMessage =
+    query.semantic === "updated"
+      ? "Semantic data updated."
+      : query.semantic === "fresh"
+        ? "Semantic data was already up to date."
+        : null;
 
   const [jobPosting, companies, resumes, user] = await Promise.all([
     prisma.jobPosting.findFirst({
@@ -247,178 +335,20 @@ export default async function EditJobPostingPage({
           </p>
         </div>
 
-        {error === "missing-job-context" ? (
-          <Card className="border-destructive/30">
-            <CardHeader>
-              <CardTitle>More job context is needed</CardTitle>
-              <CardDescription>
-                Add a job description or more saved role and company details
-                before running AI analysis.
-              </CardDescription>
-            </CardHeader>
-          </Card>
+        {errorMessage ? (
+          <StatusMessage
+            variant="error"
+            title={errorMessage.title}
+            description={errorMessage.description}
+          />
         ) : null}
 
-        {error === "missing-resume" ? (
-          <Card className="border-destructive/30">
-            <CardHeader>
-              <CardTitle>Select a resume</CardTitle>
-              <CardDescription>
-                Choose one of your saved resumes before running resume
-                analysis.
-              </CardDescription>
-            </CardHeader>
-          </Card>
+        {aiSuccessMessage ? (
+          <StatusMessage variant="success" title={aiSuccessMessage} />
         ) : null}
 
-        {error === "missing-resume-content" ? (
-          <Card className="border-destructive/30">
-            <CardHeader>
-              <CardTitle>Resume content is required</CardTitle>
-              <CardDescription>
-                The selected resume has no usable text. Edit the resume or
-                upload a readable PDF before running resume analysis.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        ) : null}
-
-        {error === "empty-ai-summary" ? (
-          <Card className="border-destructive/30">
-            <CardHeader>
-              <CardTitle>AI summary was empty</CardTitle>
-              <CardDescription>
-                The AI request completed without a usable summary. Try
-                generating the summary again.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        ) : null}
-
-        {error === "ai-summary-failed" ? (
-          <Card className="border-destructive/30">
-            <CardHeader>
-              <CardTitle>AI summary could not be generated</CardTitle>
-              <CardDescription>
-                Something went wrong while generating the summary. Try again in
-                a moment.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        ) : null}
-
-        {error === "empty-ai-match" ? (
-          <Card className="border-destructive/30">
-            <CardHeader>
-              <CardTitle>AI match analysis was empty</CardTitle>
-              <CardDescription>
-                The AI request completed without usable match analysis. Try
-                analyzing the match again.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        ) : null}
-
-        {error === "invalid-ai-match" ? (
-          <Card className="border-destructive/30">
-            <CardHeader>
-              <CardTitle>AI match analysis was invalid</CardTitle>
-              <CardDescription>
-                The AI response did not include a valid score and analysis.
-                Try analyzing the match again.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        ) : null}
-
-        {error === "ai-match-failed" ? (
-          <Card className="border-destructive/30">
-            <CardHeader>
-              <CardTitle>AI match analysis could not be generated</CardTitle>
-              <CardDescription>
-                Something went wrong while analyzing the resume and job posting.
-                Try again in a moment.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        ) : null}
-
-        {error === "empty-ai-tailoring" ? (
-          <Card className="border-destructive/30">
-            <CardHeader>
-              <CardTitle>AI tailoring suggestions were empty</CardTitle>
-              <CardDescription>
-                The AI request completed without usable tailoring suggestions.
-                Try generating suggestions again.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        ) : null}
-
-        {error === "ai-tailoring-failed" ? (
-          <Card className="border-destructive/30">
-            <CardHeader>
-              <CardTitle>
-                AI tailoring suggestions could not be generated
-              </CardTitle>
-              <CardDescription>
-                Something went wrong while generating resume tailoring
-                suggestions. Try again in a moment.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        ) : null}
-
-        {error === "semantic-empty" ? (
-          <Card className="border-destructive/30">
-            <CardHeader>
-              <CardTitle>Semantic data needs content</CardTitle>
-              <CardDescription>
-                This record needs content before semantic data can be generated.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        ) : null}
-
-        {error === "semantic-failed" ? (
-          <Card className="border-destructive/30">
-            <CardHeader>
-              <CardTitle>Semantic data could not be updated</CardTitle>
-              <CardDescription>
-                Semantic data could not be updated right now.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        ) : null}
-
-        {query.ai === "summary-generated" ? (
-          <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
-            AI summary saved.
-          </p>
-        ) : null}
-
-        {query.ai === "match-generated" ? (
-          <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
-            Resume match analysis saved.
-          </p>
-        ) : null}
-
-        {query.ai === "tailoring-generated" ? (
-          <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
-            Resume tailoring suggestions saved.
-          </p>
-        ) : null}
-
-        {query.semantic === "updated" ? (
-          <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
-            Semantic data updated.
-          </p>
-        ) : null}
-
-        {query.semantic === "fresh" ? (
-          <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
-            Semantic data was already up to date.
-          </p>
+        {semanticSuccessMessage ? (
+          <StatusMessage variant="success" title={semanticSuccessMessage} />
         ) : null}
 
         <Card>
