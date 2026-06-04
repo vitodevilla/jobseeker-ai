@@ -13,6 +13,21 @@ import { resumeFormSchema } from "@/lib/validations/resume";
 
 const MAX_RESUME_PDF_SIZE_BYTES = 5 * 1024 * 1024;
 
+type ResumePdfFileResult =
+  | {
+      status: "ok";
+      file: File;
+    }
+  | {
+      status: "empty";
+    }
+  | {
+      status: "invalid-file-type";
+    }
+  | {
+      status: "file-too-large";
+    };
+
 async function getSignedInUserId() {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -29,18 +44,27 @@ function getOptionalPdfFile(formData: FormData) {
   const file = formData.get("pdfFile");
 
   if (!(file instanceof File) || file.size === 0) {
-    return null;
+    return {
+      status: "empty",
+    } satisfies ResumePdfFileResult;
   }
 
   if (file.type !== "application/pdf") {
-    throw new Error("Resume file must be a PDF.");
+    return {
+      status: "invalid-file-type",
+    } satisfies ResumePdfFileResult;
   }
 
   if (file.size > MAX_RESUME_PDF_SIZE_BYTES) {
-    throw new Error("Resume PDF must be 5 MB or smaller.");
+    return {
+      status: "file-too-large",
+    } satisfies ResumePdfFileResult;
   }
 
-  return file;
+  return {
+    status: "ok",
+    file,
+  } satisfies ResumePdfFileResult;
 }
 
 async function extractTextFromPdf(file: File) {
@@ -60,6 +84,27 @@ async function uploadResumePdf(file: File, userId: string) {
   });
 }
 
+async function extractTextFromPdfOrRedirect(file: File, errorPath: string) {
+  try {
+    return await extractTextFromPdf(file);
+  } catch {
+    redirect(`${errorPath}?error=pdf-extraction-failed`);
+  }
+}
+
+function redirectIfKnownPdfFileError(
+  result: ResumePdfFileResult,
+  errorPath: string,
+) {
+  if (result.status === "invalid-file-type") {
+    redirect(`${errorPath}?error=invalid-file-type`);
+  }
+
+  if (result.status === "file-too-large") {
+    redirect(`${errorPath}?error=file-too-large`);
+  }
+}
+
 function revalidateResumeSemanticDataPaths(resumeId: string) {
   revalidatePath("/resumes");
   revalidatePath(`/resumes/${resumeId}/edit`);
@@ -76,15 +121,17 @@ export async function createResume(formData: FormData) {
   });
 
   const pdfFile = getOptionalPdfFile(formData);
+  redirectIfKnownPdfFileError(pdfFile, "/resumes/new");
 
   let fileUrl: string | null = null;
   let extractedContent: string | null = null;
 
-  if (pdfFile) {
-    const [blob, extractedText] = await Promise.all([
-      uploadResumePdf(pdfFile, userId),
-      extractTextFromPdf(pdfFile),
-    ]);
+  if (pdfFile.status === "ok") {
+    const extractedText = await extractTextFromPdfOrRedirect(
+      pdfFile.file,
+      "/resumes/new",
+    );
+    const blob = await uploadResumePdf(pdfFile.file, userId);
 
     fileUrl = blob.url;
     extractedContent = extractedText || null;
@@ -118,21 +165,26 @@ export async function updateResume(resumeId: string, formData: FormData) {
   });
 
   const pdfFile = getOptionalPdfFile(formData);
+  const editPath = `/resumes/${resumeId}/edit`;
+  redirectIfKnownPdfFileError(pdfFile, editPath);
 
   let finalContent = parsed.content;
   let fileUrl: string | undefined;
 
-  if (pdfFile) {
-    const extractedText = await extractTextFromPdf(pdfFile);
+  if (pdfFile.status === "ok") {
+    const extractedText = await extractTextFromPdfOrRedirect(
+      pdfFile.file,
+      editPath,
+    );
     finalContent = extractedText || parsed.content;
   }
 
   if (!finalContent) {
-    redirect(`/resumes/${resumeId}/edit?error=missing-content`);
+    redirect(`${editPath}?error=missing-content`);
   }
 
-  if (pdfFile) {
-    const blob = await uploadResumePdf(pdfFile, userId);
+  if (pdfFile.status === "ok") {
+    const blob = await uploadResumePdf(pdfFile.file, userId);
     fileUrl = blob.url;
   }
 

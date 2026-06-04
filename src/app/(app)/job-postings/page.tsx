@@ -298,6 +298,7 @@ export default async function JobPostingsPage({
     },
   });
 
+  const hasCompanies = companies.length > 0;
   const selectedCompanyId = getCompanyId(params.companyId, companies);
   const filters = {
     workMode: selectedWorkMode,
@@ -372,14 +373,18 @@ export default async function JobPostingsPage({
       ? "No semantic results"
       : hasListConstraints
         ? "No matching job postings"
-        : "No job postings yet";
+        : hasCompanies
+          ? "No job postings yet"
+          : "Add a company first";
   const emptyStateDescription = missingSemanticEmbeddings
     ? "Semantic search results will appear after saved job postings have semantic data. Open a job posting and choose Update semantic data after editing."
     : isShowingSemanticResults
       ? "Try a different semantic search phrase or adjust filters."
       : hasListConstraints
         ? "Try a different search term, adjust filters, or clear the search."
-        : "Save your first job posting after adding at least one company.";
+        : hasCompanies
+          ? "Save your first job posting and connect it to a company."
+          : "Job postings must be connected to a company. Add a company before saving your first job posting.";
   const resultSummary = isShowingSemanticResults
     ? "Showing the closest semantic results based on saved semantic data. Scores are approximate."
     : `Showing ${jobPostings.length} of ${totalJobPostings} ${
@@ -519,6 +524,10 @@ export default async function JobPostingsPage({
               {hasListConstraints ? (
                 <Button variant="outline" asChild>
                   <Link href="/job-postings">Clear search</Link>
+                </Button>
+              ) : !hasCompanies ? (
+                <Button asChild>
+                  <Link href="/companies/new">Add company</Link>
                 </Button>
               ) : (
                 <Button asChild>

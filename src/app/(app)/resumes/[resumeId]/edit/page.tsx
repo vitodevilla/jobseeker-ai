@@ -28,6 +28,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DeleteConfirmationForm } from "@/components/delete-confirmation-form";
+import { StatusMessage } from "@/components/ui/status-message";
 
 type EditResumePageProps = {
   params: Promise<{
@@ -102,6 +103,60 @@ async function getSimilarJobPostingsState(
   }
 }
 
+const resumeEditErrorMessages = {
+  "missing-content": {
+    title: "Resume content is required",
+    description:
+      "Upload a readable PDF or keep resume text in the editor before saving changes.",
+    showUploadActions: true,
+  },
+  "invalid-file-type": {
+    title: "Upload a PDF file",
+    description:
+      "Resume upload only supports PDF files. Choose a PDF or keep resume text in the editor.",
+    showUploadActions: true,
+  },
+  "file-too-large": {
+    title: "Resume PDF is too large",
+    description: "Upload a PDF up to 5 MB, or keep resume text in the editor.",
+    showUploadActions: true,
+  },
+  "pdf-extraction-failed": {
+    title: "PDF text could not be extracted",
+    description: "Try another PDF or keep resume text in the editor.",
+    showUploadActions: true,
+  },
+  "empty-ai-feedback": {
+    title: "AI critique was empty",
+    description:
+      "The AI request completed without usable feedback. Try generating the critique again.",
+  },
+  "ai-failed": {
+    title: "AI critique could not be generated",
+    description:
+      "Something went wrong while generating feedback. Try again in a moment.",
+  },
+  "semantic-empty": {
+    title: "Semantic data needs content",
+    description:
+      "This resume needs saved text before semantic data can be generated.",
+  },
+  "semantic-failed": {
+    title: "Semantic data could not be updated",
+    description: "Semantic data could not be updated right now. Try again later.",
+  },
+} as const;
+
+function getResumeEditErrorMessage(error?: string) {
+  if (!error || !(error in resumeEditErrorMessages)) {
+    return null;
+  }
+
+  return resumeEditErrorMessages[
+    error as keyof typeof resumeEditErrorMessages
+  ];
+}
+
 export default async function EditResumePage({
   params,
   searchParams,
@@ -117,6 +172,15 @@ export default async function EditResumePage({
   const { resumeId } = await params;
   const query = await searchParams;
   const error = query.error;
+  const errorMessage = getResumeEditErrorMessage(error);
+  const aiSuccessMessage =
+    query.ai === "generated" ? "AI critique saved." : null;
+  const semanticSuccessMessage =
+    query.semantic === "updated"
+      ? "Semantic data updated."
+      : query.semantic === "fresh"
+        ? "Semantic data was already up to date."
+        : null;
 
   const resume = await prisma.resume.findFirst({
     where: {
@@ -167,80 +231,31 @@ export default async function EditResumePage({
           </p>
         </div>
 
-        {error === "missing-content" ? (
-          <Card className="border-destructive/30">
-            <CardHeader>
-              <CardTitle>Resume content is required</CardTitle>
-              <CardDescription>
-                Upload a readable PDF or keep resume text in the editor before
-                saving changes.
-              </CardDescription>
-            </CardHeader>
-          </Card>
+        {errorMessage ? (
+          <StatusMessage
+            variant="error"
+            title={errorMessage.title}
+            description={errorMessage.description}
+          >
+            {"showUploadActions" in errorMessage ? (
+              <div className="flex flex-wrap gap-3 font-medium">
+                <a href="#pdfFile" className="underline underline-offset-4">
+                  Choose PDF
+                </a>
+                <a href="#content" className="underline underline-offset-4">
+                  Edit resume text
+                </a>
+              </div>
+            ) : null}
+          </StatusMessage>
         ) : null}
 
-        {error === "empty-ai-feedback" ? (
-          <Card className="border-destructive/30">
-            <CardHeader>
-              <CardTitle>AI critique was empty</CardTitle>
-              <CardDescription>
-                The AI request completed without usable feedback. Try
-                generating the critique again.
-              </CardDescription>
-            </CardHeader>
-          </Card>
+        {aiSuccessMessage ? (
+          <StatusMessage variant="success" title={aiSuccessMessage} />
         ) : null}
 
-        {error === "ai-failed" ? (
-          <Card className="border-destructive/30">
-            <CardHeader>
-              <CardTitle>AI critique could not be generated</CardTitle>
-              <CardDescription>
-                Something went wrong while generating feedback. Try again in a
-                moment.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        ) : null}
-
-        {error === "semantic-empty" ? (
-          <Card className="border-destructive/30">
-            <CardHeader>
-              <CardTitle>Semantic data needs content</CardTitle>
-              <CardDescription>
-                This record needs content before semantic data can be generated.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        ) : null}
-
-        {error === "semantic-failed" ? (
-          <Card className="border-destructive/30">
-            <CardHeader>
-              <CardTitle>Semantic data could not be updated</CardTitle>
-              <CardDescription>
-                Semantic data could not be updated right now.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        ) : null}
-
-        {query.ai === "generated" ? (
-          <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
-            AI critique saved.
-          </p>
-        ) : null}
-
-        {query.semantic === "updated" ? (
-          <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
-            Semantic data updated.
-          </p>
-        ) : null}
-
-        {query.semantic === "fresh" ? (
-          <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
-            Semantic data was already up to date.
-          </p>
+        {semanticSuccessMessage ? (
+          <StatusMessage variant="success" title={semanticSuccessMessage} />
         ) : null}
 
         <Card>

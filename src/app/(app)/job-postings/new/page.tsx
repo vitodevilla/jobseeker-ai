@@ -63,7 +63,7 @@ export default async function NewJobPostingPage() {
             </CardHeader>
             <CardContent>
               <Button asChild>
-                <Link href="/companies/new">Create company</Link>
+                <Link href="/companies/new">Add company</Link>
               </Button>
             </CardContent>
           </Card>

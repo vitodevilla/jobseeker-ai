@@ -19,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DeleteConfirmationForm } from "@/components/delete-confirmation-form";
+import { StatusMessage } from "@/components/ui/status-message";
 
 type EditInterviewPageProps = {
   params: Promise<{
@@ -37,6 +38,39 @@ function toDateTimeLocalValue(date: Date) {
   return localDate.toISOString().slice(0, 16);
 }
 
+const interviewEditErrorMessages = {
+  "missing-application-context": {
+    title: "Application context is missing",
+    description:
+      "This interview needs a saved application owned by your account before AI can generate prep notes.",
+  },
+  "missing-job-context": {
+    title: "Job context is missing",
+    description:
+      "This interview needs a linked job posting and company before AI can generate prep notes.",
+  },
+  "ai-prep-failed": {
+    title: "AI prep notes could not be generated",
+    description:
+      "Something went wrong while generating interview prep notes. Try again in a moment.",
+  },
+  "empty-ai-prep": {
+    title: "AI prep notes were empty",
+    description:
+      "The AI request completed without usable prep notes. Try generating the notes again.",
+  },
+} as const;
+
+function getInterviewEditErrorMessage(error?: string) {
+  if (!error || !(error in interviewEditErrorMessages)) {
+    return null;
+  }
+
+  return interviewEditErrorMessages[
+    error as keyof typeof interviewEditErrorMessages
+  ];
+}
+
 export default async function EditInterviewPage({
   params,
   searchParams,
@@ -52,6 +86,11 @@ export default async function EditInterviewPage({
   const { interviewId } = await params;
   const query = await searchParams;
   const error = query.error;
+  const errorMessage = getInterviewEditErrorMessage(error);
+  const aiSuccessMessage =
+    query.ai === "prep-generated"
+      ? "Interview prep notes saved. Review and edit them before the interview."
+      : null;
 
   const [interview, applications] = await Promise.all([
     prisma.interview.findFirst({
@@ -107,59 +146,16 @@ export default async function EditInterviewPage({
           </p>
         </div>
 
-        {error === "missing-application-context" ? (
-          <Card className="border-destructive/30">
-            <CardHeader>
-              <CardTitle>Application context is missing</CardTitle>
-              <CardDescription>
-                This interview needs a saved application owned by your account
-                before AI can generate prep notes.
-              </CardDescription>
-            </CardHeader>
-          </Card>
+        {errorMessage ? (
+          <StatusMessage
+            variant="error"
+            title={errorMessage.title}
+            description={errorMessage.description}
+          />
         ) : null}
 
-        {error === "missing-job-context" ? (
-          <Card className="border-destructive/30">
-            <CardHeader>
-              <CardTitle>Job context is missing</CardTitle>
-              <CardDescription>
-                This interview needs a linked job posting and company before AI
-                can generate prep notes.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        ) : null}
-
-        {error === "ai-prep-failed" ? (
-          <Card className="border-destructive/30">
-            <CardHeader>
-              <CardTitle>AI prep notes could not be generated</CardTitle>
-              <CardDescription>
-                Something went wrong while generating interview prep notes. Try
-                again in a moment.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        ) : null}
-
-        {error === "empty-ai-prep" ? (
-          <Card className="border-destructive/30">
-            <CardHeader>
-              <CardTitle>AI prep notes were empty</CardTitle>
-              <CardDescription>
-                The AI request completed without usable prep notes. Try
-                generating the notes again.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        ) : null}
-
-        {query.ai === "prep-generated" ? (
-          <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
-            Interview prep notes saved. Review and edit them before the
-            interview.
-          </p>
+        {aiSuccessMessage ? (
+          <StatusMessage variant="success" title={aiSuccessMessage} />
         ) : null}
 
         <Card>

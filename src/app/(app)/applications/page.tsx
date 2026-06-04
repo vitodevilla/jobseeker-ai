@@ -255,7 +255,7 @@ export default async function ApplicationsPage({
               <CardDescription>
                 {query
                   ? "Try a different search term or clear the search."
-                  : "Create an application from one of your saved job postings."}
+                  : "Applications are created from saved job postings. Add one when you are ready to track a role."}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -264,9 +264,14 @@ export default async function ApplicationsPage({
                   <Link href="/applications">Clear search</Link>
                 </Button>
               ) : (
-                <Button asChild>
-                  <Link href="/applications/new">Add application</Link>
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  <Button asChild>
+                    <Link href="/applications/new">Add application</Link>
+                  </Button>
+                  <Button variant="outline" asChild>
+                    <Link href="/job-postings/new">Add job posting</Link>
+                  </Button>
+                </div>
               )}
             </CardContent>
           </Card>
