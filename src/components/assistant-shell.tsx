@@ -2,7 +2,7 @@
 
 import { MessageCircle, X } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useEffect, useId, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { AssistantChatPanel } from "@/components/assistant-chat-card";
 import { Button } from "@/components/ui/button";
 import { resolveAssistantPageContextFromPathname } from "@/lib/assistant/page-context-routing";
@@ -73,13 +73,64 @@ function getAssistantShellContextLabel(pageContext: AssistantShellPageContext) {
 
 export function AssistantShell() {
   const pathname = usePathname();
+  const drawerId = useId();
   const titleId = useId();
   const descriptionId = useId();
+  const openButtonRef = useRef<HTMLButtonElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const focusFrameRef = useRef<number | null>(null);
   const [open, setOpen] = useState(false);
   const pageContext = resolveAssistantPageContextFromPathname(pathname);
   const contextLabel = getAssistantShellContextLabel(pageContext);
   const quickPrompts = getAssistantShellQuickPrompts(pageContext);
   const resetKey = pathname ?? "unknown-route";
+
+  const openAssistant = useCallback(() => {
+    setOpen(true);
+
+    if (focusFrameRef.current !== null) {
+      cancelAnimationFrame(focusFrameRef.current);
+    }
+
+    focusFrameRef.current = requestAnimationFrame(() => {
+      focusFrameRef.current = null;
+      closeButtonRef.current?.focus();
+    });
+  }, []);
+
+  const closeAssistant = useCallback(() => {
+    setOpen(false);
+
+    if (focusFrameRef.current !== null) {
+      cancelAnimationFrame(focusFrameRef.current);
+    }
+
+    focusFrameRef.current = requestAnimationFrame(() => {
+      focusFrameRef.current = null;
+      openButtonRef.current?.focus();
+    });
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (focusFrameRef.current !== null) {
+        cancelAnimationFrame(focusFrameRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const previousBodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousBodyOverflow;
+    };
+  }, [open]);
 
   useEffect(() => {
     if (!open) {
@@ -88,7 +139,7 @@ export function AssistantShell() {
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
-        setOpen(false);
+        closeAssistant();
       }
     }
 
@@ -97,16 +148,20 @@ export function AssistantShell() {
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [open]);
+  }, [closeAssistant, open]);
 
   return (
     <>
       {!open ? (
         <Button
+          ref={openButtonRef}
           type="button"
           aria-label="Open assistant"
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          aria-controls={drawerId}
           className="fixed right-4 bottom-4 z-40 h-11 rounded-full px-4 shadow-lg sm:right-6 sm:bottom-6"
-          onClick={() => setOpen(true)}
+          onClick={openAssistant}
         >
           <MessageCircle aria-hidden="true" />
           <span className="hidden sm:inline">Assistant</span>
@@ -118,15 +173,16 @@ export function AssistantShell() {
           <div
             aria-hidden="true"
             className="absolute inset-0 bg-black/15"
-            onClick={() => setOpen(false)}
+            onClick={closeAssistant}
           />
 
           <aside
+            id={drawerId}
             role="dialog"
             aria-modal="true"
             aria-labelledby={titleId}
             aria-describedby={descriptionId}
-            className="absolute inset-y-0 right-0 flex w-full flex-col border-l bg-background shadow-xl sm:max-w-md"
+            className="absolute inset-y-0 right-0 flex max-h-dvh w-full flex-col overflow-hidden border-l bg-background shadow-xl sm:max-w-md"
           >
             <div className="flex shrink-0 items-start justify-between gap-4 border-b p-4">
               <div className="min-w-0">
@@ -147,17 +203,18 @@ export function AssistantShell() {
               </div>
 
               <Button
+                ref={closeButtonRef}
                 type="button"
                 variant="ghost"
                 size="icon"
                 aria-label="Close assistant"
-                onClick={() => setOpen(false)}
+                onClick={closeAssistant}
               >
                 <X aria-hidden="true" />
               </Button>
             </div>
 
-            <div className="min-h-0 flex-1 p-4">
+            <div className="min-h-0 flex-1 overflow-hidden p-4">
               <AssistantChatPanel
                 quickPrompts={quickPrompts}
                 pageContext={pageContext}
