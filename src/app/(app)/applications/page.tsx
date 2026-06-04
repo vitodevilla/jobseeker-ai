@@ -277,8 +277,8 @@ export default async function ApplicationsPage({
           </Card>
         ) : (
           <>
-            <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <p>
+            <div className="flex flex-col gap-1 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+              <p className="min-w-0 break-words">
                 Showing {applications.length} of {totalApplications}{" "}
                 {query ? "matching " : ""}
                 applications
@@ -302,7 +302,7 @@ export default async function ApplicationsPage({
                   </CardHeader>
 
                   <CardContent className="space-y-4">
-                    <div className="space-y-1 text-sm text-muted-foreground">
+                    <div className="space-y-1 break-words text-sm text-muted-foreground">
                       <p>Status: {application.status}</p>
                       <p>Priority: {application.priority}</p>
 
@@ -330,12 +330,17 @@ export default async function ApplicationsPage({
                     </div>
 
                     {application.notes ? (
-                      <p className="line-clamp-3 text-sm text-muted-foreground">
+                      <p className="line-clamp-3 break-words text-sm text-muted-foreground">
                         {application.notes}
                       </p>
                     ) : null}
 
-                    <Button variant="outline" size="sm" asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full sm:w-auto"
+                      asChild
+                    >
                       <Link href={`/applications/${application.id}/edit`}>
                         Edit
                       </Link>

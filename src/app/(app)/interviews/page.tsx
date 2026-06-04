@@ -86,7 +86,7 @@ export default async function InterviewsPage() {
                 </CardHeader>
 
                 <CardContent className="space-y-4">
-                  <div className="space-y-1 text-sm text-muted-foreground">
+                  <div className="space-y-1 break-words text-sm text-muted-foreground">
                     <p>
                       Scheduled:{" "}
                       {interview.scheduledAt.toLocaleString("hr-HR", {
@@ -110,12 +110,17 @@ export default async function InterviewsPage() {
                   </div>
 
                   {interview.prepNotes ? (
-                    <p className="line-clamp-3 text-sm text-muted-foreground">
+                    <p className="line-clamp-3 break-words text-sm text-muted-foreground">
                       {interview.prepNotes}
                     </p>
                   ) : null}
 
-                  <Button variant="outline" size="sm" asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full sm:w-auto"
+                    asChild
+                  >
                     <Link href={`/interviews/${interview.id}/edit`}>Edit</Link>
                   </Button>
                 </CardContent>

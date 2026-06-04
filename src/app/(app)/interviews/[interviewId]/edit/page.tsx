@@ -330,8 +330,16 @@ export default async function EditInterviewPage({
                 </CardDescription>
               </div>
 
-              <form action={generateInterviewPrepNotesWithId}>
-                <Button type="submit" variant="outline" size="sm">
+              <form
+                action={generateInterviewPrepNotesWithId}
+                className="w-full sm:w-auto"
+              >
+                <Button
+                  type="submit"
+                  variant="outline"
+                  size="sm"
+                  className="w-full sm:w-auto"
+                >
                   {interview.prepNotes
                     ? "Refresh prep notes"
                     : "Generate prep notes"}
@@ -342,7 +350,7 @@ export default async function EditInterviewPage({
 
           <CardContent>
             {interview.prepNotes ? (
-              <div className="whitespace-pre-wrap rounded-md border bg-muted/30 p-4 text-sm leading-6">
+              <div className="whitespace-pre-wrap break-words rounded-md border bg-muted/30 p-4 text-sm leading-6">
                 {interview.prepNotes}
               </div>
             ) : (

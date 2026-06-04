@@ -339,8 +339,16 @@ export default async function EditResumePage({
                 </CardDescription>
               </div>
 
-              <form action={generateResumeAiFeedbackWithId}>
-                <Button type="submit" variant="outline" size="sm">
+              <form
+                action={generateResumeAiFeedbackWithId}
+                className="w-full sm:w-auto"
+              >
+                <Button
+                  type="submit"
+                  variant="outline"
+                  size="sm"
+                  className="w-full sm:w-auto"
+                >
                   {resume.aiFeedback ? "Refresh critique" : "AI critique"}
                 </Button>
               </form>
@@ -349,7 +357,7 @@ export default async function EditResumePage({
 
           <CardContent>
             {resume.aiFeedback ? (
-              <div className="whitespace-pre-wrap rounded-md border bg-muted/30 p-4 text-sm leading-6">
+              <div className="whitespace-pre-wrap break-words rounded-md border bg-muted/30 p-4 text-sm leading-6">
                 {resume.aiFeedback}
               </div>
             ) : (
@@ -380,8 +388,16 @@ export default async function EditResumePage({
                 <p className="text-sm text-muted-foreground">
                   Semantic data needs refreshing after recent edits.
                 </p>
-                <form action={refreshResumeSemanticDataWithId}>
-                  <Button type="submit" variant="outline" size="sm">
+                <form
+                  action={refreshResumeSemanticDataWithId}
+                  className="w-full sm:w-auto"
+                >
+                  <Button
+                    type="submit"
+                    variant="outline"
+                    size="sm"
+                    className="w-full sm:w-auto"
+                  >
                     Update semantic data
                   </Button>
                 </form>
@@ -392,17 +408,17 @@ export default async function EditResumePage({
                   <li key={jobPosting.id}>
                     <Link
                       href={`/job-postings/${jobPosting.id}/edit`}
-                      className="group flex flex-col gap-2 p-3 transition-colors hover:bg-muted/50 sm:flex-row sm:items-center sm:justify-between"
+                      className="group flex min-w-0 flex-col gap-2 p-3 transition-colors hover:bg-muted/50 sm:flex-row sm:items-center sm:justify-between"
                     >
                       <div className="min-w-0 space-y-1">
-                        <p className="font-medium text-foreground underline-offset-4 group-hover:underline">
+                        <p className="break-words font-medium text-foreground underline-offset-4 group-hover:underline">
                           {jobPosting.title}
                         </p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="break-words text-sm text-muted-foreground">
                           {jobPosting.companyName}
                         </p>
                       </div>
-                      <p className="shrink-0 text-sm font-medium text-muted-foreground">
+                      <p className="shrink-0 text-sm font-medium text-muted-foreground sm:text-right">
                         Similarity:{" "}
                         {formatSimilarityPercent(jobPosting.similarity)}
                       </p>

@@ -198,7 +198,7 @@ export default async function DashboardPage() {
                 <div className="space-y-4">
                   {upcomingInterviews.map((interview) => (
                     <div key={interview.id} className="space-y-1">
-                      <div className="flex items-start justify-between gap-3">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div className="min-w-0">
                           <p className="text-sm font-medium">
                             {formatStatus(interview.type)}
@@ -208,7 +208,12 @@ export default async function DashboardPage() {
                             {interview.application.jobPosting.company.name}
                           </p>
                         </div>
-                        <Button variant="outline" size="sm" asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full sm:w-auto"
+                          asChild
+                        >
                           <Link href={`/interviews/${interview.id}/edit`}>
                             Open interview
                           </Link>
@@ -251,7 +256,7 @@ export default async function DashboardPage() {
                 <div className="space-y-4">
                   {dueTasks.map((task) => (
                     <div key={task.id} className="space-y-1">
-                      <div className="flex items-start justify-between gap-3">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div className="min-w-0">
                           <p className="wrap-break-word text-sm font-medium">
                             {task.title}
@@ -262,7 +267,12 @@ export default async function DashboardPage() {
                               : "Standalone task"}
                           </p>
                         </div>
-                        <Button variant="outline" size="sm" asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full sm:w-auto"
+                          asChild
+                        >
                           <Link href={`/tasks/${task.id}/edit`}>Open task</Link>
                         </Button>
                       </div>
@@ -313,7 +323,7 @@ export default async function DashboardPage() {
               <div className="space-y-4">
                 {recentApplications.map((application) => (
                   <div key={application.id} className="space-y-1">
-                    <div className="flex items-start justify-between gap-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div className="min-w-0">
                         <p className="wrap-break-word text-sm font-medium">
                           {application.jobPosting.title}
@@ -323,7 +333,12 @@ export default async function DashboardPage() {
                           {formatStatus(application.status)}
                         </p>
                       </div>
-                      <Button variant="outline" size="sm" asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full sm:w-auto"
+                        asChild
+                      >
                         <Link href={`/applications/${application.id}/edit`}>
                           Open application
                         </Link>

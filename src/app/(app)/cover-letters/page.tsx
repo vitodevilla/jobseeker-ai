@@ -120,14 +120,14 @@ export default async function CoverLettersPage() {
                   </CardHeader>
 
                   <CardContent className="space-y-4">
-                    <div className="space-y-1 text-sm text-muted-foreground">
+                    <div className="space-y-1 break-words text-sm text-muted-foreground">
                       <p>Mode: {formatCoverLetterMode(coverLetter.mode)}</p>
                       <p>Version: {coverLetter.version}</p>
                       <p>{coverLetter.isFinal ? "Final version" : "Draft"}</p>
                     </div>
 
                     {coverLetter.content ? (
-                      <p className="line-clamp-4 text-sm text-muted-foreground">
+                      <p className="line-clamp-4 break-words text-sm text-muted-foreground">
                         {coverLetter.content}
                       </p>
                     ) : (
@@ -136,15 +136,28 @@ export default async function CoverLettersPage() {
                       </p>
                     )}
 
-                    <div className="flex flex-wrap gap-2">
-                      <Button variant="outline" size="sm" asChild>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full sm:w-auto"
+                        asChild
+                      >
                         <Link href={`/cover-letters/${coverLetter.id}/edit`}>
                           Edit
                         </Link>
                       </Button>
 
-                      <form action={generateCoverLetterAiFeedbackWithId}>
-                        <Button type="submit" variant="outline" size="sm">
+                      <form
+                        action={generateCoverLetterAiFeedbackWithId}
+                        className="w-full sm:w-auto"
+                      >
+                        <Button
+                          type="submit"
+                          variant="outline"
+                          size="sm"
+                          className="w-full sm:w-auto"
+                        >
                           {coverLetter.aiFeedback
                             ? "Refresh critique"
                             : "AI critique"}
