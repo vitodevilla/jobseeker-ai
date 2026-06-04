@@ -533,8 +533,16 @@ export default async function EditJobPostingPage({
                 </CardDescription>
               </div>
 
-              <form action={generateJobPostingAiSummaryWithId}>
-                <Button type="submit" variant="outline" size="sm">
+              <form
+                action={generateJobPostingAiSummaryWithId}
+                className="w-full sm:w-auto"
+              >
+                <Button
+                  type="submit"
+                  variant="outline"
+                  size="sm"
+                  className="w-full sm:w-auto"
+                >
                   {jobPosting.aiSummary ? "Refresh summary" : "AI summary"}
                 </Button>
               </form>
@@ -543,7 +551,7 @@ export default async function EditJobPostingPage({
 
           <CardContent>
             {jobPosting.aiSummary ? (
-              <div className="whitespace-pre-wrap rounded-md border bg-muted/30 p-4 text-sm leading-6">
+              <div className="whitespace-pre-wrap break-words rounded-md border bg-muted/30 p-4 text-sm leading-6">
                 {jobPosting.aiSummary}
               </div>
             ) : (
@@ -596,7 +604,12 @@ export default async function EditJobPostingPage({
                   </select>
                 </div>
 
-                <Button type="submit" variant="outline" size="sm">
+                <Button
+                  type="submit"
+                  variant="outline"
+                  size="sm"
+                  className="w-full sm:w-auto"
+                >
                   {jobPosting.matchScore === null
                     ? "Analyze match"
                     : "Reanalyze match"}
@@ -612,7 +625,7 @@ export default async function EditJobPostingPage({
 
             {jobPosting.matchScore !== null ? (
               <div className="space-y-3">
-                <div className="space-y-1 text-sm text-muted-foreground">
+                <div className="space-y-1 break-words text-sm text-muted-foreground">
                   <p className="font-medium text-foreground">
                     Match score: {jobPosting.matchScore}/100
                   </p>
@@ -628,7 +641,7 @@ export default async function EditJobPostingPage({
                 </div>
 
                 {jobPosting.matchAnalysis ? (
-                  <div className="whitespace-pre-wrap rounded-md border bg-muted/30 p-4 text-sm leading-6">
+                  <div className="whitespace-pre-wrap break-words rounded-md border bg-muted/30 p-4 text-sm leading-6">
                     {jobPosting.matchAnalysis}
                   </div>
                 ) : (
@@ -691,7 +704,12 @@ export default async function EditJobPostingPage({
                   </select>
                 </div>
 
-                <Button type="submit" variant="outline" size="sm">
+                <Button
+                  type="submit"
+                  variant="outline"
+                  size="sm"
+                  className="w-full sm:w-auto"
+                >
                   {jobPosting.tailoringSuggestions
                     ? "Refresh tailoring suggestions"
                     : "Suggest resume tailoring"}
@@ -701,7 +719,7 @@ export default async function EditJobPostingPage({
 
             {jobPosting.tailoringSuggestions ? (
               <div className="space-y-3">
-                <div className="space-y-1 text-sm text-muted-foreground">
+                <div className="space-y-1 break-words text-sm text-muted-foreground">
                   {jobPosting.tailoringSuggestionsAt ? (
                     <p>
                       Generated:{" "}
@@ -715,7 +733,7 @@ export default async function EditJobPostingPage({
                   ) : null}
                 </div>
 
-                <div className="whitespace-pre-wrap rounded-md border bg-muted/30 p-4 text-sm leading-6">
+                <div className="whitespace-pre-wrap break-words rounded-md border bg-muted/30 p-4 text-sm leading-6">
                   {jobPosting.tailoringSuggestions}
                 </div>
               </div>
@@ -748,8 +766,16 @@ export default async function EditJobPostingPage({
                 <p className="text-sm text-muted-foreground">
                   Semantic data needs refreshing after recent edits.
                 </p>
-                <form action={refreshJobPostingSemanticDataWithId}>
-                  <Button type="submit" variant="outline" size="sm">
+                <form
+                  action={refreshJobPostingSemanticDataWithId}
+                  className="w-full sm:w-auto"
+                >
+                  <Button
+                    type="submit"
+                    variant="outline"
+                    size="sm"
+                    className="w-full sm:w-auto"
+                  >
                     Update semantic data
                   </Button>
                 </form>
@@ -760,12 +786,12 @@ export default async function EditJobPostingPage({
                   <li key={resume.id}>
                     <Link
                       href={`/resumes/${resume.id}/edit`}
-                      className="group flex flex-col gap-2 p-3 transition-colors hover:bg-muted/50 sm:flex-row sm:items-center sm:justify-between"
+                      className="group flex min-w-0 flex-col gap-2 p-3 transition-colors hover:bg-muted/50 sm:flex-row sm:items-center sm:justify-between"
                     >
-                      <p className="min-w-0 font-medium text-foreground underline-offset-4 group-hover:underline">
+                      <p className="min-w-0 break-words font-medium text-foreground underline-offset-4 group-hover:underline">
                         {resume.name}
                       </p>
-                      <p className="shrink-0 text-sm font-medium text-muted-foreground">
+                      <p className="shrink-0 text-sm font-medium text-muted-foreground sm:text-right">
                         Similarity: {formatSimilarityPercent(resume.similarity)}
                       </p>
                     </Link>

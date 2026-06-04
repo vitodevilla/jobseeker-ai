@@ -108,7 +108,9 @@ export function AppShell({ userName, userEmail, children }: AppShellProps) {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 py-8">{children}</main>
+      <main className="mx-auto max-w-5xl px-4 pt-8 pb-28 sm:pb-24 lg:pb-12">
+        {children}
+      </main>
       <AssistantShell />
     </div>
   );

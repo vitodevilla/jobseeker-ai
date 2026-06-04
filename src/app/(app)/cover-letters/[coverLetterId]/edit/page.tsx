@@ -242,7 +242,7 @@ export default async function EditCoverLetterPage({
                   />
                 </div>
 
-                <div className="flex items-center gap-2 pt-7">
+                <div className="flex items-center gap-2 sm:pt-7">
                   <input
                     id="isFinal"
                     name="isFinal"
@@ -271,10 +271,12 @@ export default async function EditCoverLetterPage({
               </div>
 
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <Button variant="outline" asChild>
+                <Button variant="outline" className="w-full sm:w-auto" asChild>
                   <Link href="/cover-letters">Cancel</Link>
                 </Button>
-                <Button type="submit">Save changes</Button>
+                <Button type="submit" className="w-full sm:w-auto">
+                  Save changes
+                </Button>
               </div>
             </form>
           </CardContent>
@@ -293,8 +295,16 @@ export default async function EditCoverLetterPage({
                 </CardDescription>
               </div>
 
-              <form action={generateCoverLetterAiFeedbackWithId}>
-                <Button type="submit" variant="outline" size="sm">
+              <form
+                action={generateCoverLetterAiFeedbackWithId}
+                className="w-full sm:w-auto"
+              >
+                <Button
+                  type="submit"
+                  variant="outline"
+                  size="sm"
+                  className="w-full sm:w-auto"
+                >
                   {coverLetter.aiFeedback ? "Refresh critique" : "AI critique"}
                 </Button>
               </form>
@@ -303,7 +313,7 @@ export default async function EditCoverLetterPage({
 
           <CardContent>
             {coverLetter.aiFeedback ? (
-              <div className="whitespace-pre-wrap rounded-md border bg-muted/30 p-4 text-sm leading-6">
+              <div className="whitespace-pre-wrap break-words rounded-md border bg-muted/30 p-4 text-sm leading-6">
                 {coverLetter.aiFeedback}
               </div>
             ) : (

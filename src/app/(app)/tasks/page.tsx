@@ -253,8 +253,8 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
           </Card>
         ) : (
           <>
-            <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <p>
+            <div className="flex flex-col gap-1 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+              <p className="min-w-0 break-words">
                 Showing {tasks.length} of {totalTasks}{" "}
                 {query ? "matching " : ""}
                 tasks
@@ -277,7 +277,7 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
                   </CardHeader>
 
                   <CardContent className="space-y-4">
-                    <div className="space-y-1 text-sm text-muted-foreground">
+                    <div className="space-y-1 break-words text-sm text-muted-foreground">
                       <p>Status: {task.status}</p>
                       <p>Priority: {task.priority}</p>
 
@@ -294,12 +294,17 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
                     </div>
 
                     {task.description ? (
-                      <p className="line-clamp-3 text-sm text-muted-foreground">
+                      <p className="line-clamp-3 break-words text-sm text-muted-foreground">
                         {task.description}
                       </p>
                     ) : null}
 
-                    <Button variant="outline" size="sm" asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full sm:w-auto"
+                      asChild
+                    >
                       <Link href={`/tasks/${task.id}/edit`}>Edit</Link>
                     </Button>
                   </CardContent>

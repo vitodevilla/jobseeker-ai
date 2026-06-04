@@ -197,7 +197,7 @@ export default async function NewCoverLetterPage({
                       />
                     </div>
 
-                    <div className="flex items-center gap-2 pt-7">
+                    <div className="flex items-center gap-2 sm:pt-7">
                       <input
                         id="isFinal"
                         name="isFinal"
@@ -225,10 +225,12 @@ export default async function NewCoverLetterPage({
                   </div>
 
                   <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                    <Button variant="outline" asChild>
+                    <Button variant="outline" className="w-full sm:w-auto" asChild>
                       <Link href="/cover-letters">Cancel</Link>
                     </Button>
-                    <Button type="submit">Create cover letter</Button>
+                    <Button type="submit" className="w-full sm:w-auto">
+                      Create cover letter
+                    </Button>
                   </div>
                 </form>
               </CardContent>
@@ -273,7 +275,11 @@ export default async function NewCoverLetterPage({
                     </p>
                   </div>
 
-                  <Button type="submit" variant="outline">
+                  <Button
+                    type="submit"
+                    variant="outline"
+                    className="w-full sm:w-auto"
+                  >
                     Generate first draft
                   </Button>
                 </form>

@@ -357,8 +357,8 @@ export default async function ResumesPage({ searchParams }: ResumesPageProps) {
           </Card>
         ) : (
           <>
-            <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <p>{resultSummary}</p>
+            <div className="flex flex-col gap-1 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+              <p className="min-w-0 break-words">{resultSummary}</p>
               {shouldShowPagination ? (
                 <p>
                   Page {page} of {totalPages}
@@ -388,17 +388,30 @@ export default async function ResumesPage({ searchParams }: ResumesPageProps) {
                         </p>
                       ) : null}
 
-                      <p className="line-clamp-4 text-sm text-muted-foreground">
+                      <p className="line-clamp-4 break-words text-sm text-muted-foreground">
                         {resume.content}
                       </p>
 
-                      <div className="flex flex-wrap gap-2">
-                        <Button variant="outline" size="sm" asChild>
+                      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full sm:w-auto"
+                          asChild
+                        >
                           <Link href={`/resumes/${resume.id}/edit`}>Edit</Link>
                         </Button>
 
-                        <form action={generateResumeAiFeedbackWithId}>
-                          <Button type="submit" variant="outline" size="sm">
+                        <form
+                          action={generateResumeAiFeedbackWithId}
+                          className="w-full sm:w-auto"
+                        >
+                          <Button
+                            type="submit"
+                            variant="outline"
+                            size="sm"
+                            className="w-full sm:w-auto"
+                          >
                             {resume.aiFeedbackAt
                               ? "Refresh critique"
                               : "AI critique"}

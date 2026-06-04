@@ -188,8 +188,8 @@ export default async function CompaniesPage({
           </Card>
         ) : (
           <>
-            <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <p>
+            <div className="flex flex-col gap-1 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+              <p className="min-w-0 break-words">
                 Showing {companies.length} of {totalCompanies}{" "}
                 {query ? "matching " : ""}
                 companies
@@ -210,13 +210,18 @@ export default async function CompaniesPage({
                   </CardHeader>
 
                   <CardContent className="space-y-3">
-                    <div className="space-y-1 text-sm text-muted-foreground">
+                    <div className="space-y-1 break-words text-sm text-muted-foreground">
                       {company.website ? <p>{company.website}</p> : null}
                       {company.size ? <p>Size: {company.size}</p> : null}
                       {company.notes ? <p>{company.notes}</p> : null}
                     </div>
 
-                    <Button variant="outline" size="sm" asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full sm:w-auto"
+                      asChild
+                    >
                       <Link href={`/companies/${company.id}/edit`}>Edit</Link>
                     </Button>
                   </CardContent>
