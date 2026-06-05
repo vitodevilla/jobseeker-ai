@@ -551,7 +551,7 @@ export default async function EditJobPostingPage({
 
           <CardContent>
             {jobPosting.aiSummary ? (
-              <div className="whitespace-pre-wrap break-words rounded-md border bg-muted/30 p-4 text-sm leading-6">
+              <div className="whitespace-pre-wrap wrap-break-word rounded-md border bg-muted/30 p-4 text-sm leading-6">
                 {jobPosting.aiSummary}
               </div>
             ) : (
@@ -625,7 +625,7 @@ export default async function EditJobPostingPage({
 
             {jobPosting.matchScore !== null ? (
               <div className="space-y-3">
-                <div className="space-y-1 break-words text-sm text-muted-foreground">
+                <div className="space-y-1 wrap-break-word text-sm text-muted-foreground">
                   <p className="font-medium text-foreground">
                     Match score: {jobPosting.matchScore}/100
                   </p>
@@ -641,7 +641,7 @@ export default async function EditJobPostingPage({
                 </div>
 
                 {jobPosting.matchAnalysis ? (
-                  <div className="whitespace-pre-wrap break-words rounded-md border bg-muted/30 p-4 text-sm leading-6">
+                  <div className="whitespace-pre-wrap wrap-break-word rounded-md border bg-muted/30 p-4 text-sm leading-6">
                     {jobPosting.matchAnalysis}
                   </div>
                 ) : (
@@ -719,7 +719,7 @@ export default async function EditJobPostingPage({
 
             {jobPosting.tailoringSuggestions ? (
               <div className="space-y-3">
-                <div className="space-y-1 break-words text-sm text-muted-foreground">
+                <div className="space-y-1 wrap-break-word text-sm text-muted-foreground">
                   {jobPosting.tailoringSuggestionsAt ? (
                     <p>
                       Generated:{" "}
@@ -733,7 +733,7 @@ export default async function EditJobPostingPage({
                   ) : null}
                 </div>
 
-                <div className="whitespace-pre-wrap break-words rounded-md border bg-muted/30 p-4 text-sm leading-6">
+                <div className="whitespace-pre-wrap wrap-break-word rounded-md border bg-muted/30 p-4 text-sm leading-6">
                   {jobPosting.tailoringSuggestions}
                 </div>
               </div>
@@ -788,7 +788,7 @@ export default async function EditJobPostingPage({
                       href={`/resumes/${resume.id}/edit`}
                       className="group flex min-w-0 flex-col gap-2 p-3 transition-colors hover:bg-muted/50 sm:flex-row sm:items-center sm:justify-between"
                     >
-                      <p className="min-w-0 break-words font-medium text-foreground underline-offset-4 group-hover:underline">
+                      <p className="min-w-0 wrap-break-word font-medium text-foreground underline-offset-4 group-hover:underline">
                         {resume.name}
                       </p>
                       <p className="shrink-0 text-sm font-medium text-muted-foreground sm:text-right">
