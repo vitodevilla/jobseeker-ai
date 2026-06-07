@@ -1,13 +1,17 @@
 import Link from "next/link";
+import { BriefcaseIcon } from "lucide-react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { searchJobPostingsBySemanticQuery } from "@/lib/retrieval/semantic-search";
 import { generateJobPostingAiSummary } from "@/app/(app)/job-postings/actions";
+import { EmptyState } from "@/components/empty-state";
+import { MatchBadge } from "@/components/job-search-badges";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { formatDisplayDate } from "@/lib/display-formatters";
 import {
   Card,
   CardContent,
@@ -516,24 +520,26 @@ export default async function JobPostingsPage({
 
         {jobPostings.length === 0 ? (
           <Card>
-            <CardHeader>
-              <CardTitle>{emptyStateTitle}</CardTitle>
-              <CardDescription>{emptyStateDescription}</CardDescription>
-            </CardHeader>
             <CardContent>
-              {hasListConstraints ? (
-                <Button variant="outline" asChild>
-                  <Link href="/job-postings">Clear search</Link>
-                </Button>
-              ) : !hasCompanies ? (
-                <Button asChild>
-                  <Link href="/companies/new">Add company</Link>
-                </Button>
-              ) : (
-                <Button asChild>
-                  <Link href="/job-postings/new">Add job posting</Link>
-                </Button>
-              )}
+              <EmptyState
+                icon={BriefcaseIcon}
+                title={emptyStateTitle}
+                description={emptyStateDescription}
+              >
+                {hasListConstraints ? (
+                  <Button variant="outline" asChild>
+                    <Link href="/job-postings">Clear search</Link>
+                  </Button>
+                ) : !hasCompanies ? (
+                  <Button asChild>
+                    <Link href="/companies/new">Add company</Link>
+                  </Button>
+                ) : (
+                  <Button asChild>
+                    <Link href="/job-postings/new">Add job posting</Link>
+                  </Button>
+                )}
+              </EmptyState>
             </CardContent>
           </Card>
         ) : (
@@ -581,12 +587,14 @@ export default async function JobPostingsPage({
                           <p>Seniority: {jobPosting.seniorityLevel}</p>
                         ) : null}
                         {jobPosting.matchScore !== null ? (
-                          <p>Match: {jobPosting.matchScore}/100</p>
+                          <div className="pt-1">
+                            <MatchBadge score={jobPosting.matchScore} />
+                          </div>
                         ) : null}
                         {jobPosting.deadline ? (
                           <p>
                             Deadline:{" "}
-                            {jobPosting.deadline.toLocaleDateString("hr-HR")}
+                            {formatDisplayDate(jobPosting.deadline)}
                           </p>
                         ) : null}
                       </div>
@@ -613,7 +621,7 @@ export default async function JobPostingsPage({
                         >
                           <Button
                             type="submit"
-                            variant="outline"
+                            variant="ai"
                             size="sm"
                             className="w-full sm:w-auto"
                           >

@@ -1,10 +1,14 @@
 import Link from "next/link";
+import { BriefcaseIcon } from "lucide-react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { EmptyState } from "@/components/empty-state";
+import { PriorityBadge, StatusBadge } from "@/components/job-search-badges";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { formatDisplayDate } from "@/lib/display-formatters";
 import {
   Card,
   CardContent,
@@ -248,31 +252,33 @@ export default async function ApplicationsPage({
 
         {applications.length === 0 ? (
           <Card>
-            <CardHeader>
-              <CardTitle>
-                {query ? "No matching applications" : "No applications yet"}
-              </CardTitle>
-              <CardDescription>
-                {query
-                  ? "Try a different search term or clear the search."
-                  : "Applications are created from saved job postings. Add one when you are ready to track a role."}
-              </CardDescription>
-            </CardHeader>
             <CardContent>
-              {query ? (
-                <Button variant="outline" asChild>
-                  <Link href="/applications">Clear search</Link>
-                </Button>
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  <Button asChild>
-                    <Link href="/applications/new">Add application</Link>
-                  </Button>
+              <EmptyState
+                icon={BriefcaseIcon}
+                title={
+                  query ? "No matching applications" : "No applications yet"
+                }
+                description={
+                  query
+                    ? "Try a different search term or clear the search."
+                    : "Applications are created from saved job postings. Add one when you are ready to track a role."
+                }
+              >
+                {query ? (
                   <Button variant="outline" asChild>
-                    <Link href="/job-postings/new">Add job posting</Link>
+                    <Link href="/applications">Clear search</Link>
                   </Button>
-                </div>
-              )}
+                ) : (
+                  <>
+                    <Button asChild>
+                      <Link href="/applications/new">Add application</Link>
+                    </Button>
+                    <Button variant="outline" asChild>
+                      <Link href="/job-postings/new">Add job posting</Link>
+                    </Button>
+                  </>
+                )}
+              </EmptyState>
             </CardContent>
           </Card>
         ) : (
@@ -302,10 +308,12 @@ export default async function ApplicationsPage({
                   </CardHeader>
 
                   <CardContent className="space-y-4">
-                    <div className="space-y-1 break-words text-sm text-muted-foreground">
-                      <p>Status: {application.status}</p>
-                      <p>Priority: {application.priority}</p>
+                    <div className="flex flex-wrap gap-2">
+                      <StatusBadge status={application.status} />
+                      <PriorityBadge priority={application.priority} />
+                    </div>
 
+                    <div className="space-y-1 break-words text-sm text-muted-foreground">
                       {application.resume ? (
                         <p>Resume: {application.resume.name}</p>
                       ) : (
@@ -314,17 +322,14 @@ export default async function ApplicationsPage({
 
                       {application.appliedAt ? (
                         <p>
-                          Applied:{" "}
-                          {application.appliedAt.toLocaleDateString("hr-HR")}
+                          Applied: {formatDisplayDate(application.appliedAt)}
                         </p>
                       ) : null}
 
                       {application.nextActionDate ? (
                         <p>
                           Next action:{" "}
-                          {application.nextActionDate.toLocaleDateString(
-                            "hr-HR",
-                          )}
+                          {formatDisplayDate(application.nextActionDate)}
                         </p>
                       ) : null}
                     </div>
