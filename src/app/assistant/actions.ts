@@ -23,6 +23,7 @@ export type {
 const MAX_QUESTION_LENGTH = 1500;
 const MAX_HISTORY_MESSAGES = 6;
 const MAX_HISTORY_CONTENT_LENGTH = 1200;
+const MAX_REFERENCED_RECORDS = 12;
 
 const questionSchema = z.preprocess(
   (value) => (typeof value === "string" ? value.trim() : ""),
@@ -122,6 +123,10 @@ function filterReferencedRecords(
 
     seen.add(key);
     referencedRecords.push(source);
+
+    if (referencedRecords.length >= MAX_REFERENCED_RECORDS) {
+      break;
+    }
   }
 
   return referencedRecords;

@@ -17,6 +17,7 @@ import type {
 } from "@/lib/assistant/contextual-assistant-types";
 import { getAssistantPageContextKey } from "@/lib/assistant/page-context-routing";
 import { cn } from "@/lib/utils";
+import { MarkdownContent } from "@/components/markdown-content";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -181,15 +182,21 @@ function AssistantChatMessageView({
   return (
     <div className="flex justify-start">
       <div className="min-w-0 max-w-[92%] space-y-3 break-words">
-        <div
-          className={
-            message.status === "error"
-              ? "whitespace-pre-wrap break-words rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm leading-6 text-destructive"
-              : "whitespace-pre-wrap break-words rounded-md border bg-muted/30 p-4 text-sm leading-6"
-          }
-        >
-          {message.content}
-        </div>
+        {message.status === "complete" ? (
+          <MarkdownContent className="rounded-md border bg-muted/30 p-4">
+            {message.content}
+          </MarkdownContent>
+        ) : (
+          <div
+            className={
+              message.status === "error"
+                ? "whitespace-pre-wrap break-words rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm leading-6 text-destructive"
+                : "whitespace-pre-wrap break-words rounded-md border bg-muted/30 p-4 text-sm leading-6"
+            }
+          >
+            {message.content}
+          </div>
+        )}
 
         {message.status === "complete" && message.limitations.length > 0 ? (
           <div className="space-y-2">
