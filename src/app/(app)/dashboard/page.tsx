@@ -13,6 +13,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  formatDisplayDate,
+  formatDisplayDateTime,
+} from "@/lib/display-formatters";
 
 function formatStatus(status: string) {
   return status
@@ -20,19 +24,6 @@ function formatStatus(status: string) {
     .split("_")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
-}
-
-function formatDateTime(date: Date) {
-  return date.toLocaleString("hr-HR", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
-}
-
-function formatDate(date: Date) {
-  return date.toLocaleDateString("hr-HR", {
-    dateStyle: "medium",
-  });
 }
 
 export default async function DashboardPage() {
@@ -220,7 +211,7 @@ export default async function DashboardPage() {
                         </Button>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        {formatDateTime(interview.scheduledAt)}
+                        {formatDisplayDateTime(interview.scheduledAt)}
                       </p>
                     </div>
                   ))}
@@ -279,7 +270,7 @@ export default async function DashboardPage() {
 
                       {task.dueAt ? (
                         <p className="text-sm text-muted-foreground">
-                          Due: {formatDate(task.dueAt)}
+                          Due: {formatDisplayDate(task.dueAt)}
                         </p>
                       ) : (
                         <p className="text-sm text-muted-foreground">
