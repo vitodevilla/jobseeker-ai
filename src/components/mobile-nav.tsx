@@ -2,9 +2,12 @@
 
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { isNavHrefActive } from "@/components/app-nav-link";
 import { Button } from "@/components/ui/button";
 import { LogoutButton } from "@/components/logout-button";
+import { cn } from "@/lib/utils";
 
 type MobileNavItem = {
   href: string;
@@ -24,6 +27,7 @@ type MobileNavProps = {
 
 export function MobileNav({ navGroups, userName, userEmail }: MobileNavProps) {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
   const displayName = userName ?? "User";
 
   return (
@@ -64,16 +68,26 @@ export function MobileNav({ navGroups, userName, userEmail }: MobileNavProps) {
                 </p>
 
                 <div className="flex flex-col">
-                  {group.items.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className="rounded-md px-2 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-                      onClick={() => setOpen(false)}
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
+                  {group.items.map((item) => {
+                    const active = isNavHrefActive(pathname, item.href);
+
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        aria-current={active ? "page" : undefined}
+                        className={cn(
+                          "rounded-md px-2 py-2 text-sm font-medium transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
+                          active
+                            ? "bg-muted text-foreground"
+                            : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                        )}
+                        onClick={() => setOpen(false)}
+                      >
+                        {item.label}
+                      </Link>
+                    );
+                  })}
                 </div>
 
                 {group.label === "Account" ? (

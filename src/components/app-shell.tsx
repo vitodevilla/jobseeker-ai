@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AppNavLink } from "@/components/app-nav-link";
 import { AssistantShell } from "@/components/assistant-shell";
 import { LogoutButton } from "@/components/logout-button";
 import { MobileNav } from "@/components/mobile-nav";
@@ -12,7 +13,6 @@ type AppShellProps = {
 type AppNavItem = {
   href: string;
   label: string;
-  desktopLabel?: string;
 };
 
 type AppNavGroup = {
@@ -39,11 +39,7 @@ const navGroups: AppNavGroup[] = [
       { href: "/job-postings", label: "Jobs" },
       { href: "/companies", label: "Companies" },
       { href: "/resumes", label: "Resumes" },
-      {
-        href: "/cover-letters",
-        label: "Cover Letters",
-        desktopLabel: "Letters",
-      },
+      { href: "/cover-letters", label: "Cover letters" },
     ],
   },
   {
@@ -95,13 +91,15 @@ export function AppShell({ userName, userEmail, children }: AppShellProps) {
               className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 border-t pt-3 text-sm"
             >
               {desktopNavItems.map((item) => (
-                <Link
+                <AppNavLink
                   key={item.href}
                   href={item.href}
-                  className="font-medium whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground"
+                  className="rounded-md border border-transparent px-2.5 py-1.5 font-medium whitespace-nowrap transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+                  activeClassName="border-border bg-muted text-foreground"
+                  inactiveClassName="text-muted-foreground hover:bg-muted/60 hover:text-foreground"
                 >
-                  {item.desktopLabel ?? item.label}
-                </Link>
+                  {item.label}
+                </AppNavLink>
               ))}
             </nav>
           </div>
