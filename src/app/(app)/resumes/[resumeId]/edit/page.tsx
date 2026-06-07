@@ -28,6 +28,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DeleteConfirmationForm } from "@/components/delete-confirmation-form";
+import { MarkdownContent } from "@/components/markdown-content";
 import { StatusMessage } from "@/components/ui/status-message";
 
 type EditResumePageProps = {
@@ -357,9 +358,9 @@ export default async function EditResumePage({
 
           <CardContent>
             {resume.aiFeedback ? (
-              <div className="whitespace-pre-wrap break-words rounded-md border bg-muted/30 p-4 text-sm leading-6">
+              <MarkdownContent className="rounded-md border bg-muted/30 p-4">
                 {resume.aiFeedback}
-              </div>
+              </MarkdownContent>
             ) : (
               <p className="text-sm text-muted-foreground">
                 No AI critique has been generated for this resume yet.

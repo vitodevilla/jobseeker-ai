@@ -16,7 +16,7 @@ const nonEmptyString = z.string().trim().min(1);
 
 export const dashboardAssistantResultSchema = z.object({
   answerMarkdown: nonEmptyString,
-  citedRecordKeys: z.array(z.string().trim().min(1)).max(12).default([]),
+  citedRecordKeys: z.array(z.string().trim().min(1)).default([]),
   limitations: z.array(z.string().trim().min(1)).max(6).default([]),
 });
 

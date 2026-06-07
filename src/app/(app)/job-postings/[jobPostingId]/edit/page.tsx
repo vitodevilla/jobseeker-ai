@@ -30,6 +30,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DeleteConfirmationForm } from "@/components/delete-confirmation-form";
+import { MarkdownContent } from "@/components/markdown-content";
 import { StatusMessage } from "@/components/ui/status-message";
 
 type EditJobPostingPageProps = {
@@ -551,9 +552,9 @@ export default async function EditJobPostingPage({
 
           <CardContent>
             {jobPosting.aiSummary ? (
-              <div className="whitespace-pre-wrap wrap-break-word rounded-md border bg-muted/30 p-4 text-sm leading-6">
+              <MarkdownContent className="rounded-md border bg-muted/30 p-4">
                 {jobPosting.aiSummary}
-              </div>
+              </MarkdownContent>
             ) : (
               <p className="text-sm text-muted-foreground">
                 No AI summary has been generated for this job posting yet.
@@ -641,9 +642,9 @@ export default async function EditJobPostingPage({
                 </div>
 
                 {jobPosting.matchAnalysis ? (
-                  <div className="whitespace-pre-wrap wrap-break-word rounded-md border bg-muted/30 p-4 text-sm leading-6">
+                  <MarkdownContent className="rounded-md border bg-muted/30 p-4">
                     {jobPosting.matchAnalysis}
-                  </div>
+                  </MarkdownContent>
                 ) : (
                   <p className="text-sm text-muted-foreground">
                     No saved match analysis text is available yet.
@@ -733,9 +734,9 @@ export default async function EditJobPostingPage({
                   ) : null}
                 </div>
 
-                <div className="whitespace-pre-wrap wrap-break-word rounded-md border bg-muted/30 p-4 text-sm leading-6">
+                <MarkdownContent className="rounded-md border bg-muted/30 p-4">
                   {jobPosting.tailoringSuggestions}
-                </div>
+                </MarkdownContent>
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">
