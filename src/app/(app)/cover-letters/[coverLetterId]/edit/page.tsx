@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Sparkles } from "lucide-react";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
@@ -20,6 +21,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DeleteConfirmationForm } from "@/components/delete-confirmation-form";
 import { DangerZoneCard } from "@/components/danger-zone-card";
+import { AiOutputPanel, AiSectionCard } from "@/components/ai-section-card";
+import { EmptyState } from "@/components/empty-state";
 import { MarkdownContent } from "@/components/markdown-content";
 import { StatusMessage } from "@/components/ui/status-message";
 import { formatDisplayDateTime } from "@/lib/display-formatters";
@@ -285,47 +288,45 @@ export default async function EditCoverLetterPage({
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <CardTitle>AI critique</CardTitle>
-                <CardDescription>
-                  Saved feedback for this cover letter version.
-                  {coverLetter.aiFeedbackAt
-                    ? ` Generated ${formatDisplayDateTime(coverLetter.aiFeedbackAt)}.`
-                    : ""}
-                </CardDescription>
-              </div>
-
-              <form
-                action={generateCoverLetterAiFeedbackWithId}
+        <AiSectionCard
+          title="AI critique"
+          description={
+            <>
+              Saved feedback for this cover letter version.
+              {coverLetter.aiFeedbackAt
+                ? ` Generated ${formatDisplayDateTime(coverLetter.aiFeedbackAt)}.`
+                : ""}
+            </>
+          }
+          action={
+            <form
+              action={generateCoverLetterAiFeedbackWithId}
+              className="w-full sm:w-auto"
+            >
+              <Button
+                type="submit"
+                variant="ai"
+                size="sm"
                 className="w-full sm:w-auto"
               >
-                <Button
-                  type="submit"
-                  variant="outline"
-                  size="sm"
-                  className="w-full sm:w-auto"
-                >
-                  {coverLetter.aiFeedback ? "Refresh critique" : "AI critique"}
-                </Button>
-              </form>
-            </div>
-          </CardHeader>
-
-          <CardContent>
-            {coverLetter.aiFeedback ? (
-              <MarkdownContent className="rounded-md border bg-muted/30 p-4">
-                {coverLetter.aiFeedback}
-              </MarkdownContent>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                No AI critique has been generated for this cover letter yet.
-              </p>
-            )}
-          </CardContent>
-        </Card>
+                {coverLetter.aiFeedback ? "Refresh critique" : "AI critique"}
+              </Button>
+            </form>
+          }
+        >
+          {coverLetter.aiFeedback ? (
+            <AiOutputPanel>
+              <MarkdownContent>{coverLetter.aiFeedback}</MarkdownContent>
+            </AiOutputPanel>
+          ) : (
+            <EmptyState
+              icon={Sparkles}
+              title="No AI critique yet"
+              description="Generate feedback to review specificity, alignment, and readability before sending."
+              className="py-4"
+            />
+          )}
+        </AiSectionCard>
 
         <DangerZoneCard
           title="Delete cover letter"

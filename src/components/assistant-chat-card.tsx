@@ -17,15 +17,9 @@ import type {
 } from "@/lib/assistant/contextual-assistant-types";
 import { getAssistantPageContextKey } from "@/lib/assistant/page-context-routing";
 import { cn } from "@/lib/utils";
+import { AiSectionCard } from "@/components/ai-section-card";
 import { MarkdownContent } from "@/components/markdown-content";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 
 const MAX_QUESTION_LENGTH = 1500;
 const MAX_HISTORY_MESSAGES = 6;
@@ -470,7 +464,12 @@ function AssistantChatPanelState({
           ))}
         </div>
 
-        <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
+        <Button
+          type="submit"
+          variant="ai"
+          disabled={isPending}
+          className="w-full sm:w-auto"
+        >
           {isPending ? "Sending..." : "Send"}
         </Button>
       </form>
@@ -497,18 +496,8 @@ export function AssistantChatCard({
   pageContext,
 }: AssistantChatCardProps) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
-
-      <CardContent>
-        <AssistantChatPanel
-          quickPrompts={quickPrompts}
-          pageContext={pageContext}
-        />
-      </CardContent>
-    </Card>
+    <AiSectionCard title={title} description={description}>
+      <AssistantChatPanel quickPrompts={quickPrompts} pageContext={pageContext} />
+    </AiSectionCard>
   );
 }

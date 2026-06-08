@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Sparkles } from "lucide-react";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
@@ -31,6 +32,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DeleteConfirmationForm } from "@/components/delete-confirmation-form";
 import { DangerZoneCard } from "@/components/danger-zone-card";
+import { AiOutputPanel, AiSectionCard } from "@/components/ai-section-card";
+import { EmptyState } from "@/components/empty-state";
 import { MatchBadge } from "@/components/job-search-badges";
 import { MarkdownContent } from "@/components/markdown-content";
 import { StatusMessage } from "@/components/ui/status-message";
@@ -530,229 +533,236 @@ export default async function EditJobPostingPage({
           pageContext={createJobPostingAssistantPageContext(jobPosting.id)}
         />
 
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <CardTitle>AI summary</CardTitle>
-                <CardDescription>
-                  Saved summary for this job posting.
-                  {jobPosting.aiSummaryAt
-                    ? ` Generated ${formatDisplayDateTime(jobPosting.aiSummaryAt)}.`
-                    : ""}
-                </CardDescription>
-              </div>
-
-              <form
-                action={generateJobPostingAiSummaryWithId}
+        <AiSectionCard
+          title="AI summary"
+          description={
+            <>
+              Saved summary for this job posting.
+              {jobPosting.aiSummaryAt
+                ? ` Generated ${formatDisplayDateTime(jobPosting.aiSummaryAt)}.`
+                : ""}
+            </>
+          }
+          action={
+            <form
+              action={generateJobPostingAiSummaryWithId}
+              className="w-full sm:w-auto"
+            >
+              <Button
+                type="submit"
+                variant="ai"
+                size="sm"
                 className="w-full sm:w-auto"
               >
-                <Button
-                  type="submit"
-                  variant="outline"
-                  size="sm"
-                  className="w-full sm:w-auto"
-                >
-                  {jobPosting.aiSummary ? "Refresh summary" : "AI summary"}
-                </Button>
-              </form>
-            </div>
-          </CardHeader>
+                {jobPosting.aiSummary ? "Refresh summary" : "AI summary"}
+              </Button>
+            </form>
+          }
+        >
+          {jobPosting.aiSummary ? (
+            <AiOutputPanel>
+              <MarkdownContent>{jobPosting.aiSummary}</MarkdownContent>
+            </AiOutputPanel>
+          ) : (
+            <EmptyState
+              icon={Sparkles}
+              title="No AI summary yet"
+              description="Generate a saved summary for the role, requirements, and useful follow-up context."
+              className="py-4"
+            />
+          )}
+        </AiSectionCard>
 
-          <CardContent>
-            {jobPosting.aiSummary ? (
-              <MarkdownContent className="rounded-md border bg-muted/30 p-4">
-                {jobPosting.aiSummary}
-              </MarkdownContent>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                No AI summary has been generated for this job posting yet.
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Resume match</CardTitle>
-            <CardDescription>
+        <AiSectionCard
+          title="Resume match"
+          description={
+            <>
               Analyze how well one saved resume matches this job posting.
               {jobPosting.matchScoreAt
                 ? ` Generated ${formatDisplayDateTime(jobPosting.matchScoreAt)}.`
                 : ""}
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent className="space-y-4">
-            {resumes.length === 0 ? (
-              <div className="space-y-3">
-                <p className="text-sm text-muted-foreground">
-                  Add a resume before analyzing match quality for this job
-                  posting.
-                </p>
-                <Button asChild>
-                  <Link href="/resumes/new">Add resume</Link>
-                </Button>
-              </div>
-            ) : (
-              <form action={analyzeResumeJobMatchWithId} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="resumeId">Resume</Label>
-                  <select
-                    id="resumeId"
-                    name="resumeId"
-                    required
-                    defaultValue={defaultResumeId}
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
-                  >
-                    <option value="">Select a resume</option>
-                    {resumes.map((resume) => (
-                      <option key={resume.id} value={resume.id}>
-                        {resume.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <Button
-                  type="submit"
-                  variant="outline"
-                  size="sm"
-                  className="w-full sm:w-auto"
+            </>
+          }
+          contentClassName="space-y-4"
+        >
+          {resumes.length === 0 ? (
+            <EmptyState
+              icon={Sparkles}
+              title="Add a resume to analyze match"
+              description="Save a resume before generating match quality for this job posting."
+              className="py-4"
+            >
+              <Button asChild>
+                <Link href="/resumes/new">Add resume</Link>
+              </Button>
+            </EmptyState>
+          ) : (
+            <form action={analyzeResumeJobMatchWithId} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="resumeId">Resume</Label>
+                <select
+                  id="resumeId"
+                  name="resumeId"
+                  required
+                  defaultValue={defaultResumeId}
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 >
-                  {jobPosting.matchScore === null
-                    ? "Analyze match"
-                    : "Reanalyze match"}
-                </Button>
-                {jobPosting.matchScore !== null ? (
-                  <p className="text-sm text-muted-foreground">
-                    Reanalyzing regenerates the AI assessment and may slightly
-                    change the score.
+                  <option value="">Select a resume</option>
+                  {resumes.map((resume) => (
+                    <option key={resume.id} value={resume.id}>
+                      {resume.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <Button
+                type="submit"
+                variant="ai"
+                size="sm"
+                className="w-full sm:w-auto"
+              >
+                {jobPosting.matchScore === null
+                  ? "Analyze match"
+                  : "Reanalyze match"}
+              </Button>
+              {jobPosting.matchScore !== null ? (
+                <p className="text-sm text-muted-foreground">
+                  Reanalyzing regenerates the AI assessment and may slightly
+                  change the score.
+                </p>
+              ) : null}
+            </form>
+          )}
+
+          {jobPosting.matchScore !== null ? (
+            <div className="space-y-3">
+              <div className="space-y-1 wrap-break-word text-sm text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-2">
+                  <MatchBadge score={jobPosting.matchScore} />
+                </div>
+                {jobPosting.matchScoreAt ? (
+                  <p>
+                    Generated: {formatDisplayDateTime(jobPosting.matchScoreAt)}
                   </p>
                 ) : null}
-              </form>
-            )}
-
-            {jobPosting.matchScore !== null ? (
-              <div className="space-y-3">
-                <div className="space-y-1 wrap-break-word text-sm text-muted-foreground">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <MatchBadge score={jobPosting.matchScore} />
-                  </div>
-                  {jobPosting.matchScoreAt ? (
-                    <p>
-                      Generated:{" "}
-                      {formatDisplayDateTime(jobPosting.matchScoreAt)}
-                    </p>
-                  ) : null}
-                  {jobPosting.matchResume ? (
-                    <p>Resume: {jobPosting.matchResume.name}</p>
-                  ) : null}
-                </div>
-
-                {jobPosting.matchAnalysis ? (
-                  <MarkdownContent className="rounded-md border bg-muted/30 p-4">
-                    {jobPosting.matchAnalysis}
-                  </MarkdownContent>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    No saved match analysis text is available yet.
-                  </p>
-                )}
+                {jobPosting.matchResume ? (
+                  <p>Resume: {jobPosting.matchResume.name}</p>
+                ) : null}
               </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                No resume match has been generated for this job posting yet.
-              </p>
-            )}
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Resume tailoring suggestions</CardTitle>
-            <CardDescription>
+              {jobPosting.matchAnalysis ? (
+                <AiOutputPanel>
+                  <MarkdownContent>{jobPosting.matchAnalysis}</MarkdownContent>
+                </AiOutputPanel>
+              ) : (
+                <EmptyState
+                  icon={Sparkles}
+                  title="No saved match analysis text"
+                  description="Reanalyze the match to regenerate the saved analysis text."
+                  className="py-3"
+                />
+              )}
+            </div>
+          ) : resumes.length > 0 ? (
+            <EmptyState
+              icon={Sparkles}
+              title="No resume match yet"
+              description="Choose a saved resume and analyze how well it fits this job posting."
+              className="py-4"
+            />
+          ) : null}
+        </AiSectionCard>
+
+        <AiSectionCard
+          title="Resume tailoring suggestions"
+          description={
+            <>
               Get advice on what to change or emphasize for this saved job
               posting.
               {jobPosting.tailoringSuggestionsAt
                 ? ` Generated ${formatDisplayDateTime(jobPosting.tailoringSuggestionsAt)}.`
                 : ""}
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent className="space-y-4">
-            {resumes.length === 0 ? (
-              <div className="space-y-3">
-                <p className="text-sm text-muted-foreground">
-                  Add a resume before generating tailoring suggestions for this
-                  job posting.
-                </p>
-                <Button asChild>
-                  <Link href="/resumes/new">Add resume</Link>
-                </Button>
-              </div>
-            ) : (
-              <form
-                action={generateResumeTailoringSuggestionsWithId}
-                className="space-y-4"
-              >
-                <div className="space-y-2">
-                  <Label htmlFor="tailoringResumeId">Resume</Label>
-                  <select
-                    id="tailoringResumeId"
-                    name="resumeId"
-                    required
-                    defaultValue={defaultTailoringResumeId}
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
-                  >
-                    <option value="">Select a resume</option>
-                    {resumes.map((resume) => (
-                      <option key={resume.id} value={resume.id}>
-                        {resume.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <Button
-                  type="submit"
-                  variant="outline"
-                  size="sm"
-                  className="w-full sm:w-auto"
+            </>
+          }
+          contentClassName="space-y-4"
+        >
+          {resumes.length === 0 ? (
+            <EmptyState
+              icon={Sparkles}
+              title="Add a resume for tailoring suggestions"
+              description="Save a resume before generating tailoring suggestions for this job posting."
+              className="py-4"
+            >
+              <Button asChild>
+                <Link href="/resumes/new">Add resume</Link>
+              </Button>
+            </EmptyState>
+          ) : (
+            <form
+              action={generateResumeTailoringSuggestionsWithId}
+              className="space-y-4"
+            >
+              <div className="space-y-2">
+                <Label htmlFor="tailoringResumeId">Resume</Label>
+                <select
+                  id="tailoringResumeId"
+                  name="resumeId"
+                  required
+                  defaultValue={defaultTailoringResumeId}
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 >
-                  {jobPosting.tailoringSuggestions
-                    ? "Refresh tailoring suggestions"
-                    : "Suggest resume tailoring"}
-                </Button>
-              </form>
-            )}
+                  <option value="">Select a resume</option>
+                  {resumes.map((resume) => (
+                    <option key={resume.id} value={resume.id}>
+                      {resume.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            {jobPosting.tailoringSuggestions ? (
-              <div className="space-y-3">
-                <div className="space-y-1 wrap-break-word text-sm text-muted-foreground">
-                  {jobPosting.tailoringSuggestionsAt ? (
-                    <p>
-                      Generated:{" "}
-                      {formatDisplayDateTime(jobPosting.tailoringSuggestionsAt)}
-                    </p>
-                  ) : null}
-                  {jobPosting.tailoringResume ? (
-                    <p>Resume: {jobPosting.tailoringResume.name}</p>
-                  ) : null}
-                </div>
+              <Button
+                type="submit"
+                variant="ai"
+                size="sm"
+                className="w-full sm:w-auto"
+              >
+                {jobPosting.tailoringSuggestions
+                  ? "Refresh tailoring suggestions"
+                  : "Suggest resume tailoring"}
+              </Button>
+            </form>
+          )}
 
-                <MarkdownContent className="rounded-md border bg-muted/30 p-4">
+          {jobPosting.tailoringSuggestions ? (
+            <div className="space-y-3">
+              <div className="space-y-1 wrap-break-word text-sm text-muted-foreground">
+                {jobPosting.tailoringSuggestionsAt ? (
+                  <p>
+                    Generated:{" "}
+                    {formatDisplayDateTime(jobPosting.tailoringSuggestionsAt)}
+                  </p>
+                ) : null}
+                {jobPosting.tailoringResume ? (
+                  <p>Resume: {jobPosting.tailoringResume.name}</p>
+                ) : null}
+              </div>
+
+              <AiOutputPanel>
+                <MarkdownContent>
                   {jobPosting.tailoringSuggestions}
                 </MarkdownContent>
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                No resume tailoring suggestions have been generated for this
-                job posting yet.
-              </p>
-            )}
-          </CardContent>
-        </Card>
+              </AiOutputPanel>
+            </div>
+          ) : resumes.length > 0 ? (
+            <EmptyState
+              icon={Sparkles}
+              title="No tailoring suggestions yet"
+              description="Choose a saved resume and generate focused suggestions for this job posting."
+              className="py-4"
+            />
+          ) : null}
+        </AiSectionCard>
 
         <Card>
           <CardHeader>
@@ -780,7 +790,7 @@ export default async function EditJobPostingPage({
                 >
                   <Button
                     type="submit"
-                    variant="outline"
+                    variant="ai"
                     size="sm"
                     className="w-full sm:w-auto"
                   >
