@@ -138,8 +138,8 @@ export default async function CompaniesPage({
           </Button>
         </div>
 
-        <Card>
-          <CardHeader>
+        <Card size="sm">
+          <CardHeader className="gap-1">
             <CardTitle>Search companies</CardTitle>
             <CardDescription>
               Search by name, website, industry, size, or private notes.
@@ -148,16 +148,18 @@ export default async function CompaniesPage({
           <CardContent>
             <form
               action="/companies"
-              className="flex flex-col gap-3 sm:flex-row"
+              className="flex flex-col gap-2 sm:flex-row sm:items-center"
             >
               <Input
                 name="q"
                 defaultValue={query}
                 placeholder="Search companies..."
               />
-              <Button type="submit">Search</Button>
+              <Button type="submit" className="w-full sm:w-auto">
+                Search
+              </Button>
               {query ? (
-                <Button variant="outline" asChild>
+                <Button variant="outline" className="w-full sm:w-auto" asChild>
                   <Link href="/companies">Clear</Link>
                 </Button>
               ) : null}
@@ -166,7 +168,7 @@ export default async function CompaniesPage({
         </Card>
 
         {companies.length === 0 ? (
-          <Card>
+          <Card size="sm">
             <CardContent>
               <EmptyState
                 icon={Building2Icon}
@@ -191,7 +193,7 @@ export default async function CompaniesPage({
           </Card>
         ) : (
           <>
-            <div className="flex flex-col gap-1 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-1 rounded-lg border border-border bg-card px-3 py-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
               <p className="min-w-0 break-words">
                 Showing {companies.length} of {totalCompanies}{" "}
                 {query ? "matching " : ""}
@@ -202,10 +204,10 @@ export default async function CompaniesPage({
               </p>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2">
               {companies.map((company) => (
-                <Card key={company.id}>
-                  <CardHeader>
+                <Card key={company.id} size="sm" className="h-full">
+                  <CardHeader className="gap-1">
                     <CardTitle>{company.name}</CardTitle>
                     <CardDescription>
                       {company.industry ?? "No industry added"}
@@ -213,12 +215,26 @@ export default async function CompaniesPage({
                   </CardHeader>
 
                   <CardContent className="space-y-3">
-                    <div className="space-y-1 break-words text-sm text-muted-foreground">
+                    <div className="grid gap-1.5 break-words text-sm text-muted-foreground">
                       {company.website ? (
-                        <p className="break-all">{company.website}</p>
+                        <p className="break-all">
+                          <span className="font-medium text-foreground">
+                            Website:
+                          </span>{" "}
+                          {company.website}
+                        </p>
                       ) : null}
-                      {company.size ? <p>Size: {company.size}</p> : null}
-                      {company.notes ? <p>{company.notes}</p> : null}
+                      {company.size ? (
+                        <p>
+                          <span className="font-medium text-foreground">
+                            Size:
+                          </span>{" "}
+                          {company.size}
+                        </p>
+                      ) : null}
+                      {company.notes ? (
+                        <p className="line-clamp-3">{company.notes}</p>
+                      ) : null}
                     </div>
                   </CardContent>
 
@@ -229,7 +245,7 @@ export default async function CompaniesPage({
                       className="w-full sm:w-auto"
                       asChild
                     >
-                      <Link href={`/companies/${company.id}/edit`}>Edit</Link>
+                      <Link href={`/companies/${company.id}/edit`}>Open</Link>
                     </Button>
                   </CardFooter>
                 </Card>

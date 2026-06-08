@@ -73,7 +73,7 @@ export default async function InterviewsPage() {
         </div>
 
         {interviews.length === 0 ? (
-          <Card>
+          <Card size="sm">
             <CardContent>
               <EmptyState
                 icon={CalendarIcon}
@@ -87,40 +87,57 @@ export default async function InterviewsPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2">
             {interviews.map((interview) => (
-              <Card key={interview.id}>
-                <CardHeader>
+              <Card key={interview.id} size="sm" className="h-full">
+                <CardHeader className="gap-1">
                   <CardTitle>{interview.application.jobPosting.title}</CardTitle>
                   <CardDescription>
                     {interview.application.jobPosting.company.name}
                   </CardDescription>
                 </CardHeader>
 
-                <CardContent className="space-y-4">
-                  <div className="flex flex-wrap gap-2">
+                <CardContent className="space-y-3">
+                  <div className="flex flex-wrap gap-1.5">
                     <Badge variant="outline">
                       {formatInterviewType(interview.type)}
                     </Badge>
                     <StatusBadge status={interview.outcome} />
                   </div>
 
-                  <div className="space-y-1 break-words text-sm text-muted-foreground">
+                  <div className="grid gap-1.5 break-words text-sm text-muted-foreground">
                     <p>
-                      Scheduled:{" "}
+                      <span className="font-medium text-foreground">
+                        Scheduled:
+                      </span>{" "}
                       {formatDisplayDateTime(interview.scheduledAt)}
                     </p>
 
                     {interview.durationMinutes ? (
-                      <p>Duration: {interview.durationMinutes} min</p>
+                      <p>
+                        <span className="font-medium text-foreground">
+                          Duration:
+                        </span>{" "}
+                        {interview.durationMinutes} min
+                      </p>
                     ) : null}
 
                     {interview.locationOrLink ? (
-                      <p>Location/link: {interview.locationOrLink}</p>
+                      <p className="break-all">
+                        <span className="font-medium text-foreground">
+                          Location/link:
+                        </span>{" "}
+                        {interview.locationOrLink}
+                      </p>
                     ) : null}
 
                     {interview.interviewerName ? (
-                      <p>Interviewer: {interview.interviewerName}</p>
+                      <p>
+                        <span className="font-medium text-foreground">
+                          Interviewer:
+                        </span>{" "}
+                        {interview.interviewerName}
+                      </p>
                     ) : null}
                   </div>
 
@@ -138,7 +155,7 @@ export default async function InterviewsPage() {
                     className="w-full sm:w-auto"
                     asChild
                   >
-                    <Link href={`/interviews/${interview.id}/edit`}>Edit</Link>
+                    <Link href={`/interviews/${interview.id}/edit`}>Open</Link>
                   </Button>
                 </CardFooter>
               </Card>

@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { searchJobPostingsBySemanticQuery } from "@/lib/retrieval/semantic-search";
 import { generateJobPostingAiSummary } from "@/app/(app)/job-postings/actions";
 import { EmptyState } from "@/components/empty-state";
-import { MatchBadge } from "@/components/job-search-badges";
+import { MatchBadge, SimilarityBadge } from "@/components/job-search-badges";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -151,11 +151,6 @@ function buildPageHref(
   params.set("page", page.toString());
 
   return `/job-postings?${params.toString()}`;
-}
-
-function formatSimilarityPercent(similarity: number) {
-  const boundedSimilarity = Math.min(1, Math.max(0, similarity));
-  return `${Math.round(boundedSimilarity * 100)}%`;
 }
 
 function buildKeywordJobPostingWhere(
@@ -426,41 +421,36 @@ export default async function JobPostingsPage({
           </Button>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Search job postings</CardTitle>
+        <Card size="sm">
+          <CardHeader className="gap-1">
+            <CardTitle>Search and filters</CardTitle>
             <CardDescription>
-              Search by title, description, company, industry, location,
-              seniority, URL, or salary currency. Semantic search uses saved
-              semantic data and approximate similarity.
+              Search saved jobs by title, company, location, seniority, or
+              meaning. Semantic mode uses saved semantic data.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form action="/job-postings" className="space-y-3">
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_150px_150px_220px]">
-                <div className="space-y-2">
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_150px_150px_220px]">
+                <div className="space-y-1.5">
                   <Label htmlFor="q">Search</Label>
                   <Input
                     id="q"
                     name="q"
                     defaultValue={query}
-                    placeholder="Search saved jobs by title, skill, company, or meaning..."
+                    placeholder="Title, skill, company, or meaning..."
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="mode">Mode</Label>
-                  <Select
-                    id="mode"
-                    name="mode"
-                    defaultValue={searchMode}
-                  >
+                  <Select id="mode" name="mode" defaultValue={searchMode}>
                     <option value="keyword">Keyword</option>
                     <option value="semantic">Semantic</option>
                   </Select>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="workMode">Work mode</Label>
                   <Select
                     id="workMode"
@@ -475,7 +465,7 @@ export default async function JobPostingsPage({
                   </Select>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="companyId">Company</Label>
                   <Select
                     id="companyId"
@@ -492,29 +482,39 @@ export default async function JobPostingsPage({
                 </div>
               </div>
 
-              {searchMode === "semantic" ? (
-                <p className="text-sm text-muted-foreground">
-                  Semantic search uses saved semantic data and approximate
-                  similarity.
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-xs text-muted-foreground">
+                  {searchMode === "semantic"
+                    ? "Semantic results are ranked by approximate similarity."
+                    : "Keyword mode searches saved fields and selected filters."}
                 </p>
-              ) : null}
 
-              <div className="flex flex-wrap gap-2">
-                <Button type="submit">Search</Button>
-                {hasActiveSearchControls ? (
-                  <Button variant="outline" asChild>
-                    <Link href="/job-postings">Clear</Link>
+                <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                  <Button type="submit" className="w-full sm:w-auto">
+                    Search
                   </Button>
-                ) : null}
+                  {hasActiveSearchControls ? (
+                    <Button
+                      variant="outline"
+                      className="w-full sm:w-auto"
+                      asChild
+                    >
+                      <Link href="/job-postings">Clear</Link>
+                    </Button>
+                  ) : null}
+                </div>
               </div>
             </form>
           </CardContent>
         </Card>
 
         {semanticSearchUnavailable ? (
-          <Card>
-            <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">
+          <Card
+            size="sm"
+            className="ring-[#C8D6E6] dark:ring-[#4F739F]/50"
+          >
+            <CardContent>
+              <p className="text-sm text-[#334F70] dark:text-[#D6E2EF]">
                 Semantic search is unavailable right now. Showing keyword
                 results instead.
               </p>
@@ -523,7 +523,7 @@ export default async function JobPostingsPage({
         ) : null}
 
         {jobPostings.length === 0 ? (
-          <Card>
+          <Card size="sm">
             <CardContent>
               <EmptyState
                 icon={BriefcaseIcon}
@@ -548,7 +548,7 @@ export default async function JobPostingsPage({
           </Card>
         ) : (
           <>
-            <div className="flex flex-col gap-1 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-1 rounded-lg border border-border bg-card px-3 py-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
               <p className="min-w-0 break-words">{resultSummary}</p>
               {shouldShowPagination ? (
                 <p>
@@ -557,14 +557,14 @@ export default async function JobPostingsPage({
               ) : null}
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2">
               {jobPostings.map((jobPosting) => {
                 const generateJobPostingAiSummaryWithId =
                   generateJobPostingAiSummary.bind(null, jobPosting.id);
 
                 return (
-                  <Card key={jobPosting.id}>
-                    <CardHeader>
+                  <Card key={jobPosting.id} size="sm" className="h-full">
+                    <CardHeader className="gap-1">
                       <CardTitle>{jobPosting.title}</CardTitle>
                       <CardDescription>
                         {jobPosting.company.name}
@@ -574,8 +574,13 @@ export default async function JobPostingsPage({
                       </CardDescription>
                     </CardHeader>
 
-                    <CardContent className="space-y-4">
-                      <div className="flex flex-wrap gap-2">
+                    <CardContent className="space-y-3">
+                      <div className="flex flex-wrap gap-1.5">
+                        {jobPosting.semanticSimilarity !== undefined ? (
+                          <SimilarityBadge
+                            similarity={jobPosting.semanticSimilarity}
+                          />
+                        ) : null}
                         {jobPosting.workMode ? (
                           <Badge variant="outline">
                             {WORK_MODE_LABELS[jobPosting.workMode]}
@@ -591,24 +596,16 @@ export default async function JobPostingsPage({
                         ) : null}
                       </div>
 
-                      <div className="space-y-1 break-words text-sm text-muted-foreground">
-                        {jobPosting.semanticSimilarity !== undefined ? (
-                          <p>
-                            Approx. similarity:{" "}
-                            {formatSimilarityPercent(
-                              jobPosting.semanticSimilarity,
-                            )}
-                          </p>
-                        ) : null}
-                        {jobPosting.deadline ? (
-                          <p>
-                            Deadline:{" "}
-                            {formatDisplayDate(jobPosting.deadline)}
-                          </p>
-                        ) : null}
-                      </div>
+                      {jobPosting.deadline ? (
+                        <p className="break-words text-sm text-muted-foreground">
+                          <span className="font-medium text-foreground">
+                            Deadline:
+                          </span>{" "}
+                          {formatDisplayDate(jobPosting.deadline)}
+                        </p>
+                      ) : null}
 
-                      <p className="line-clamp-4 break-words text-sm text-muted-foreground">
+                      <p className="line-clamp-3 break-words text-sm text-muted-foreground">
                         {jobPosting.description}
                       </p>
                     </CardContent>
@@ -621,7 +618,7 @@ export default async function JobPostingsPage({
                         asChild
                       >
                         <Link href={`/job-postings/${jobPosting.id}/edit`}>
-                          Edit
+                          Open
                         </Link>
                       </Button>
 

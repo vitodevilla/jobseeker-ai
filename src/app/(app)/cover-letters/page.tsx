@@ -81,8 +81,8 @@ export default async function CoverLettersPage() {
           </Button>
         </div>
 
-        <Card>
-          <CardHeader>
+        <Card size="sm">
+          <CardHeader className="gap-1">
             <CardTitle>Writing guidance</CardTitle>
             <CardDescription>
               For best results, start with your own draft. JobSeeker AI can
@@ -93,7 +93,7 @@ export default async function CoverLettersPage() {
         </Card>
 
         {coverLetters.length === 0 ? (
-          <Card>
+          <Card size="sm">
             <CardContent>
               <EmptyState
                 icon={MailIcon}
@@ -107,14 +107,14 @@ export default async function CoverLettersPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2">
             {coverLetters.map((coverLetter) => {
               const generateCoverLetterAiFeedbackWithId =
                 generateCoverLetterAiFeedback.bind(null, coverLetter.id);
 
               return (
-                <Card key={coverLetter.id}>
-                  <CardHeader>
+                <Card key={coverLetter.id} size="sm" className="h-full">
+                  <CardHeader className="gap-1">
                     <CardTitle>{coverLetter.title}</CardTitle>
                     <CardDescription>
                       {coverLetter.application.jobPosting.title} —{" "}
@@ -122,8 +122,8 @@ export default async function CoverLettersPage() {
                     </CardDescription>
                   </CardHeader>
 
-                  <CardContent className="space-y-4">
-                    <div className="flex flex-wrap gap-2">
+                  <CardContent className="space-y-3">
+                    <div className="flex flex-wrap gap-1.5">
                       <Badge variant="outline">
                         {formatCoverLetterMode(coverLetter.mode)}
                       </Badge>
@@ -132,13 +132,23 @@ export default async function CoverLettersPage() {
                       </Badge>
                     </div>
 
-                    <div className="space-y-1 break-words text-sm text-muted-foreground">
-                      <p>Version: {coverLetter.version}</p>
-                      <p>Updated: {formatDisplayDate(coverLetter.updatedAt)}</p>
+                    <div className="grid gap-1.5 break-words text-sm text-muted-foreground">
+                      <p>
+                        <span className="font-medium text-foreground">
+                          Version:
+                        </span>{" "}
+                        {coverLetter.version}
+                      </p>
+                      <p>
+                        <span className="font-medium text-foreground">
+                          Updated:
+                        </span>{" "}
+                        {formatDisplayDate(coverLetter.updatedAt)}
+                      </p>
                     </div>
 
                     {coverLetter.content ? (
-                      <p className="line-clamp-4 break-words text-sm text-muted-foreground">
+                      <p className="line-clamp-3 break-words text-sm text-muted-foreground">
                         {coverLetter.content}
                       </p>
                     ) : (
@@ -156,7 +166,7 @@ export default async function CoverLettersPage() {
                       asChild
                     >
                       <Link href={`/cover-letters/${coverLetter.id}/edit`}>
-                        Edit
+                        Open
                       </Link>
                     </Button>
 

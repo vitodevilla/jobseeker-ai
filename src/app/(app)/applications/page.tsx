@@ -223,27 +223,29 @@ export default async function ApplicationsPage({
           </Button>
         </div>
 
-        <Card>
-          <CardHeader>
+        <Card size="sm">
+          <CardHeader className="gap-1">
             <CardTitle>Search applications</CardTitle>
             <CardDescription>
-              Search by job title, company, status, priority, notes, rejection
-              reason, or resume.
+              Search by job, company, status, priority, notes, rejection
+              reason, or resume name.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form
               action="/applications"
-              className="flex flex-col gap-3 sm:flex-row"
+              className="flex flex-col gap-2 sm:flex-row sm:items-center"
             >
               <Input
                 name="q"
                 defaultValue={query}
                 placeholder="Search applications..."
               />
-              <Button type="submit">Search</Button>
+              <Button type="submit" className="w-full sm:w-auto">
+                Search
+              </Button>
               {query ? (
-                <Button variant="outline" asChild>
+                <Button variant="outline" className="w-full sm:w-auto" asChild>
                   <Link href="/applications">Clear</Link>
                 </Button>
               ) : null}
@@ -252,7 +254,7 @@ export default async function ApplicationsPage({
         </Card>
 
         {applications.length === 0 ? (
-          <Card>
+          <Card size="sm">
             <CardContent>
               <EmptyState
                 icon={BriefcaseIcon}
@@ -284,7 +286,7 @@ export default async function ApplicationsPage({
           </Card>
         ) : (
           <>
-            <div className="flex flex-col gap-1 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-1 rounded-lg border border-border bg-card px-3 py-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
               <p className="min-w-0 break-words">
                 Showing {applications.length} of {totalApplications}{" "}
                 {query ? "matching " : ""}
@@ -295,10 +297,10 @@ export default async function ApplicationsPage({
               </p>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2">
               {applications.map((application) => (
-                <Card key={application.id}>
-                  <CardHeader>
+                <Card key={application.id} size="sm" className="h-full">
+                  <CardHeader className="gap-1">
                     <CardTitle>{application.jobPosting.title}</CardTitle>
                     <CardDescription>
                       {application.jobPosting.company.name}
@@ -308,28 +310,38 @@ export default async function ApplicationsPage({
                     </CardDescription>
                   </CardHeader>
 
-                  <CardContent className="space-y-4">
-                    <div className="flex flex-wrap gap-2">
+                  <CardContent className="space-y-3">
+                    <div className="flex flex-wrap gap-1.5">
                       <StatusBadge status={application.status} />
                       <PriorityBadge priority={application.priority} />
                     </div>
 
-                    <div className="space-y-1 break-words text-sm text-muted-foreground">
+                    <div className="grid gap-1.5 break-words text-sm text-muted-foreground">
                       {application.resume ? (
-                        <p>Resume: {application.resume.name}</p>
+                        <p>
+                          <span className="font-medium text-foreground">
+                            Resume:
+                          </span>{" "}
+                          {application.resume.name}
+                        </p>
                       ) : (
                         <p>No resume selected</p>
                       )}
 
                       {application.appliedAt ? (
                         <p>
-                          Applied: {formatDisplayDate(application.appliedAt)}
+                          <span className="font-medium text-foreground">
+                            Applied:
+                          </span>{" "}
+                          {formatDisplayDate(application.appliedAt)}
                         </p>
                       ) : null}
 
                       {application.nextActionDate ? (
                         <p>
-                          Next action:{" "}
+                          <span className="font-medium text-foreground">
+                            Next action:
+                          </span>{" "}
                           {formatDisplayDate(application.nextActionDate)}
                         </p>
                       ) : null}
@@ -340,7 +352,6 @@ export default async function ApplicationsPage({
                         {application.notes}
                       </p>
                     ) : null}
-
                   </CardContent>
 
                   <CardFooter className="mt-auto flex-col items-stretch gap-2 sm:flex-row sm:items-center">
@@ -351,7 +362,7 @@ export default async function ApplicationsPage({
                       asChild
                     >
                       <Link href={`/applications/${application.id}/edit`}>
-                        Edit
+                        Open
                       </Link>
                     </Button>
                   </CardFooter>
