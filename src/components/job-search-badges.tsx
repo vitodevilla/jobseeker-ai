@@ -10,42 +10,40 @@ import { cn } from "@/lib/utils"
 type StatusValue = ApplicationStatus | TaskStatus | InterviewOutcome
 type BadgeTone =
   | "neutral"
-  | "blue"
-  | "indigo"
+  | "steel"
   | "green"
   | "amber"
   | "rose"
   | "slate"
 
 const toneStyles: Record<BadgeTone, string> = {
-  neutral: "border-border bg-muted/50 text-muted-foreground",
-  blue:
-    "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900/70 dark:bg-blue-950/40 dark:text-blue-300",
-  indigo:
-    "border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-900/70 dark:bg-indigo-950/40 dark:text-indigo-300",
+  neutral:
+    "border-[#D3DCE7] bg-[#EEF3F8] text-[#46658C] dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-300",
+  steel:
+    "border-[#A7B9CF] bg-[#EEF3F8] text-[#3C5778] dark:border-[#4F739F]/60 dark:bg-[#223449]/40 dark:text-[#D6E2EF]",
   green:
-    "border-green-200 bg-green-50 text-green-700 dark:border-green-900/70 dark:bg-green-950/40 dark:text-green-300",
+    "border-[#BBF7D0] bg-[#F0FDF4] text-[#15803D] dark:border-green-900/70 dark:bg-green-950/40 dark:text-green-300",
   amber:
-    "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/70 dark:bg-amber-950/40 dark:text-amber-300",
+    "border-[#FDE68A] bg-[#FFFBEB] text-[#B45309] dark:border-amber-900/70 dark:bg-amber-950/40 dark:text-amber-300",
   rose:
-    "border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900/70 dark:bg-rose-950/40 dark:text-rose-300",
+    "border-[#FECDD3] bg-[#FFF1F2] text-[#BE123C] dark:border-rose-900/70 dark:bg-rose-950/40 dark:text-rose-300",
   slate:
-    "border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-300",
+    "border-[#D3DCE7] bg-[#EEF3F8] text-[#46658C] dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-300",
 }
 
 const statusConfig: Record<StatusValue, { label: string; tone: BadgeTone }> = {
   SAVED: { label: "Saved", tone: "slate" },
-  INTERESTED: { label: "Interested", tone: "blue" },
-  APPLIED: { label: "Applied", tone: "indigo" },
-  SCREENING: { label: "Screening", tone: "amber" },
-  INTERVIEWING: { label: "Interviewing", tone: "amber" },
+  INTERESTED: { label: "Interested", tone: "slate" },
+  APPLIED: { label: "Applied", tone: "steel" },
+  SCREENING: { label: "Screening", tone: "steel" },
+  INTERVIEWING: { label: "Interviewing", tone: "steel" },
   OFFER: { label: "Offer", tone: "green" },
   ACCEPTED: { label: "Accepted", tone: "green" },
   REJECTED: { label: "Rejected", tone: "rose" },
   WITHDRAWN: { label: "Withdrawn", tone: "slate" },
   GHOSTED: { label: "Ghosted", tone: "rose" },
   ARCHIVED: { label: "Archived", tone: "neutral" },
-  PENDING: { label: "Pending", tone: "amber" },
+  PENDING: { label: "Pending", tone: "slate" },
   DONE: { label: "Done", tone: "green" },
   CANCELLED: { label: "Cancelled", tone: "slate" },
   PASSED: { label: "Passed", tone: "green" },
@@ -53,11 +51,17 @@ const statusConfig: Record<StatusValue, { label: string; tone: BadgeTone }> = {
   NO_SHOW: { label: "No show", tone: "rose" },
 }
 
-const priorityConfig: Record<Priority, { label: string; tone: BadgeTone }> = {
-  HIGH: { label: "High priority", tone: "rose" },
-  MEDIUM: { label: "Medium priority", tone: "amber" },
-  LOW: { label: "Low priority", tone: "slate" },
+const priorityConfig: Record<
+  Priority,
+  { label: string; dotClassName: string }
+> = {
+  HIGH: { label: "High priority", dotClassName: "bg-[#EF4444]" },
+  MEDIUM: { label: "Medium priority", dotClassName: "bg-[#EAB308]" },
+  LOW: { label: "Low priority", dotClassName: "bg-[#A1A1AA]" },
 }
+
+const priorityBadgeShellClassName =
+  "gap-1.5 border-[#D3DCE7] bg-[#EEF3F8] pl-1.5 pr-2 text-[#46658C] dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-300"
 
 function formatUnknownValue(value: string) {
   return value
@@ -111,7 +115,11 @@ export function PriorityBadge({ priority, className }: PriorityBadgeProps) {
   const config = priorityConfig[priority]
 
   return (
-    <Badge className={cn(toneStyles[config.tone], className)}>
+    <Badge className={cn(priorityBadgeShellClassName, className)}>
+      <span
+        aria-hidden="true"
+        className={cn("size-2.5 shrink-0 rounded-full", config.dotClassName)}
+      />
       {config.label}
     </Badge>
   )

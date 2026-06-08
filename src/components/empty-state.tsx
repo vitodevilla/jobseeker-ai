@@ -35,7 +35,7 @@ function renderIcon(icon: EmptyStateIcon) {
 
   return createElement(icon as ElementType, {
     "aria-hidden": true,
-    className: "size-5",
+    className: "size-4",
   })
 }
 
@@ -49,12 +49,12 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center px-4 py-8 text-center",
+        "flex flex-col items-center justify-center px-4 py-6 text-center",
         className
       )}
     >
       {icon ? (
-        <div className="mb-3 flex size-10 items-center justify-center rounded-full border bg-muted/50 text-muted-foreground">
+        <div className="mb-2 flex size-9 items-center justify-center rounded-full border border-[#D3DCE7] bg-[#EEF3F8] text-[#7B96B7] dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-300">
           {renderIcon(icon)}
         </div>
       ) : null}
@@ -62,14 +62,14 @@ export function EmptyState({
       <div className="space-y-1">
         <h3 className="text-base font-medium text-foreground">{title}</h3>
         {description ? (
-          <div className="mx-auto max-w-md text-sm text-muted-foreground">
+          <div className="mx-auto max-w-sm text-sm text-muted-foreground">
             {description}
           </div>
         ) : null}
       </div>
 
       {children ? (
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
           {children}
         </div>
       ) : null}

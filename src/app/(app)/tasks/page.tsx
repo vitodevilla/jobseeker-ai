@@ -1,14 +1,19 @@
 import Link from "next/link";
+import { CheckSquareIcon } from "lucide-react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { EmptyState } from "@/components/empty-state";
+import { PriorityBadge, StatusBadge } from "@/components/job-search-badges";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { formatDisplayDate } from "@/lib/display-formatters";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -229,26 +234,26 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
 
         {tasks.length === 0 ? (
           <Card>
-            <CardHeader>
-              <CardTitle>
-                {query ? "No matching tasks" : "No tasks yet"}
-              </CardTitle>
-              <CardDescription>
-                {query
-                  ? "Try a different search term or clear the search."
-                  : "Add your first follow-up or reminder. Tasks can be standalone or linked to an application."}
-              </CardDescription>
-            </CardHeader>
             <CardContent>
-              {query ? (
-                <Button variant="outline" asChild>
-                  <Link href="/tasks">Clear search</Link>
-                </Button>
-              ) : (
-                <Button asChild>
-                  <Link href="/tasks/new">Add task</Link>
-                </Button>
-              )}
+              <EmptyState
+                icon={CheckSquareIcon}
+                title={query ? "No matching tasks" : "No tasks yet"}
+                description={
+                  query
+                    ? "Try a different search term or clear the search."
+                    : "Add your first follow-up or reminder. Tasks can be standalone or linked to an application."
+                }
+              >
+                {query ? (
+                  <Button variant="outline" asChild>
+                    <Link href="/tasks">Clear search</Link>
+                  </Button>
+                ) : (
+                  <Button asChild>
+                    <Link href="/tasks/new">Add task</Link>
+                  </Button>
+                )}
+              </EmptyState>
             </CardContent>
           </Card>
         ) : (
@@ -277,18 +282,20 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
                   </CardHeader>
 
                   <CardContent className="space-y-4">
-                    <div className="space-y-1 break-words text-sm text-muted-foreground">
-                      <p>Status: {task.status}</p>
-                      <p>Priority: {task.priority}</p>
+                    <div className="flex flex-wrap gap-2">
+                      <StatusBadge status={task.status} />
+                      <PriorityBadge priority={task.priority} />
+                    </div>
 
+                    <div className="space-y-1 break-words text-sm text-muted-foreground">
                       {task.dueAt ? (
-                        <p>Due: {task.dueAt.toLocaleDateString("hr-HR")}</p>
+                        <p>Due: {formatDisplayDate(task.dueAt)}</p>
                       ) : null}
 
                       {task.completedAt ? (
                         <p>
                           Completed:{" "}
-                          {task.completedAt.toLocaleDateString("hr-HR")}
+                          {formatDisplayDate(task.completedAt)}
                         </p>
                       ) : null}
                     </div>
@@ -298,7 +305,9 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
                         {task.description}
                       </p>
                     ) : null}
+                  </CardContent>
 
+                  <CardFooter className="mt-auto flex-col items-stretch gap-2 sm:flex-row sm:items-center">
                     <Button
                       variant="outline"
                       size="sm"
@@ -307,7 +316,7 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
                     >
                       <Link href={`/tasks/${task.id}/edit`}>Edit</Link>
                     </Button>
-                  </CardContent>
+                  </CardFooter>
                 </Card>
               ))}
             </div>

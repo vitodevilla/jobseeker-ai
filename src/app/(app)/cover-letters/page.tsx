@@ -1,14 +1,19 @@
 import Link from "next/link";
+import { MailIcon } from "lucide-react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { generateCoverLetterAiFeedback } from "@/app/(app)/cover-letters/actions";
+import { EmptyState } from "@/components/empty-state";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { formatDisplayDate } from "@/lib/display-formatters";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -89,18 +94,16 @@ export default async function CoverLettersPage() {
 
         {coverLetters.length === 0 ? (
           <Card>
-            <CardHeader>
-              <CardTitle>No cover letters yet</CardTitle>
-              <CardDescription>
-                Create a cover letter for one of your applications. Written
-                drafts are recommended, and AI can create a separate first
-                draft if you need a starting point.
-              </CardDescription>
-            </CardHeader>
             <CardContent>
-              <Button asChild>
-                <Link href="/cover-letters/new">Add cover letter</Link>
-              </Button>
+              <EmptyState
+                icon={MailIcon}
+                title="No cover letters yet"
+                description="Create a cover letter for one of your applications. Written drafts are recommended, and AI can create a separate first draft if you need a starting point."
+              >
+                <Button asChild>
+                  <Link href="/cover-letters/new">Add cover letter</Link>
+                </Button>
+              </EmptyState>
             </CardContent>
           </Card>
         ) : (
@@ -120,10 +123,18 @@ export default async function CoverLettersPage() {
                   </CardHeader>
 
                   <CardContent className="space-y-4">
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="outline">
+                        {formatCoverLetterMode(coverLetter.mode)}
+                      </Badge>
+                      <Badge variant="outline">
+                        {coverLetter.isFinal ? "Final version" : "Draft"}
+                      </Badge>
+                    </div>
+
                     <div className="space-y-1 break-words text-sm text-muted-foreground">
-                      <p>Mode: {formatCoverLetterMode(coverLetter.mode)}</p>
                       <p>Version: {coverLetter.version}</p>
-                      <p>{coverLetter.isFinal ? "Final version" : "Draft"}</p>
+                      <p>Updated: {formatDisplayDate(coverLetter.updatedAt)}</p>
                     </div>
 
                     {coverLetter.content ? (
@@ -135,36 +146,36 @@ export default async function CoverLettersPage() {
                         No text content added.
                       </p>
                     )}
+                  </CardContent>
 
-                    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                  <CardFooter className="mt-auto flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:flex-wrap">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full sm:w-auto"
+                      asChild
+                    >
+                      <Link href={`/cover-letters/${coverLetter.id}/edit`}>
+                        Edit
+                      </Link>
+                    </Button>
+
+                    <form
+                      action={generateCoverLetterAiFeedbackWithId}
+                      className="w-full sm:w-auto"
+                    >
                       <Button
-                        variant="outline"
+                        type="submit"
+                        variant="ai"
                         size="sm"
                         className="w-full sm:w-auto"
-                        asChild
                       >
-                        <Link href={`/cover-letters/${coverLetter.id}/edit`}>
-                          Edit
-                        </Link>
+                        {coverLetter.aiFeedback
+                          ? "Refresh critique"
+                          : "AI critique"}
                       </Button>
-
-                      <form
-                        action={generateCoverLetterAiFeedbackWithId}
-                        className="w-full sm:w-auto"
-                      >
-                        <Button
-                          type="submit"
-                          variant="outline"
-                          size="sm"
-                          className="w-full sm:w-auto"
-                        >
-                          {coverLetter.aiFeedback
-                            ? "Refresh critique"
-                            : "AI critique"}
-                        </Button>
-                      </form>
-                    </div>
-                  </CardContent>
+                    </form>
+                  </CardFooter>
                 </Card>
               );
             })}
