@@ -207,8 +207,8 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
           </Button>
         </div>
 
-        <Card>
-          <CardHeader>
+        <Card size="sm">
+          <CardHeader className="gap-1">
             <CardTitle>Search tasks</CardTitle>
             <CardDescription>
               Search by title, description, status, priority, completion notes,
@@ -216,15 +216,20 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form action="/tasks" className="flex flex-col gap-3 sm:flex-row">
+            <form
+              action="/tasks"
+              className="flex flex-col gap-2 sm:flex-row sm:items-center"
+            >
               <Input
                 name="q"
                 defaultValue={query}
                 placeholder="Search tasks..."
               />
-              <Button type="submit">Search</Button>
+              <Button type="submit" className="w-full sm:w-auto">
+                Search
+              </Button>
               {query ? (
-                <Button variant="outline" asChild>
+                <Button variant="outline" className="w-full sm:w-auto" asChild>
                   <Link href="/tasks">Clear</Link>
                 </Button>
               ) : null}
@@ -233,7 +238,7 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
         </Card>
 
         {tasks.length === 0 ? (
-          <Card>
+          <Card size="sm">
             <CardContent>
               <EmptyState
                 icon={CheckSquareIcon}
@@ -258,7 +263,7 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
           </Card>
         ) : (
           <>
-            <div className="flex flex-col gap-1 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-1 rounded-lg border border-border bg-card px-3 py-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
               <p className="min-w-0 break-words">
                 Showing {tasks.length} of {totalTasks}{" "}
                 {query ? "matching " : ""}
@@ -269,10 +274,10 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
               </p>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2">
               {tasks.map((task) => (
-                <Card key={task.id}>
-                  <CardHeader>
+                <Card key={task.id} size="sm" className="h-full">
+                  <CardHeader className="gap-1">
                     <CardTitle>{task.title}</CardTitle>
                     <CardDescription>
                       {task.application
@@ -281,20 +286,27 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
                     </CardDescription>
                   </CardHeader>
 
-                  <CardContent className="space-y-4">
-                    <div className="flex flex-wrap gap-2">
+                  <CardContent className="space-y-3">
+                    <div className="flex flex-wrap gap-1.5">
                       <StatusBadge status={task.status} />
                       <PriorityBadge priority={task.priority} />
                     </div>
 
-                    <div className="space-y-1 break-words text-sm text-muted-foreground">
+                    <div className="grid gap-1.5 break-words text-sm text-muted-foreground">
                       {task.dueAt ? (
-                        <p>Due: {formatDisplayDate(task.dueAt)}</p>
+                        <p>
+                          <span className="font-medium text-foreground">
+                            Due:
+                          </span>{" "}
+                          {formatDisplayDate(task.dueAt)}
+                        </p>
                       ) : null}
 
                       {task.completedAt ? (
                         <p>
-                          Completed:{" "}
+                          <span className="font-medium text-foreground">
+                            Completed:
+                          </span>{" "}
                           {formatDisplayDate(task.completedAt)}
                         </p>
                       ) : null}
@@ -314,7 +326,7 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
                       className="w-full sm:w-auto"
                       asChild
                     >
-                      <Link href={`/tasks/${task.id}/edit`}>Edit</Link>
+                      <Link href={`/tasks/${task.id}/edit`}>Open</Link>
                     </Button>
                   </CardFooter>
                 </Card>

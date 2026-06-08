@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { searchResumesBySemanticQuery } from "@/lib/retrieval/semantic-search";
 import { generateResumeAiFeedback } from "@/app/(app)/resumes/actions";
 import { EmptyState } from "@/components/empty-state";
+import { SimilarityBadge } from "@/components/job-search-badges";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -90,11 +91,6 @@ function buildPageHref(
   params.set("page", page.toString());
 
   return `/resumes?${params.toString()}`;
-}
-
-function formatSimilarityPercent(similarity: number) {
-  const boundedSimilarity = Math.min(1, Math.max(0, similarity));
-  return `${Math.round(boundedSimilarity * 100)}%`;
 }
 
 function buildKeywordResumeWhere(
@@ -275,63 +271,69 @@ export default async function ResumesPage({ searchParams }: ResumesPageProps) {
           </Button>
         </div>
 
-        <Card>
-          <CardHeader>
+        <Card size="sm">
+          <CardHeader className="gap-1">
             <CardTitle>Search resumes</CardTitle>
             <CardDescription>
-              Search by resume title or content. Semantic search uses saved
-              semantic data and approximate similarity.
+              Search by resume title, skills, experience, or meaning. Semantic
+              mode uses saved semantic data.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form action="/resumes" className="space-y-3">
-              <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_150px]">
-                <div className="space-y-2">
+              <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_150px]">
+                <div className="space-y-1.5">
                   <Label htmlFor="q">Search</Label>
                   <Input
                     id="q"
                     name="q"
                     defaultValue={query}
-                    placeholder="Search resumes by title, skills, experience, or meaning..."
+                    placeholder="Title, skills, experience, or meaning..."
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="mode">Mode</Label>
-                  <Select
-                    id="mode"
-                    name="mode"
-                    defaultValue={searchMode}
-                  >
+                  <Select id="mode" name="mode" defaultValue={searchMode}>
                     <option value="keyword">Keyword</option>
                     <option value="semantic">Semantic</option>
                   </Select>
                 </div>
               </div>
 
-              {searchMode === "semantic" ? (
-                <p className="text-sm text-muted-foreground">
-                  Semantic search uses saved semantic data and approximate
-                  similarity.
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-xs text-muted-foreground">
+                  {searchMode === "semantic"
+                    ? "Semantic results are ranked by approximate similarity."
+                    : "Keyword mode searches saved resume titles and content."}
                 </p>
-              ) : null}
 
-              <div className="flex flex-wrap gap-2">
-                <Button type="submit">Search</Button>
-                {hasActiveSearchControls ? (
-                  <Button variant="outline" asChild>
-                    <Link href="/resumes">Clear</Link>
+                <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                  <Button type="submit" className="w-full sm:w-auto">
+                    Search
                   </Button>
-                ) : null}
+                  {hasActiveSearchControls ? (
+                    <Button
+                      variant="outline"
+                      className="w-full sm:w-auto"
+                      asChild
+                    >
+                      <Link href="/resumes">Clear</Link>
+                    </Button>
+                  ) : null}
+                </div>
               </div>
             </form>
           </CardContent>
         </Card>
 
         {semanticSearchUnavailable ? (
-          <Card>
-            <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">
+          <Card
+            size="sm"
+            className="ring-[#C8D6E6] dark:ring-[#4F739F]/50"
+          >
+            <CardContent>
+              <p className="text-sm text-[#334F70] dark:text-[#D6E2EF]">
                 Semantic search is unavailable right now. Showing keyword
                 results instead.
               </p>
@@ -340,7 +342,7 @@ export default async function ResumesPage({ searchParams }: ResumesPageProps) {
         ) : null}
 
         {resumes.length === 0 ? (
-          <Card>
+          <Card size="sm">
             <CardContent>
               <EmptyState
                 icon={FileTextIcon}
@@ -361,7 +363,7 @@ export default async function ResumesPage({ searchParams }: ResumesPageProps) {
           </Card>
         ) : (
           <>
-            <div className="flex flex-col gap-1 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-1 rounded-lg border border-border bg-card px-3 py-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
               <p className="min-w-0 break-words">{resultSummary}</p>
               {shouldShowPagination ? (
                 <p>
@@ -370,29 +372,30 @@ export default async function ResumesPage({ searchParams }: ResumesPageProps) {
               ) : null}
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2">
               {resumes.map((resume) => {
                 const generateResumeAiFeedbackWithId =
                   generateResumeAiFeedback.bind(null, resume.id);
 
                 return (
-                  <Card key={resume.id}>
-                    <CardHeader>
+                  <Card key={resume.id} size="sm" className="h-full">
+                    <CardHeader className="gap-1">
                       <CardTitle>{resume.name}</CardTitle>
                       <CardDescription>
                         Updated {formatDisplayDate(resume.updatedAt)}
                       </CardDescription>
                     </CardHeader>
 
-                    <CardContent className="space-y-4">
+                    <CardContent className="space-y-3">
                       {resume.semanticSimilarity !== undefined ? (
-                        <p className="text-sm text-muted-foreground">
-                          Approx. similarity:{" "}
-                          {formatSimilarityPercent(resume.semanticSimilarity)}
-                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          <SimilarityBadge
+                            similarity={resume.semanticSimilarity}
+                          />
+                        </div>
                       ) : null}
 
-                      <p className="line-clamp-4 break-words text-sm text-muted-foreground">
+                      <p className="line-clamp-3 break-words text-sm text-muted-foreground">
                         {resume.content}
                       </p>
                     </CardContent>
@@ -404,7 +407,7 @@ export default async function ResumesPage({ searchParams }: ResumesPageProps) {
                         className="w-full sm:w-auto"
                         asChild
                       >
-                        <Link href={`/resumes/${resume.id}/edit`}>Edit</Link>
+                        <Link href={`/resumes/${resume.id}/edit`}>Open</Link>
                       </Button>
 
                       <form

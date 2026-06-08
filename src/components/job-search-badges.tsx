@@ -98,6 +98,11 @@ type MatchBadgeProps = {
   className?: string
 }
 
+type SimilarityBadgeProps = {
+  similarity: number
+  className?: string
+}
+
 export function StatusBadge({ status, className }: StatusBadgeProps) {
   const config = statusConfig[status] ?? {
     label: formatUnknownValue(status),
@@ -132,6 +137,21 @@ export function MatchBadge({ score, className }: MatchBadgeProps) {
   return (
     <Badge className={cn(toneStyles[tone], className)}>
       {roundedScore}% match
+    </Badge>
+  )
+}
+
+export function SimilarityBadge({
+  similarity,
+  className,
+}: SimilarityBadgeProps) {
+  const roundedSimilarity = Math.round(
+    Math.min(1, Math.max(0, similarity)) * 100
+  )
+
+  return (
+    <Badge className={cn(toneStyles.steel, className)}>
+      Semantic {roundedSimilarity}%
     </Badge>
   )
 }
