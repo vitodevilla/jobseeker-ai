@@ -161,7 +161,7 @@ export function AssistantShell() {
           aria-haspopup="dialog"
           aria-expanded={open}
           aria-controls={drawerId}
-          className="fixed right-4 bottom-4 z-40 h-11 rounded-full px-4 shadow-lg sm:right-6 sm:bottom-6"
+          className="fixed right-4 bottom-4 z-40 h-10 rounded-full px-3 shadow-lg sm:right-6 sm:bottom-6 sm:h-11 sm:px-4"
           onClick={openAssistant}
         >
           <MessageCircle aria-hidden="true" />
@@ -185,21 +185,20 @@ export function AssistantShell() {
             aria-describedby={descriptionId}
             className="absolute inset-y-0 right-0 flex max-h-dvh w-full flex-col overflow-hidden border-l bg-background shadow-xl sm:max-w-md"
           >
-            <div className="flex shrink-0 items-start justify-between gap-4 border-b p-4">
+            <div className="flex shrink-0 items-start justify-between gap-3 border-b p-3 sm:gap-4 sm:p-4">
               <div className="min-w-0">
                 <h2 id={titleId} className="text-base font-semibold">
                   Assistant
                 </h2>
-                <p className="mt-2 inline-flex rounded-full border border-[#A3B3C0] bg-[#F2F6FB] px-2 py-0.5 text-xs font-medium text-[#334F70] dark:border-[#4F739F]/60 dark:bg-[#223449]/40 dark:text-[#D6E2EF]">
+                <p className="mt-1.5 inline-flex rounded-full border border-[#A3B3C0] bg-[#F2F6FB] px-2 py-0.5 text-xs font-medium text-[#334F70] dark:border-[#4F739F]/60 dark:bg-[#223449]/40 dark:text-[#D6E2EF]">
                   {contextLabel}
                 </p>
                 <p
                   id={descriptionId}
-                  className="mt-2 text-sm text-muted-foreground"
+                  className="mt-1.5 text-sm leading-5 text-muted-foreground"
                 >
-                  Ask about your saved job-search data. I can use the current
-                  page when available, but I cannot see unsaved edits or change
-                  anything.
+                  Ask about saved job-search records. I can use this page when
+                  available, but I cannot see unsaved edits or make changes.
                 </p>
               </div>
 
@@ -215,7 +214,7 @@ export function AssistantShell() {
               </Button>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-hidden p-4">
+            <div className="min-h-0 flex-1 overflow-hidden p-3 sm:p-4">
               <AssistantChatPanel
                 quickPrompts={quickPrompts}
                 pageContext={pageContext}

@@ -151,7 +151,7 @@ export function SimilarityBadge({
 
   return (
     <Badge className={cn(toneStyles.steel, className)}>
-      Semantic {roundedSimilarity}%
+      Similarity {roundedSimilarity}%
     </Badge>
   )
 }

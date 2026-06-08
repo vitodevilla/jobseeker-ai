@@ -17,7 +17,7 @@ import type {
 } from "@/lib/assistant/contextual-assistant-types";
 import { getAssistantPageContextKey } from "@/lib/assistant/page-context-routing";
 import { cn } from "@/lib/utils";
-import { AiSectionCard } from "@/components/ai-section-card";
+import { AiOutputPanel, AiSectionCard } from "@/components/ai-section-card";
 import { MarkdownContent } from "@/components/markdown-content";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,7 +25,7 @@ import { Textarea } from "@/components/ui/textarea";
 const MAX_QUESTION_LENGTH = 1500;
 const MAX_HISTORY_MESSAGES = 6;
 const MAX_HISTORY_CONTENT_LENGTH = 1200;
-const pendingAssistantMessage = "Gathering saved context...";
+const pendingAssistantMessage = "Checking saved records...";
 
 type AssistantChatCardProps = {
   title: string;
@@ -178,15 +178,15 @@ function AssistantChatMessageView({
     <div className="flex justify-start">
       <div className="min-w-0 max-w-[92%] space-y-3 break-words">
         {message.status === "complete" ? (
-          <MarkdownContent className="rounded-md border bg-muted/30 p-4">
-            {message.content}
-          </MarkdownContent>
+          <AiOutputPanel caption={null}>
+            <MarkdownContent>{message.content}</MarkdownContent>
+          </AiOutputPanel>
         ) : (
           <div
             className={
               message.status === "error"
                 ? "whitespace-pre-wrap break-words rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm leading-6 text-destructive"
-                : "whitespace-pre-wrap break-words rounded-md border bg-muted/30 p-4 text-sm leading-6"
+                : "whitespace-pre-wrap break-words rounded-md border border-[#C8D6E6] bg-[#F2F6FB]/70 p-3.5 text-sm leading-6 text-[#334F70] dark:border-[#4F739F]/60 dark:bg-[#223449]/30 dark:text-[#D6E2EF] sm:p-4"
             }
           >
             {message.content}
@@ -196,7 +196,7 @@ function AssistantChatMessageView({
         {message.status === "complete" && message.limitations.length > 0 ? (
           <div className="space-y-2">
             <p className="text-sm font-medium">Limitations</p>
-            <ul className="list-disc space-y-1 break-words pl-5 text-sm text-muted-foreground">
+            <ul className="list-disc space-y-1.5 break-words pl-5 text-sm text-muted-foreground">
               {message.limitations.map((limitation) => (
                 <li key={limitation}>{limitation}</li>
               ))}
@@ -207,13 +207,13 @@ function AssistantChatMessageView({
         {message.status === "complete" &&
         message.referencedRecords.length > 0 ? (
           <div className="space-y-2">
-            <p className="text-sm font-medium">Referenced records</p>
-            <ul className="divide-y rounded-md border">
+            <p className="text-sm font-medium">Sources used</p>
+            <ul className="divide-y rounded-md border bg-card">
               {message.referencedRecords.map((record) => (
                 <li key={record.key}>
                   <Link
                     href={record.href}
-                    className="block min-w-0 space-y-1 p-3 text-sm transition-colors hover:bg-muted/50"
+                    className="block min-w-0 space-y-1 p-2.5 text-sm transition-colors hover:bg-muted/50 sm:p-3"
                   >
                     <span className="block break-words font-medium text-foreground underline-offset-4 hover:underline">
                       {record.label}
@@ -380,7 +380,7 @@ function AssistantChatPanelState({
   }
 
   return (
-    <div className={cn("flex flex-col gap-5", className)}>
+    <div className={cn("flex flex-col gap-4 sm:gap-5", className)}>
       {transcript.length > 0 ? (
         <div className="flex justify-end">
           <Button
@@ -399,7 +399,7 @@ function AssistantChatPanelState({
         ref={transcriptScrollRef}
         aria-live="polite"
         className={cn(
-          "max-h-[28rem] space-y-4 overflow-y-auto pr-1 md:max-h-[32rem]",
+          "max-h-[28rem] space-y-3 overflow-y-auto pr-1 sm:space-y-4 md:max-h-[32rem]",
           transcriptClassName,
         )}
       >
@@ -409,15 +409,16 @@ function AssistantChatPanelState({
           ))
         ) : (
           <p className="text-sm text-muted-foreground">
-            Ask a question to get a grounded answer from your saved records.
+            Ask a question or choose a prompt to get an answer grounded in your
+            saved records.
           </p>
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-3">
+      <form onSubmit={handleSubmit} className="space-y-2.5 sm:space-y-3">
         <div className="space-y-2">
           <label htmlFor={textareaId} className="text-sm font-medium">
-            Message
+            Ask
           </label>
           <Textarea
             ref={textareaRef}
@@ -440,7 +441,7 @@ function AssistantChatPanelState({
             aria-invalid={Boolean(composerError)}
             aria-describedby={composerError ? composerErrorId : undefined}
             placeholder="Ask what to prioritize, which records need attention, or whether a saved job mentions a requirement..."
-            className="min-h-24"
+            className="min-h-20 sm:min-h-24"
           />
           {composerError ? (
             <p id={composerErrorId} className="text-sm text-destructive">
@@ -449,14 +450,14 @@ function AssistantChatPanelState({
           ) : null}
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="grid gap-2 sm:flex sm:flex-wrap">
           {quickPrompts.map((prompt) => (
             <Button
               key={prompt}
               type="button"
               variant="outline"
               size="sm"
-              className="h-auto max-w-full justify-start whitespace-normal text-left leading-snug"
+              className="h-auto min-h-8 max-w-full justify-start whitespace-normal text-left leading-snug"
               disabled={isPending}
               onClick={() => handleQuickPrompt(prompt)}
             >
