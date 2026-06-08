@@ -3,17 +3,17 @@
 import { AssistantChatCard } from "@/components/assistant-chat-card";
 
 const quickPrompts = [
-  "What should I focus on today?",
+  "Build today's job search plan.",
   "Which follow-ups need attention?",
-  "Which interviews should I prepare for?",
-  "What is my next best action?",
+  "How should I prepare for my next interview?",
+  "Which applications look stalled?",
 ];
 
 export function DashboardAssistantCard() {
   return (
     <AssistantChatCard
-      title="Chat about your saved job-search data"
-      description="The assistant can answer from saved records, but it will not change anything. Answers are based on available saved data."
+      title="Ask JobSeeker AI what to do next"
+      description="Get a read-only answer grounded in your saved applications, tasks, interviews, resumes, and jobs. The assistant will not change anything."
       quickPrompts={quickPrompts}
     />
   );
