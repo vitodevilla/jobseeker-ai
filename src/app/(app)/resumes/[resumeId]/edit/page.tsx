@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Sparkles } from "lucide-react";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
@@ -29,6 +30,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DeleteConfirmationForm } from "@/components/delete-confirmation-form";
 import { DangerZoneCard } from "@/components/danger-zone-card";
+import { AiOutputPanel, AiSectionCard } from "@/components/ai-section-card";
+import { EmptyState } from "@/components/empty-state";
 import { MarkdownContent } from "@/components/markdown-content";
 import { StatusMessage } from "@/components/ui/status-message";
 import { formatDisplayDateTime } from "@/lib/display-formatters";
@@ -334,47 +337,45 @@ export default async function EditResumePage({
           pageContext={createResumeAssistantPageContext(resume.id)}
         />
 
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <CardTitle>AI critique</CardTitle>
-                <CardDescription>
-                  Saved feedback for this resume version.
-                  {resume.aiFeedbackAt
-                    ? ` Generated ${formatDisplayDateTime(resume.aiFeedbackAt)}.`
-                    : ""}
-                </CardDescription>
-              </div>
-
-              <form
-                action={generateResumeAiFeedbackWithId}
+        <AiSectionCard
+          title="AI critique"
+          description={
+            <>
+              Saved feedback for this resume version.
+              {resume.aiFeedbackAt
+                ? ` Generated ${formatDisplayDateTime(resume.aiFeedbackAt)}.`
+                : ""}
+            </>
+          }
+          action={
+            <form
+              action={generateResumeAiFeedbackWithId}
+              className="w-full sm:w-auto"
+            >
+              <Button
+                type="submit"
+                variant="ai"
+                size="sm"
                 className="w-full sm:w-auto"
               >
-                <Button
-                  type="submit"
-                  variant="outline"
-                  size="sm"
-                  className="w-full sm:w-auto"
-                >
-                  {resume.aiFeedback ? "Refresh critique" : "AI critique"}
-                </Button>
-              </form>
-            </div>
-          </CardHeader>
-
-          <CardContent>
-            {resume.aiFeedback ? (
-              <MarkdownContent className="rounded-md border bg-muted/30 p-4">
-                {resume.aiFeedback}
-              </MarkdownContent>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                No AI critique has been generated for this resume yet.
-              </p>
-            )}
-          </CardContent>
-        </Card>
+                {resume.aiFeedback ? "Refresh critique" : "AI critique"}
+              </Button>
+            </form>
+          }
+        >
+          {resume.aiFeedback ? (
+            <AiOutputPanel>
+              <MarkdownContent>{resume.aiFeedback}</MarkdownContent>
+            </AiOutputPanel>
+          ) : (
+            <EmptyState
+              icon={Sparkles}
+              title="No AI critique yet"
+              description="Generate a critique to review strengths, gaps, and practical improvements for this resume."
+              className="py-4"
+            />
+          )}
+        </AiSectionCard>
 
         <Card>
           <CardHeader>
@@ -402,7 +403,7 @@ export default async function EditResumePage({
                 >
                   <Button
                     type="submit"
-                    variant="outline"
+                    variant="ai"
                     size="sm"
                     className="w-full sm:w-auto"
                   >

@@ -7,6 +7,7 @@ import {
   createCoverLetter,
   generateCoverLetterDraftForApplication,
 } from "@/app/(app)/cover-letters/actions";
+import { AiSectionCard } from "@/components/ai-section-card";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -236,55 +237,45 @@ export default async function NewCoverLetterPage({
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Generate a first draft with AI</CardTitle>
-                <CardDescription>
-                  Use this when you want a starting point from your application,
-                  job, company, profile, and linked resume context. You&apos;ll
-                  edit the draft before using it.
-                </CardDescription>
-              </CardHeader>
-
-              <CardContent>
-                <form
-                  action={generateCoverLetterDraftForApplication}
-                  className="space-y-5"
-                >
-                  <div className="space-y-2">
-                    <Label htmlFor="generationApplicationId">
-                      Application *
-                    </Label>
-                    <select
-                      id="generationApplicationId"
-                      name="applicationId"
-                      required
-                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
-                    >
-                      <option value="">Select an application</option>
-                      {applications.map((application) => (
-                        <option key={application.id} value={application.id}>
-                          {application.jobPosting.title} —{" "}
-                          {application.jobPosting.company.name}
-                        </option>
-                      ))}
-                    </select>
-                    <p className="text-sm text-muted-foreground">
-                      This creates a separate generated draft and will not
-                      overwrite anything you wrote.
-                    </p>
-                  </div>
-
-                  <Button
-                    type="submit"
-                    variant="outline"
-                    className="w-full sm:w-auto"
+            <AiSectionCard
+              title="Generate a first draft with AI"
+              description="Use this when you want a starting point from your application, job, company, profile, and linked resume context. You'll edit the draft before using it."
+            >
+              <form
+                action={generateCoverLetterDraftForApplication}
+                className="space-y-5"
+              >
+                <div className="space-y-2">
+                  <Label htmlFor="generationApplicationId">Application *</Label>
+                  <select
+                    id="generationApplicationId"
+                    name="applicationId"
+                    required
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                   >
-                    Generate first draft
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
+                    <option value="">Select an application</option>
+                    {applications.map((application) => (
+                      <option key={application.id} value={application.id}>
+                        {application.jobPosting.title} —{" "}
+                        {application.jobPosting.company.name}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-sm text-muted-foreground">
+                    This creates a separate generated draft and will not
+                    overwrite anything you wrote.
+                  </p>
+                </div>
+
+                <Button
+                  type="submit"
+                  variant="ai"
+                  className="w-full sm:w-auto"
+                >
+                  Generate first draft
+                </Button>
+              </form>
+            </AiSectionCard>
           </>
         )}
       </div>

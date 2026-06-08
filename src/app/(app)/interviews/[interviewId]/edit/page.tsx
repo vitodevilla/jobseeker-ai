@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Sparkles } from "lucide-react";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
@@ -20,6 +21,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DeleteConfirmationForm } from "@/components/delete-confirmation-form";
 import { DangerZoneCard } from "@/components/danger-zone-card";
+import { AiOutputPanel, AiSectionCard } from "@/components/ai-section-card";
+import { EmptyState } from "@/components/empty-state";
 import { MarkdownContent } from "@/components/markdown-content";
 import { StatusMessage } from "@/components/ui/status-message";
 
@@ -321,49 +324,40 @@ export default async function EditInterviewPage({
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <CardTitle>AI interview prep</CardTitle>
-                <CardDescription>
-                  Creates saved prep notes using the last saved interview,
-                  application, job, company, resume, and career context.
-                  Refreshing replaces the saved prep notes. This creates saved
-                  notes, not a chat.
-                </CardDescription>
-              </div>
-
-              <form
-                action={generateInterviewPrepNotesWithId}
+        <AiSectionCard
+          title="AI interview prep"
+          description="Creates saved prep notes using the last saved interview, application, job, company, resume, and career context. Refreshing replaces the saved prep notes. This creates saved notes, not a chat."
+          action={
+            <form
+              action={generateInterviewPrepNotesWithId}
+              className="w-full sm:w-auto"
+            >
+              <Button
+                type="submit"
+                variant="ai"
+                size="sm"
                 className="w-full sm:w-auto"
               >
-                <Button
-                  type="submit"
-                  variant="outline"
-                  size="sm"
-                  className="w-full sm:w-auto"
-                >
-                  {interview.prepNotes
-                    ? "Refresh prep notes"
-                    : "Generate prep notes"}
-                </Button>
-              </form>
-            </div>
-          </CardHeader>
-
-          <CardContent>
-            {interview.prepNotes ? (
-              <MarkdownContent className="rounded-md border bg-muted/30 p-4">
-                {interview.prepNotes}
-              </MarkdownContent>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                No AI prep notes have been generated for this interview yet.
-              </p>
-            )}
-          </CardContent>
-        </Card>
+                {interview.prepNotes
+                  ? "Refresh prep notes"
+                  : "Generate prep notes"}
+              </Button>
+            </form>
+          }
+        >
+          {interview.prepNotes ? (
+            <AiOutputPanel caption="AI-assisted notes. Review before using.">
+              <MarkdownContent>{interview.prepNotes}</MarkdownContent>
+            </AiOutputPanel>
+          ) : (
+            <EmptyState
+              icon={Sparkles}
+              title="No prep notes yet"
+              description="Generate interview prep notes from the saved application and related context."
+              className="py-4"
+            />
+          )}
+        </AiSectionCard>
 
         <DangerZoneCard
           title="Delete interview"

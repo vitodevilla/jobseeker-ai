@@ -156,6 +156,7 @@ export function AssistantShell() {
         <Button
           ref={openButtonRef}
           type="button"
+          variant="ai"
           aria-label="Open assistant"
           aria-haspopup="dialog"
           aria-expanded={open}
@@ -189,7 +190,7 @@ export function AssistantShell() {
                 <h2 id={titleId} className="text-base font-semibold">
                   Assistant
                 </h2>
-                <p className="mt-2 inline-flex rounded-full border px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                <p className="mt-2 inline-flex rounded-full border border-[#A3B3C0] bg-[#F2F6FB] px-2 py-0.5 text-xs font-medium text-[#334F70] dark:border-[#4F739F]/60 dark:bg-[#223449]/40 dark:text-[#D6E2EF]">
                   {contextLabel}
                 </p>
                 <p
