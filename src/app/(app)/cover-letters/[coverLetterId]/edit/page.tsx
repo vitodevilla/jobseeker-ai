@@ -19,8 +19,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DeleteConfirmationForm } from "@/components/delete-confirmation-form";
+import { DangerZoneCard } from "@/components/danger-zone-card";
 import { MarkdownContent } from "@/components/markdown-content";
 import { StatusMessage } from "@/components/ui/status-message";
+import { formatDisplayDateTime } from "@/lib/display-formatters";
 
 type EditCoverLetterPageProps = {
   params: Promise<{
@@ -291,7 +293,7 @@ export default async function EditCoverLetterPage({
                 <CardDescription>
                   Saved feedback for this cover letter version.
                   {coverLetter.aiFeedbackAt
-                    ? ` Generated ${coverLetter.aiFeedbackAt.toLocaleString("hr-HR")}.`
+                    ? ` Generated ${formatDisplayDateTime(coverLetter.aiFeedbackAt)}.`
                     : ""}
                 </CardDescription>
               </div>
@@ -325,25 +327,18 @@ export default async function EditCoverLetterPage({
           </CardContent>
         </Card>
 
-        <Card className="border-destructive/30">
-          <CardHeader>
-            <CardTitle>Delete cover letter</CardTitle>
-            <CardDescription>
-              Remove this cover letter draft from your workspace. This action
-              cannot be undone.
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent>
-            <DeleteConfirmationForm
-              action={deleteCoverLetterWithId}
-              title="Delete cover letter?"
-              description="This will remove this cover letter draft from your workspace. This action cannot be undone."
-              confirmLabel="Delete cover letter"
-              triggerLabel="Delete cover letter"
-            />
-          </CardContent>
-        </Card>
+        <DangerZoneCard
+          title="Delete cover letter"
+          description="Remove this cover letter draft from your workspace. This action cannot be undone."
+        >
+          <DeleteConfirmationForm
+            action={deleteCoverLetterWithId}
+            title="Delete cover letter?"
+            description="This will remove this cover letter draft from your workspace. This action cannot be undone."
+            confirmLabel="Delete cover letter"
+            triggerLabel="Delete cover letter"
+          />
+        </DangerZoneCard>
       </div>
     </>
   );

@@ -201,13 +201,19 @@ export default async function NewJobPostingPage() {
                     placeholder="Paste the job description here..."
                     className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                   />
+                  <p className="text-sm text-muted-foreground">
+                    Saved job text powers AI summary, resume match, tailoring
+                    suggestions, and semantic search.
+                  </p>
                 </div>
 
                 <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                  <Button variant="outline" asChild>
+                  <Button variant="outline" className="w-full sm:w-auto" asChild>
                     <Link href="/job-postings">Cancel</Link>
                   </Button>
-                  <Button type="submit">Create job posting</Button>
+                  <Button type="submit" className="w-full sm:w-auto">
+                    Create job posting
+                  </Button>
                 </div>
               </form>
             </CardContent>

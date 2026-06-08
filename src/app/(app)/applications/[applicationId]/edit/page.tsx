@@ -20,6 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DeleteConfirmationForm } from "@/components/delete-confirmation-form";
+import { DangerZoneCard } from "@/components/danger-zone-card";
 
 type EditApplicationPageProps = {
   params: Promise<{
@@ -254,10 +255,12 @@ export default async function EditApplicationPage({
               </div>
 
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <Button variant="outline" asChild>
+                <Button variant="outline" className="w-full sm:w-auto" asChild>
                   <Link href="/applications">Cancel</Link>
                 </Button>
-                <Button type="submit">Save changes</Button>
+                <Button type="submit" className="w-full sm:w-auto">
+                  Save changes
+                </Button>
               </div>
             </form>
           </CardContent>
@@ -270,26 +273,18 @@ export default async function EditApplicationPage({
           pageContext={createApplicationAssistantPageContext(application.id)}
         />
 
-        <Card className="border-destructive/30">
-          <CardHeader>
-            <CardTitle>Delete application</CardTitle>
-            <CardDescription>
-              Remove this application record. Related cover letters, interviews,
-              and tasks may also be removed depending on their database
-              relations.
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent>
-            <DeleteConfirmationForm
-              action={deleteApplicationWithId}
-              title="Delete application?"
-              description="This will remove this application record. Related cover letters, interviews, and tasks may also be removed depending on their database relations. This action cannot be undone."
-              confirmLabel="Delete application"
-              triggerLabel="Delete application"
-            />
-          </CardContent>
-        </Card>
+        <DangerZoneCard
+          title="Delete application"
+          description="Remove this application record. Related cover letters, interviews, and tasks may also be removed depending on their database relations."
+        >
+          <DeleteConfirmationForm
+            action={deleteApplicationWithId}
+            title="Delete application?"
+            description="This will remove this application record. Related cover letters, interviews, and tasks may also be removed depending on their database relations. This action cannot be undone."
+            confirmLabel="Delete application"
+            triggerLabel="Delete application"
+          />
+        </DangerZoneCard>
       </div>
     </>
   );

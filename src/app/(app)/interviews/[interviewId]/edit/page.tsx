@@ -19,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DeleteConfirmationForm } from "@/components/delete-confirmation-form";
+import { DangerZoneCard } from "@/components/danger-zone-card";
 import { MarkdownContent } from "@/components/markdown-content";
 import { StatusMessage } from "@/components/ui/status-message";
 
@@ -309,10 +310,12 @@ export default async function EditInterviewPage({
               </div>
 
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <Button variant="outline" asChild>
+                <Button variant="outline" className="w-full sm:w-auto" asChild>
                   <Link href="/interviews">Cancel</Link>
                 </Button>
-                <Button type="submit">Save changes</Button>
+                <Button type="submit" className="w-full sm:w-auto">
+                  Save changes
+                </Button>
               </div>
             </form>
           </CardContent>
@@ -362,25 +365,18 @@ export default async function EditInterviewPage({
           </CardContent>
         </Card>
 
-        <Card className="border-destructive/30">
-          <CardHeader>
-            <CardTitle>Delete interview</CardTitle>
-            <CardDescription>
-              Remove this interview round from your workspace. This action
-              cannot be undone.
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent>
-            <DeleteConfirmationForm
-              action={deleteInterviewWithId}
-              title="Delete interview?"
-              description="This will remove this interview round from your workspace. This action cannot be undone."
-              confirmLabel="Delete interview"
-              triggerLabel="Delete interview"
-            />
-          </CardContent>
-        </Card>
+        <DangerZoneCard
+          title="Delete interview"
+          description="Remove this interview round from your workspace. This action cannot be undone."
+        >
+          <DeleteConfirmationForm
+            action={deleteInterviewWithId}
+            title="Delete interview?"
+            description="This will remove this interview round from your workspace. This action cannot be undone."
+            confirmLabel="Delete interview"
+            triggerLabel="Delete interview"
+          />
+        </DangerZoneCard>
       </div>
     </>
   );

@@ -93,10 +93,12 @@ export default function NewCompanyPage() {
               </div>
 
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <Button variant="outline" asChild>
+                <Button variant="outline" className="w-full sm:w-auto" asChild>
                   <Link href="/companies">Cancel</Link>
                 </Button>
-                <Button type="submit">Create company</Button>
+                <Button type="submit" className="w-full sm:w-auto">
+                  Create company
+                </Button>
               </div>
             </form>
           </CardContent>
