@@ -230,21 +230,21 @@ export default async function ResumesPage({ searchParams }: ResumesPageProps) {
   const missingSemanticEmbeddings =
     shouldRunSemanticSearch && !semanticSearchUnavailable && !hasEmbeddedResumes;
   const emptyStateTitle = missingSemanticEmbeddings
-    ? "No resume semantic data"
+    ? "No resumes ready for Semantic search"
     : isShowingSemanticResults
-      ? "No semantic results"
+      ? "No Semantic search results"
       : hasListConstraints
         ? "No matching resumes"
         : "No resumes yet";
   const emptyStateDescription = missingSemanticEmbeddings
-    ? "Semantic search results will appear after saved resumes have semantic data. Open a resume and choose Update semantic data after editing."
+    ? "Semantic search results will appear after saved resumes are refreshed. Open a resume and choose Refresh recommendations after editing."
     : isShowingSemanticResults
-      ? "Try a different semantic search phrase."
+      ? "Try a different Semantic search phrase."
       : hasListConstraints
         ? "Try a different search term or clear the search."
         : "Add your first resume version by pasting resume text or uploading a readable PDF.";
   const resultSummary = isShowingSemanticResults
-    ? "Showing the closest semantic results based on saved semantic data. Scores are approximate."
+    ? "Showing the closest Semantic search results by semantic similarity over refreshed saved content. Scores are approximate."
     : `Showing ${resumes.length} of ${totalResumes} ${
         hasListConstraints ? "matching " : ""
       }resumes`;
@@ -275,8 +275,8 @@ export default async function ResumesPage({ searchParams }: ResumesPageProps) {
           <CardHeader className="gap-1">
             <CardTitle>Search resumes</CardTitle>
             <CardDescription>
-              Search by resume title, skills, experience, or meaning. Semantic
-              mode uses saved semantic data.
+              Search by resume title, skills, experience, or semantic
+              similarity.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -296,7 +296,7 @@ export default async function ResumesPage({ searchParams }: ResumesPageProps) {
                   <Label htmlFor="mode">Mode</Label>
                   <Select id="mode" name="mode" defaultValue={searchMode}>
                     <option value="keyword">Keyword</option>
-                    <option value="semantic">Semantic</option>
+                    <option value="semantic">Semantic search</option>
                   </Select>
                 </div>
               </div>
@@ -304,7 +304,7 @@ export default async function ResumesPage({ searchParams }: ResumesPageProps) {
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-xs text-muted-foreground">
                   {searchMode === "semantic"
-                    ? "Semantic results are ranked by approximate similarity."
+                    ? "Uses semantic similarity over refreshed saved content."
                     : "Keyword mode searches saved resume titles and content."}
                 </p>
 

@@ -99,7 +99,7 @@ const markdownComponents: Components = {
   },
   blockquote({ children }) {
     return (
-      <blockquote className="border-l-2 border-muted-foreground/30 pl-3 text-muted-foreground">
+      <blockquote className="rounded-r-md border-l-2 border-muted-foreground/30 bg-muted/30 py-1 pl-3 text-muted-foreground">
         {children}
       </blockquote>
     );
@@ -118,14 +118,14 @@ const markdownComponents: Components = {
   },
   h1({ children }) {
     return (
-      <h1 className="text-base font-semibold tracking-tight text-foreground">
+      <h1 className="text-base font-semibold leading-snug tracking-tight text-foreground">
         {children}
       </h1>
     );
   },
   h2({ children }) {
     return (
-      <h2 className="text-sm font-semibold tracking-tight text-foreground">
+      <h2 className="text-sm font-semibold leading-snug tracking-tight text-foreground">
         {children}
       </h2>
     );
@@ -140,7 +140,7 @@ const markdownComponents: Components = {
     return <li className="pl-1">{children}</li>;
   },
   ol({ children }) {
-    return <ol className="ml-5 list-decimal space-y-1">{children}</ol>;
+    return <ol className="ml-5 list-decimal space-y-1.5">{children}</ol>;
   },
   p({ children }) {
     return <p className="break-words">{children}</p>;
@@ -181,13 +181,18 @@ const markdownComponents: Components = {
     return <tr>{children}</tr>;
   },
   ul({ children }) {
-    return <ul className="ml-5 list-disc space-y-1">{children}</ul>;
+    return <ul className="ml-5 list-disc space-y-1.5">{children}</ul>;
   },
 };
 
 export function MarkdownContent({ children, className }: MarkdownContentProps) {
   return (
-    <div className={cn("space-y-3 break-words text-sm leading-6", className)}>
+    <div
+      className={cn(
+        "space-y-3.5 break-words text-sm leading-6",
+        className,
+      )}
+    >
       <ReactMarkdown
         allowedElements={allowedMarkdownElements}
         components={markdownComponents}

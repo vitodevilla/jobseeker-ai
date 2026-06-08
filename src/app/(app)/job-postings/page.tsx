@@ -374,25 +374,25 @@ export default async function JobPostingsPage({
   const missingSemanticEmbeddings =
     shouldRunSemanticSearch && !semanticSearchUnavailable && !hasEmbeddedJobPostings;
   const emptyStateTitle = missingSemanticEmbeddings
-    ? "No job posting semantic data"
+    ? "No job postings ready for Semantic search"
     : isShowingSemanticResults
-      ? "No semantic results"
+      ? "No Semantic search results"
       : hasListConstraints
         ? "No matching job postings"
         : hasCompanies
           ? "No job postings yet"
           : "Add a company first";
   const emptyStateDescription = missingSemanticEmbeddings
-    ? "Semantic search results will appear after saved job postings have semantic data. Open a job posting and choose Update semantic data after editing."
+    ? "Semantic search results will appear after saved job postings are refreshed. Open a job posting and choose Refresh recommendations after editing."
     : isShowingSemanticResults
-      ? "Try a different semantic search phrase or adjust filters."
+      ? "Try a different Semantic search phrase or adjust filters."
       : hasListConstraints
         ? "Try a different search term, adjust filters, or clear the search."
         : hasCompanies
           ? "Save your first job posting and connect it to a company."
           : "Job postings must be connected to a company. Add a company before saving your first job posting.";
   const resultSummary = isShowingSemanticResults
-    ? "Showing the closest semantic results based on saved semantic data. Scores are approximate."
+    ? "Showing the closest Semantic search results by semantic similarity over refreshed saved content. Scores are approximate."
     : `Showing ${jobPostings.length} of ${totalJobPostings} ${
         hasListConstraints ? "matching " : ""
       }job postings`;
@@ -426,7 +426,7 @@ export default async function JobPostingsPage({
             <CardTitle>Search and filters</CardTitle>
             <CardDescription>
               Search saved jobs by title, company, location, seniority, or
-              meaning. Semantic mode uses saved semantic data.
+              semantic similarity.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -446,7 +446,7 @@ export default async function JobPostingsPage({
                   <Label htmlFor="mode">Mode</Label>
                   <Select id="mode" name="mode" defaultValue={searchMode}>
                     <option value="keyword">Keyword</option>
-                    <option value="semantic">Semantic</option>
+                    <option value="semantic">Semantic search</option>
                   </Select>
                 </div>
 
@@ -485,7 +485,7 @@ export default async function JobPostingsPage({
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-xs text-muted-foreground">
                   {searchMode === "semantic"
-                    ? "Semantic results are ranked by approximate similarity."
+                    ? "Uses semantic similarity over refreshed saved content."
                     : "Keyword mode searches saved fields and selected filters."}
                 </p>
 

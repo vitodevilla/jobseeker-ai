@@ -48,7 +48,7 @@ export function AiSectionCard({
         aria-hidden="true"
         className="absolute inset-x-0 top-0 h-1 bg-[#4F739F]"
       />
-      <CardHeader className={headerClassName}>
+      <CardHeader className={cn("gap-3", headerClassName)}>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex min-w-0 gap-3">
             {Icon ? (
@@ -70,7 +70,9 @@ export function AiSectionCard({
       </CardHeader>
 
       {children ? (
-        <CardContent className={contentClassName}>{children}</CardContent>
+        <CardContent className={cn("min-w-0", contentClassName)}>
+          {children}
+        </CardContent>
       ) : null}
     </Card>
   );
@@ -84,7 +86,7 @@ export function AiOutputPanel({
   return (
     <div
       className={cn(
-        "space-y-3 rounded-lg border border-[#C8D6E6] bg-[#F2F6FB]/70 p-4 dark:border-[#4F739F]/60 dark:bg-[#223449]/30",
+        "min-w-0 space-y-3 rounded-lg border border-[#C8D6E6] bg-[#F2F6FB]/70 p-3.5 dark:border-[#4F739F]/60 dark:bg-[#223449]/30 sm:p-4",
         className,
       )}
     >

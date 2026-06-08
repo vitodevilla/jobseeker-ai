@@ -33,6 +33,7 @@ import { DeleteConfirmationForm } from "@/components/delete-confirmation-form";
 import { DangerZoneCard } from "@/components/danger-zone-card";
 import { AiOutputPanel, AiSectionCard } from "@/components/ai-section-card";
 import { EmptyState } from "@/components/empty-state";
+import { SimilarityBadge } from "@/components/job-search-badges";
 import { MarkdownContent } from "@/components/markdown-content";
 import { StatusMessage } from "@/components/ui/status-message";
 import { formatDisplayDateTime } from "@/lib/display-formatters";
@@ -67,21 +68,16 @@ type SimilarJobPostingsState =
       status: "unavailable";
     };
 
-function formatSimilarityPercent(similarity: number) {
-  const boundedSimilarity = Math.min(1, Math.max(0, similarity));
-  return `${Math.round(boundedSimilarity * 100)}%`;
-}
-
 function getSimilarSavedJobsEmptyMessage(status: ResumeSemanticSearchStatus) {
   if (!status.sourceResumeHasCurrentEmbedding) {
-    return "Semantic results will appear after semantic data is refreshed.";
+    return "Refresh recommendations to see similar saved jobs for this resume.";
   }
 
   if (!status.jobPostingEmbeddingsExist) {
-    return "Similar saved jobs will appear after your saved jobs have semantic data.";
+    return "Similar saved jobs will appear after your saved jobs are refreshed for Semantic search.";
   }
 
-  return "No semantically similar saved jobs were found yet.";
+  return "No similar saved jobs were found yet.";
 }
 
 async function getSimilarJobPostingsState(
@@ -144,13 +140,14 @@ const resumeEditErrorMessages = {
       "Something went wrong while generating feedback. Try again in a moment.",
   },
   "semantic-empty": {
-    title: "Semantic data needs content",
+    title: "Add saved content first",
     description:
-      "This resume needs saved text before semantic data can be generated.",
+      "Save resume text before refreshing recommendations.",
   },
   "semantic-failed": {
-    title: "Semantic data could not be updated",
-    description: "Semantic data could not be updated right now. Try again later.",
+    title: "Recommendations could not be refreshed",
+    description:
+      "Semantic recommendations could not be refreshed right now. Try again later.",
   },
 } as const;
 
@@ -184,9 +181,9 @@ export default async function EditResumePage({
     query.ai === "generated" ? "AI critique saved." : null;
   const semanticSuccessMessage =
     query.semantic === "updated"
-      ? "Semantic data updated."
+      ? "Recommendations refreshed."
       : query.semantic === "fresh"
-        ? "Semantic data was already up to date."
+        ? "Recommendations are already current."
         : null;
 
   const resume = await prisma.resume.findFirst({
@@ -313,7 +310,7 @@ export default async function EditResumePage({
                   defaultValue={resume.content}
                 />
                 <p className="text-sm text-muted-foreground">
-                  Saved text powers AI critique and semantic search. A newly
+                  Saved text powers AI critique and Semantic search. A newly
                   uploaded readable PDF replaces this text after extraction.
                 </p>
               </div>
@@ -381,21 +378,21 @@ export default async function EditResumePage({
           <CardHeader>
             <CardTitle>Similar saved jobs</CardTitle>
             <CardDescription>
-              Semantically similar records based on saved semantic data. Scores
-              are approximate.
+              Matches are based on refreshed saved content and semantic
+              similarity. Scores are approximate.
             </CardDescription>
           </CardHeader>
 
           <CardContent>
             {similarJobPostingsState.status === "unavailable" ? (
               <p className="text-sm text-muted-foreground">
-                Similar saved jobs are unavailable right now. The rest of this
-                page is still available.
+                Similar saved job recommendations are unavailable right now. The
+                rest of this page is still available.
               </p>
             ) : resumeSemanticDataNeedsRefresh ? (
-              <div className="space-y-3">
+              <div className="space-y-3 rounded-lg border border-[#C8D6E6] bg-[#F2F6FB]/70 p-4 dark:border-[#4F739F]/60 dark:bg-[#223449]/30">
                 <p className="text-sm text-muted-foreground">
-                  Semantic data needs refreshing after recent edits.
+                  Recommendations may be out of date after recent edits.
                 </p>
                 <form
                   action={refreshResumeSemanticDataWithId}
@@ -407,7 +404,7 @@ export default async function EditResumePage({
                     size="sm"
                     className="w-full sm:w-auto"
                   >
-                    Update semantic data
+                    Refresh recommendations
                   </Button>
                 </form>
               </div>
@@ -427,10 +424,10 @@ export default async function EditResumePage({
                           {jobPosting.companyName}
                         </p>
                       </div>
-                      <p className="shrink-0 text-sm font-medium text-muted-foreground sm:text-right">
-                        Similarity:{" "}
-                        {formatSimilarityPercent(jobPosting.similarity)}
-                      </p>
+                      <SimilarityBadge
+                        similarity={jobPosting.similarity}
+                        className="shrink-0"
+                      />
                     </Link>
                   </li>
                 ))}

@@ -12,7 +12,7 @@ const quickPrompts = [
 export function DashboardAssistantCard() {
   return (
     <AssistantChatCard
-      title="Ask JobSeeker AI what to do next"
+      title="Ask JobSeeker AI for next steps"
       description="Get a read-only answer grounded in your saved applications, tasks, interviews, resumes, and jobs. The assistant will not change anything."
       quickPrompts={quickPrompts}
     />
