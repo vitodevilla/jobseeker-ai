@@ -1,16 +1,30 @@
 import Link from "next/link";
+import { CalendarIcon } from "lucide-react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { EmptyState } from "@/components/empty-state";
+import { StatusBadge } from "@/components/job-search-badges";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { formatDisplayDateTime } from "@/lib/display-formatters";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+
+function formatInterviewType(type: string) {
+  return type
+    .toLowerCase()
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
 
 export default async function InterviewsPage() {
   const session = await auth.api.getSession({
@@ -60,17 +74,16 @@ export default async function InterviewsPage() {
 
         {interviews.length === 0 ? (
           <Card>
-            <CardHeader>
-              <CardTitle>No interviews yet</CardTitle>
-              <CardDescription>
-                Add an interview after you have at least one tracked
-                application.
-              </CardDescription>
-            </CardHeader>
             <CardContent>
-              <Button asChild>
-                <Link href="/interviews/new">Add interview</Link>
-              </Button>
+              <EmptyState
+                icon={CalendarIcon}
+                title="No interviews yet"
+                description="Add an interview after you have at least one tracked application."
+              >
+                <Button asChild>
+                  <Link href="/interviews/new">Add interview</Link>
+                </Button>
+              </EmptyState>
             </CardContent>
           </Card>
         ) : (
@@ -78,23 +91,25 @@ export default async function InterviewsPage() {
             {interviews.map((interview) => (
               <Card key={interview.id}>
                 <CardHeader>
-                  <CardTitle>{interview.type.replaceAll("_", " ")}</CardTitle>
+                  <CardTitle>{interview.application.jobPosting.title}</CardTitle>
                   <CardDescription>
-                    {interview.application.jobPosting.title} —{" "}
                     {interview.application.jobPosting.company.name}
                   </CardDescription>
                 </CardHeader>
 
                 <CardContent className="space-y-4">
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline">
+                      {formatInterviewType(interview.type)}
+                    </Badge>
+                    <StatusBadge status={interview.outcome} />
+                  </div>
+
                   <div className="space-y-1 break-words text-sm text-muted-foreground">
                     <p>
                       Scheduled:{" "}
-                      {interview.scheduledAt.toLocaleString("hr-HR", {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      })}
+                      {formatDisplayDateTime(interview.scheduledAt)}
                     </p>
-                    <p>Outcome: {interview.outcome}</p>
 
                     {interview.durationMinutes ? (
                       <p>Duration: {interview.durationMinutes} min</p>
@@ -114,7 +129,9 @@ export default async function InterviewsPage() {
                       {interview.prepNotes}
                     </p>
                   ) : null}
+                </CardContent>
 
+                <CardFooter className="mt-auto flex-col items-stretch gap-2 sm:flex-row sm:items-center">
                   <Button
                     variant="outline"
                     size="sm"
@@ -123,7 +140,7 @@ export default async function InterviewsPage() {
                   >
                     <Link href={`/interviews/${interview.id}/edit`}>Edit</Link>
                   </Button>
-                </CardContent>
+                </CardFooter>
               </Card>
             ))}
           </div>

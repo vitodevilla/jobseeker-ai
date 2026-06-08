@@ -8,6 +8,7 @@ import { searchJobPostingsBySemanticQuery } from "@/lib/retrieval/semantic-searc
 import { generateJobPostingAiSummary } from "@/app/(app)/job-postings/actions";
 import { EmptyState } from "@/components/empty-state";
 import { MatchBadge } from "@/components/job-search-badges";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +17,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -30,6 +32,12 @@ const WORK_MODES = [
   "ONSITE",
   "FLEXIBLE",
 ] as const satisfies readonly WorkMode[];
+const WORK_MODE_LABELS = {
+  REMOTE: "Remote",
+  HYBRID: "Hybrid",
+  ONSITE: "On-site",
+  FLEXIBLE: "Flexible",
+} satisfies Record<WorkMode, string>;
 const SELECT_CLASS =
   "flex h-8 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50";
 
@@ -571,6 +579,22 @@ export default async function JobPostingsPage({
                     </CardHeader>
 
                     <CardContent className="space-y-4">
+                      <div className="flex flex-wrap gap-2">
+                        {jobPosting.workMode ? (
+                          <Badge variant="outline">
+                            {WORK_MODE_LABELS[jobPosting.workMode]}
+                          </Badge>
+                        ) : null}
+                        {jobPosting.seniorityLevel ? (
+                          <Badge variant="outline">
+                            {jobPosting.seniorityLevel}
+                          </Badge>
+                        ) : null}
+                        {jobPosting.matchScore !== null ? (
+                          <MatchBadge score={jobPosting.matchScore} />
+                        ) : null}
+                      </div>
+
                       <div className="space-y-1 break-words text-sm text-muted-foreground">
                         {jobPosting.semanticSimilarity !== undefined ? (
                           <p>
@@ -579,17 +603,6 @@ export default async function JobPostingsPage({
                               jobPosting.semanticSimilarity,
                             )}
                           </p>
-                        ) : null}
-                        {jobPosting.workMode ? (
-                          <p>Work mode: {jobPosting.workMode}</p>
-                        ) : null}
-                        {jobPosting.seniorityLevel ? (
-                          <p>Seniority: {jobPosting.seniorityLevel}</p>
-                        ) : null}
-                        {jobPosting.matchScore !== null ? (
-                          <div className="pt-1">
-                            <MatchBadge score={jobPosting.matchScore} />
-                          </div>
                         ) : null}
                         {jobPosting.deadline ? (
                           <p>
@@ -602,36 +615,36 @@ export default async function JobPostingsPage({
                       <p className="line-clamp-4 break-words text-sm text-muted-foreground">
                         {jobPosting.description}
                       </p>
+                    </CardContent>
 
-                      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                    <CardFooter className="mt-auto flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:flex-wrap">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full sm:w-auto"
+                        asChild
+                      >
+                        <Link href={`/job-postings/${jobPosting.id}/edit`}>
+                          Edit
+                        </Link>
+                      </Button>
+
+                      <form
+                        action={generateJobPostingAiSummaryWithId}
+                        className="w-full sm:w-auto"
+                      >
                         <Button
-                          variant="outline"
+                          type="submit"
+                          variant="ai"
                           size="sm"
                           className="w-full sm:w-auto"
-                          asChild
                         >
-                          <Link href={`/job-postings/${jobPosting.id}/edit`}>
-                            Edit
-                          </Link>
+                          {jobPosting.aiSummary
+                            ? "Refresh summary"
+                            : "AI summary"}
                         </Button>
-
-                        <form
-                          action={generateJobPostingAiSummaryWithId}
-                          className="w-full sm:w-auto"
-                        >
-                          <Button
-                            type="submit"
-                            variant="ai"
-                            size="sm"
-                            className="w-full sm:w-auto"
-                          >
-                            {jobPosting.aiSummary
-                              ? "Refresh summary"
-                              : "AI summary"}
-                          </Button>
-                        </form>
-                      </div>
-                    </CardContent>
+                      </form>
+                    </CardFooter>
                   </Card>
                 );
               })}

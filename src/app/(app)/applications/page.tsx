@@ -13,6 +13,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -340,6 +341,9 @@ export default async function ApplicationsPage({
                       </p>
                     ) : null}
 
+                  </CardContent>
+
+                  <CardFooter className="mt-auto flex-col items-stretch gap-2 sm:flex-row sm:items-center">
                     <Button
                       variant="outline"
                       size="sm"
@@ -350,7 +354,7 @@ export default async function ApplicationsPage({
                         Edit
                       </Link>
                     </Button>
-                  </CardContent>
+                  </CardFooter>
                 </Card>
               ))}
             </div>

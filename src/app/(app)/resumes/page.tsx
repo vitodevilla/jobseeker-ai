@@ -1,17 +1,21 @@
 import Link from "next/link";
+import { FileTextIcon } from "lucide-react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { searchResumesBySemanticQuery } from "@/lib/retrieval/semantic-search";
 import { generateResumeAiFeedback } from "@/app/(app)/resumes/actions";
+import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { formatDisplayDate } from "@/lib/display-formatters";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -339,20 +343,22 @@ export default async function ResumesPage({ searchParams }: ResumesPageProps) {
 
         {resumes.length === 0 ? (
           <Card>
-            <CardHeader>
-              <CardTitle>{emptyStateTitle}</CardTitle>
-              <CardDescription>{emptyStateDescription}</CardDescription>
-            </CardHeader>
             <CardContent>
-              {hasListConstraints ? (
-                <Button variant="outline" asChild>
-                  <Link href="/resumes">Clear search</Link>
-                </Button>
-              ) : (
-                <Button asChild>
-                  <Link href="/resumes/new">Add resume</Link>
-                </Button>
-              )}
+              <EmptyState
+                icon={FileTextIcon}
+                title={emptyStateTitle}
+                description={emptyStateDescription}
+              >
+                {hasListConstraints ? (
+                  <Button variant="outline" asChild>
+                    <Link href="/resumes">Clear search</Link>
+                  </Button>
+                ) : (
+                  <Button asChild>
+                    <Link href="/resumes/new">Add resume</Link>
+                  </Button>
+                )}
+              </EmptyState>
             </CardContent>
           </Card>
         ) : (
@@ -376,7 +382,7 @@ export default async function ResumesPage({ searchParams }: ResumesPageProps) {
                     <CardHeader>
                       <CardTitle>{resume.name}</CardTitle>
                       <CardDescription>
-                        Updated {resume.updatedAt.toLocaleDateString("hr-HR")}
+                        Updated {formatDisplayDate(resume.updatedAt)}
                       </CardDescription>
                     </CardHeader>
 
@@ -391,34 +397,34 @@ export default async function ResumesPage({ searchParams }: ResumesPageProps) {
                       <p className="line-clamp-4 break-words text-sm text-muted-foreground">
                         {resume.content}
                       </p>
+                    </CardContent>
 
-                      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                    <CardFooter className="mt-auto flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:flex-wrap">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full sm:w-auto"
+                        asChild
+                      >
+                        <Link href={`/resumes/${resume.id}/edit`}>Edit</Link>
+                      </Button>
+
+                      <form
+                        action={generateResumeAiFeedbackWithId}
+                        className="w-full sm:w-auto"
+                      >
                         <Button
-                          variant="outline"
+                          type="submit"
+                          variant="ai"
                           size="sm"
                           className="w-full sm:w-auto"
-                          asChild
                         >
-                          <Link href={`/resumes/${resume.id}/edit`}>Edit</Link>
+                          {resume.aiFeedbackAt
+                            ? "Refresh critique"
+                            : "AI critique"}
                         </Button>
-
-                        <form
-                          action={generateResumeAiFeedbackWithId}
-                          className="w-full sm:w-auto"
-                        >
-                          <Button
-                            type="submit"
-                            variant="outline"
-                            size="sm"
-                            className="w-full sm:w-auto"
-                          >
-                            {resume.aiFeedbackAt
-                              ? "Refresh critique"
-                              : "AI critique"}
-                          </Button>
-                        </form>
-                      </div>
-                    </CardContent>
+                      </form>
+                    </CardFooter>
                   </Card>
                 );
               })}

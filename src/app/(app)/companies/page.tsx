@@ -1,14 +1,17 @@
 import Link from "next/link";
+import { Building2Icon } from "lucide-react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -164,26 +167,26 @@ export default async function CompaniesPage({
 
         {companies.length === 0 ? (
           <Card>
-            <CardHeader>
-              <CardTitle>
-                {query ? "No matching companies" : "No companies yet"}
-              </CardTitle>
-              <CardDescription>
-                {query
-                  ? "Try a different search term or clear the search."
-                  : "Add your first company to start building your job search workspace."}
-              </CardDescription>
-            </CardHeader>
             <CardContent>
-              {query ? (
-                <Button variant="outline" asChild>
-                  <Link href="/companies">Clear search</Link>
-                </Button>
-              ) : (
-                <Button asChild>
-                  <Link href="/companies/new">Add company</Link>
-                </Button>
-              )}
+              <EmptyState
+                icon={Building2Icon}
+                title={query ? "No matching companies" : "No companies yet"}
+                description={
+                  query
+                    ? "Try a different search term or clear the search."
+                    : "Add your first company to start building your job search workspace."
+                }
+              >
+                {query ? (
+                  <Button variant="outline" asChild>
+                    <Link href="/companies">Clear search</Link>
+                  </Button>
+                ) : (
+                  <Button asChild>
+                    <Link href="/companies/new">Add company</Link>
+                  </Button>
+                )}
+              </EmptyState>
             </CardContent>
           </Card>
         ) : (
@@ -211,11 +214,15 @@ export default async function CompaniesPage({
 
                   <CardContent className="space-y-3">
                     <div className="space-y-1 break-words text-sm text-muted-foreground">
-                      {company.website ? <p>{company.website}</p> : null}
+                      {company.website ? (
+                        <p className="break-all">{company.website}</p>
+                      ) : null}
                       {company.size ? <p>Size: {company.size}</p> : null}
                       {company.notes ? <p>{company.notes}</p> : null}
                     </div>
+                  </CardContent>
 
+                  <CardFooter className="mt-auto flex-col items-stretch gap-2 sm:flex-row sm:items-center">
                     <Button
                       variant="outline"
                       size="sm"
@@ -224,7 +231,7 @@ export default async function CompaniesPage({
                     >
                       <Link href={`/companies/${company.id}/edit`}>Edit</Link>
                     </Button>
-                  </CardContent>
+                  </CardFooter>
                 </Card>
               ))}
             </div>
