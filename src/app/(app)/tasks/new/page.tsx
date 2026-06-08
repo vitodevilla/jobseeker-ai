@@ -155,10 +155,12 @@ export default async function NewTaskPage() {
               </div>
 
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <Button variant="outline" asChild>
+                <Button variant="outline" className="w-full sm:w-auto" asChild>
                   <Link href="/tasks">Cancel</Link>
                 </Button>
-                <Button type="submit">Create task</Button>
+                <Button type="submit" className="w-full sm:w-auto">
+                  Create task
+                </Button>
               </div>
             </form>
           </CardContent>

@@ -213,10 +213,12 @@ export default async function NewInterviewPage() {
                 </div>
 
                 <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                  <Button variant="outline" asChild>
+                  <Button variant="outline" className="w-full sm:w-auto" asChild>
                     <Link href="/interviews">Cancel</Link>
                   </Button>
-                  <Button type="submit">Create interview</Button>
+                  <Button type="submit" className="w-full sm:w-auto">
+                    Create interview
+                  </Button>
                 </div>
               </form>
             </CardContent>

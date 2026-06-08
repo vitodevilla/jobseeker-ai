@@ -28,8 +28,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DeleteConfirmationForm } from "@/components/delete-confirmation-form";
+import { DangerZoneCard } from "@/components/danger-zone-card";
 import { MarkdownContent } from "@/components/markdown-content";
 import { StatusMessage } from "@/components/ui/status-message";
+import { formatDisplayDateTime } from "@/lib/display-formatters";
 
 type EditResumePageProps = {
   params: Promise<{
@@ -282,17 +284,20 @@ export default async function EditResumePage({
 
               <div className="space-y-2">
                 <Label htmlFor="pdfFile">Resume PDF</Label>
-                <Input
-                  id="pdfFile"
-                  name="pdfFile"
-                  type="file"
-                  accept="application/pdf"
-                />
-                <p className="text-sm text-muted-foreground">
-                  {resume.fileUrl
-                    ? "A PDF is currently stored. Upload a new PDF to replace it. Maximum file size: 5 MB."
-                    : "No PDF is currently stored. Upload a PDF to extract its text automatically. Maximum file size: 5 MB."}
-                </p>
+                <div className="space-y-3 rounded-lg border border-dashed border-[#D9D5C5] bg-[#FBF9F0] p-4 dark:border-slate-800 dark:bg-slate-950/20">
+                  <Input
+                    id="pdfFile"
+                    name="pdfFile"
+                    type="file"
+                    accept="application/pdf"
+                    className="bg-white dark:bg-input/30"
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    {resume.fileUrl
+                      ? "A PDF is currently stored. Upload a readable PDF up to 5 MB to replace it, or keep editing the saved text below."
+                      : "Upload a readable PDF up to 5 MB to extract text, or paste the resume text below."}
+                  </p>
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -305,16 +310,18 @@ export default async function EditResumePage({
                   className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 />
                 <p className="text-sm text-muted-foreground">
-                  If you upload a readable PDF, its extracted text will replace
-                  this content. If no PDF is uploaded, this text will be saved.
+                  Saved text powers AI critique and semantic search. A newly
+                  uploaded readable PDF replaces this text after extraction.
                 </p>
               </div>
 
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <Button variant="outline" asChild>
+                <Button variant="outline" className="w-full sm:w-auto" asChild>
                   <Link href="/resumes">Cancel</Link>
                 </Button>
-                <Button type="submit">Save changes</Button>
+                <Button type="submit" className="w-full sm:w-auto">
+                  Save changes
+                </Button>
               </div>
             </form>
           </CardContent>
@@ -335,7 +342,7 @@ export default async function EditResumePage({
                 <CardDescription>
                   Saved feedback for this resume version.
                   {resume.aiFeedbackAt
-                    ? ` Generated ${resume.aiFeedbackAt.toLocaleString("hr-HR")}.`
+                    ? ` Generated ${formatDisplayDateTime(resume.aiFeedbackAt)}.`
                     : ""}
                 </CardDescription>
               </div>
@@ -437,25 +444,18 @@ export default async function EditResumePage({
           </CardContent>
         </Card>
 
-        <Card className="border-destructive/30">
-          <CardHeader>
-            <CardTitle>Delete resume</CardTitle>
-            <CardDescription>
-              Remove this resume version. Applications that referenced it will
-              keep their history with the resume reference cleared.
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent>
-            <DeleteConfirmationForm
-              action={deleteResumeWithId}
-              title="Delete resume?"
-              description="This will remove this resume version. Applications that referenced it will keep their history with the resume reference cleared. This action cannot be undone."
-              confirmLabel="Delete resume"
-              triggerLabel="Delete resume"
-            />
-          </CardContent>
-        </Card>
+        <DangerZoneCard
+          title="Delete resume"
+          description="Remove this resume version. Applications that referenced it will keep their history with the resume reference cleared."
+        >
+          <DeleteConfirmationForm
+            action={deleteResumeWithId}
+            title="Delete resume?"
+            description="This will remove this resume version. Applications that referenced it will keep their history with the resume reference cleared. This action cannot be undone."
+            confirmLabel="Delete resume"
+            triggerLabel="Delete resume"
+          />
+        </DangerZoneCard>
       </div>
     </>
   );

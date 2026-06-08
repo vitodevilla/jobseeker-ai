@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DeleteConfirmationForm } from "@/components/delete-confirmation-form";
+import { DangerZoneCard } from "@/components/danger-zone-card";
 
 type EditCompanyPageProps = {
   params: Promise<{
@@ -134,33 +135,28 @@ export default async function EditCompanyPage({
               </div>
 
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <Button variant="outline" asChild>
+                <Button variant="outline" className="w-full sm:w-auto" asChild>
                   <Link href="/companies">Cancel</Link>
                 </Button>
-                <Button type="submit">Save changes</Button>
+                <Button type="submit" className="w-full sm:w-auto">
+                  Save changes
+                </Button>
               </div>
             </form>
           </CardContent>
         </Card>
-        <Card className="border-destructive/30">
-          <CardHeader>
-            <CardTitle>Delete company</CardTitle>
-            <CardDescription>
-              Remove this company and its related job postings from your
-              workspace. This action cannot be undone.
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent>
-            <DeleteConfirmationForm
-              action={deleteCompanyWithId}
-              title="Delete company?"
-              description="This will remove the company and its related job postings from your workspace. This action cannot be undone."
-              confirmLabel="Delete company"
-              triggerLabel="Delete company"
-            />
-          </CardContent>
-        </Card>
+        <DangerZoneCard
+          title="Delete company"
+          description="Remove this company and its related job postings from your workspace. This action cannot be undone."
+        >
+          <DeleteConfirmationForm
+            action={deleteCompanyWithId}
+            title="Delete company?"
+            description="This will remove the company and its related job postings from your workspace. This action cannot be undone."
+            confirmLabel="Delete company"
+            triggerLabel="Delete company"
+          />
+        </DangerZoneCard>
       </div>
     </>
   );

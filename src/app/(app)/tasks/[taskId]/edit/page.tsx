@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DeleteConfirmationForm } from "@/components/delete-confirmation-form";
+import { DangerZoneCard } from "@/components/danger-zone-card";
 
 type EditTaskPageProps = {
   params: Promise<{
@@ -194,34 +195,29 @@ export default async function EditTaskPage({ params }: EditTaskPageProps) {
               </div>
 
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <Button variant="outline" asChild>
+                <Button variant="outline" className="w-full sm:w-auto" asChild>
                   <Link href="/tasks">Cancel</Link>
                 </Button>
-                <Button type="submit">Save changes</Button>
+                <Button type="submit" className="w-full sm:w-auto">
+                  Save changes
+                </Button>
               </div>
             </form>
           </CardContent>
         </Card>
 
-        <Card className="border-destructive/30">
-          <CardHeader>
-            <CardTitle>Delete task</CardTitle>
-            <CardDescription>
-              Remove this task from your workspace. This action cannot be
-              undone.
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent>
-            <DeleteConfirmationForm
-              action={deleteTaskWithId}
-              title="Delete task?"
-              description="This will remove this task from your workspace. This action cannot be undone."
-              confirmLabel="Delete task"
-              triggerLabel="Delete task"
-            />
-          </CardContent>
-        </Card>
+        <DangerZoneCard
+          title="Delete task"
+          description="Remove this task from your workspace. This action cannot be undone."
+        >
+          <DeleteConfirmationForm
+            action={deleteTaskWithId}
+            title="Delete task?"
+            description="This will remove this task from your workspace. This action cannot be undone."
+            confirmLabel="Delete task"
+            triggerLabel="Delete task"
+          />
+        </DangerZoneCard>
       </div>
     </>
   );

@@ -30,8 +30,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DeleteConfirmationForm } from "@/components/delete-confirmation-form";
+import { DangerZoneCard } from "@/components/danger-zone-card";
+import { MatchBadge } from "@/components/job-search-badges";
 import { MarkdownContent } from "@/components/markdown-content";
 import { StatusMessage } from "@/components/ui/status-message";
+import { formatDisplayDateTime } from "@/lib/display-formatters";
 
 type EditJobPostingPageProps = {
   params: Promise<{
@@ -502,13 +505,19 @@ export default async function EditJobPostingPage({
                   defaultValue={jobPosting.description}
                   className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 />
+                <p className="text-sm text-muted-foreground">
+                  Saved job text powers AI summary, resume match, tailoring
+                  suggestions, and semantic search.
+                </p>
               </div>
 
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <Button variant="outline" asChild>
+                <Button variant="outline" className="w-full sm:w-auto" asChild>
                   <Link href="/job-postings">Cancel</Link>
                 </Button>
-                <Button type="submit">Save changes</Button>
+                <Button type="submit" className="w-full sm:w-auto">
+                  Save changes
+                </Button>
               </div>
             </form>
           </CardContent>
@@ -529,7 +538,7 @@ export default async function EditJobPostingPage({
                 <CardDescription>
                   Saved summary for this job posting.
                   {jobPosting.aiSummaryAt
-                    ? ` Generated ${jobPosting.aiSummaryAt.toLocaleString("hr-HR")}.`
+                    ? ` Generated ${formatDisplayDateTime(jobPosting.aiSummaryAt)}.`
                     : ""}
                 </CardDescription>
               </div>
@@ -569,7 +578,7 @@ export default async function EditJobPostingPage({
             <CardDescription>
               Analyze how well one saved resume matches this job posting.
               {jobPosting.matchScoreAt
-                ? ` Generated ${jobPosting.matchScoreAt.toLocaleString("hr-HR")}.`
+                ? ` Generated ${formatDisplayDateTime(jobPosting.matchScoreAt)}.`
                 : ""}
             </CardDescription>
           </CardHeader>
@@ -627,13 +636,13 @@ export default async function EditJobPostingPage({
             {jobPosting.matchScore !== null ? (
               <div className="space-y-3">
                 <div className="space-y-1 wrap-break-word text-sm text-muted-foreground">
-                  <p className="font-medium text-foreground">
-                    Match score: {jobPosting.matchScore}/100
-                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <MatchBadge score={jobPosting.matchScore} />
+                  </div>
                   {jobPosting.matchScoreAt ? (
                     <p>
                       Generated:{" "}
-                      {jobPosting.matchScoreAt.toLocaleString("hr-HR")}
+                      {formatDisplayDateTime(jobPosting.matchScoreAt)}
                     </p>
                   ) : null}
                   {jobPosting.matchResume ? (
@@ -666,7 +675,7 @@ export default async function EditJobPostingPage({
               Get advice on what to change or emphasize for this saved job
               posting.
               {jobPosting.tailoringSuggestionsAt
-                ? ` Generated ${jobPosting.tailoringSuggestionsAt.toLocaleString("hr-HR")}.`
+                ? ` Generated ${formatDisplayDateTime(jobPosting.tailoringSuggestionsAt)}.`
                 : ""}
             </CardDescription>
           </CardHeader>
@@ -724,9 +733,7 @@ export default async function EditJobPostingPage({
                   {jobPosting.tailoringSuggestionsAt ? (
                     <p>
                       Generated:{" "}
-                      {jobPosting.tailoringSuggestionsAt.toLocaleString(
-                        "hr-HR",
-                      )}
+                      {formatDisplayDateTime(jobPosting.tailoringSuggestionsAt)}
                     </p>
                   ) : null}
                   {jobPosting.tailoringResume ? (
@@ -809,26 +816,18 @@ export default async function EditJobPostingPage({
           </CardContent>
         </Card>
 
-        <Card className="border-destructive/30">
-          <CardHeader>
-            <CardTitle>Delete job posting</CardTitle>
-            <CardDescription>
-              Remove this saved job posting. If an application exists for this
-              posting, it may also be removed depending on the database
-              relation.
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent>
-            <DeleteConfirmationForm
-              action={deleteJobPostingWithId}
-              title="Delete job posting?"
-              description="This will remove this saved job posting. If an application exists for this posting, it may also be removed depending on the database relation. This action cannot be undone."
-              confirmLabel="Delete job posting"
-              triggerLabel="Delete job posting"
-            />
-          </CardContent>
-        </Card>
+        <DangerZoneCard
+          title="Delete job posting"
+          description="Remove this saved job posting. If an application exists for this posting, it may also be removed depending on the database relation."
+        >
+          <DeleteConfirmationForm
+            action={deleteJobPostingWithId}
+            title="Delete job posting?"
+            description="This will remove this saved job posting. If an application exists for this posting, it may also be removed depending on the database relation. This action cannot be undone."
+            confirmLabel="Delete job posting"
+            triggerLabel="Delete job posting"
+          />
+        </DangerZoneCard>
       </div>
     </>
   );

@@ -201,10 +201,12 @@ export default async function NewApplicationPage() {
                 </div>
 
                 <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                  <Button variant="outline" asChild>
+                  <Button variant="outline" className="w-full sm:w-auto" asChild>
                     <Link href="/applications">Cancel</Link>
                   </Button>
-                  <Button type="submit">Create application</Button>
+                  <Button type="submit" className="w-full sm:w-auto">
+                    Create application
+                  </Button>
                 </div>
               </form>
             </CardContent>

@@ -114,16 +114,20 @@ export default async function NewResumePage({
 
               <div className="space-y-2">
                 <Label htmlFor="pdfFile">Resume PDF</Label>
-                <Input
-                  id="pdfFile"
-                  name="pdfFile"
-                  type="file"
-                  accept="application/pdf"
-                />
-                <p className="text-sm text-muted-foreground">
-                  Upload a PDF to extract its text automatically. Maximum file
-                  size: 5 MB.
-                </p>
+                <div className="space-y-3 rounded-lg border border-dashed border-[#D9D5C5] bg-[#FBF9F0] p-4 dark:border-slate-800 dark:bg-slate-950/20">
+                  <Input
+                    id="pdfFile"
+                    name="pdfFile"
+                    type="file"
+                    accept="application/pdf"
+                    className="bg-white dark:bg-input/30"
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Readable PDFs up to 5 MB can be extracted automatically. You
+                    can also paste text below; saved text powers AI critique and
+                    semantic search.
+                  </p>
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -136,16 +140,18 @@ export default async function NewResumePage({
                   className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 />
                 <p className="text-sm text-muted-foreground">
-                  If PDF extraction succeeds, the extracted PDF text will be
-                  used. If no PDF is uploaded, this text is required.
+                  If PDF extraction succeeds, the extracted text will be saved.
+                  If no PDF is uploaded, paste the resume text here.
                 </p>
               </div>
 
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <Button variant="outline" asChild>
+                <Button variant="outline" className="w-full sm:w-auto" asChild>
                   <Link href="/resumes">Cancel</Link>
                 </Button>
-                <Button type="submit">Create resume</Button>
+                <Button type="submit" className="w-full sm:w-auto">
+                  Create resume
+                </Button>
               </div>
             </form>
           </CardContent>
