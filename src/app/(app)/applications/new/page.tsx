@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 export default async function NewApplicationPage() {
   const session = await auth.api.getSession({
@@ -94,11 +96,10 @@ export default async function NewApplicationPage() {
               <form action={createApplication} className="space-y-5">
                 <div className="space-y-2">
                   <Label htmlFor="jobPostingId">Job posting *</Label>
-                  <select
+                  <Select
                     id="jobPostingId"
                     name="jobPostingId"
                     required
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                   >
                     <option value="">Select a job posting</option>
                     {availableJobPostings.map((jobPosting) => (
@@ -106,18 +107,17 @@ export default async function NewApplicationPage() {
                         {jobPosting.title} — {jobPosting.company.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
 
                 <div className="grid gap-5 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="status">Status *</Label>
-                    <select
+                    <Select
                       id="status"
                       name="status"
                       required
                       defaultValue="SAVED"
-                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                     >
                       <option value="SAVED">Saved</option>
                       <option value="INTERESTED">Interested</option>
@@ -130,31 +130,29 @@ export default async function NewApplicationPage() {
                       <option value="WITHDRAWN">Withdrawn</option>
                       <option value="GHOSTED">Ghosted</option>
                       <option value="ARCHIVED">Archived</option>
-                    </select>
+                    </Select>
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="priority">Priority *</Label>
-                    <select
+                    <Select
                       id="priority"
                       name="priority"
                       required
                       defaultValue="MEDIUM"
-                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                     >
                       <option value="LOW">Low</option>
                       <option value="MEDIUM">Medium</option>
                       <option value="HIGH">High</option>
-                    </select>
+                    </Select>
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="resumeId">Resume</Label>
-                    <select
+                    <Select
                       id="resumeId"
                       name="resumeId"
                       defaultValue=""
-                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                     >
                       <option value="">No resume selected</option>
                       {resumes.map((resume) => (
@@ -162,7 +160,7 @@ export default async function NewApplicationPage() {
                           {resume.name}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   </div>
 
                   <div className="space-y-2">
@@ -191,12 +189,11 @@ export default async function NewApplicationPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="notes">Private notes</Label>
-                  <textarea
+                  <Textarea
                     id="notes"
                     name="notes"
                     rows={5}
                     placeholder="Anything important about this application..."
-                    className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                   />
                 </div>
 

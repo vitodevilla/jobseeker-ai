@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { DeleteConfirmationForm } from "@/components/delete-confirmation-form";
 import { DangerZoneCard } from "@/components/danger-zone-card";
 import { AiOutputPanel, AiSectionCard } from "@/components/ai-section-card";
@@ -305,12 +306,11 @@ export default async function EditResumePage({
 
               <div className="space-y-2">
                 <Label htmlFor="content">Resume content</Label>
-                <textarea
+                <Textarea
                   id="content"
                   name="content"
                   rows={14}
                   defaultValue={resume.content}
-                  className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 />
                 <p className="text-sm text-muted-foreground">
                   Saved text powers AI critique and semantic search. A newly

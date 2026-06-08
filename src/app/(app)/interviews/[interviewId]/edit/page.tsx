@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { DeleteConfirmationForm } from "@/components/delete-confirmation-form";
 import { DangerZoneCard } from "@/components/danger-zone-card";
 import { AiOutputPanel, AiSectionCard } from "@/components/ai-section-card";
@@ -175,12 +177,11 @@ export default async function EditInterviewPage({
             <form action={updateInterviewWithId} className="space-y-5">
               <div className="space-y-2">
                 <Label htmlFor="applicationId">Application *</Label>
-                <select
+                <Select
                   id="applicationId"
                   name="applicationId"
                   required
                   defaultValue={interview.applicationId}
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 >
                   {applications.map((application) => (
                     <option key={application.id} value={application.id}>
@@ -188,18 +189,17 @@ export default async function EditInterviewPage({
                       {application.jobPosting.company.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               <div className="grid gap-5 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="type">Interview type *</Label>
-                  <select
+                  <Select
                     id="type"
                     name="type"
                     required
                     defaultValue={interview.type}
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                   >
                     <option value="PHONE_SCREEN">Phone screen</option>
                     <option value="TECHNICAL">Technical</option>
@@ -208,7 +208,7 @@ export default async function EditInterviewPage({
                     <option value="CASE_STUDY">Case study</option>
                     <option value="IN_PERSON">In person</option>
                     <option value="FINAL">Final</option>
-                  </select>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
@@ -236,19 +236,18 @@ export default async function EditInterviewPage({
 
                 <div className="space-y-2">
                   <Label htmlFor="outcome">Outcome *</Label>
-                  <select
+                  <Select
                     id="outcome"
                     name="outcome"
                     required
                     defaultValue={interview.outcome}
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                   >
                     <option value="PENDING">Pending</option>
                     <option value="PASSED">Passed</option>
                     <option value="FAILED">Failed</option>
                     <option value="CANCELLED">Cancelled</option>
                     <option value="NO_SHOW">No show</option>
-                  </select>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
@@ -285,13 +284,12 @@ export default async function EditInterviewPage({
 
               <div className="space-y-2">
                 <Label htmlFor="prepNotes">Prep notes / personal edits</Label>
-                <textarea
+                <Textarea
                   id="prepNotes"
                   name="prepNotes"
                   rows={5}
                   defaultValue={interview.prepNotes ?? ""}
                   placeholder="Add personal reminders or edit generated prep notes..."
-                  className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 />
                 <p className="text-sm text-muted-foreground">
                   You can edit generated prep notes here or add your own
@@ -302,13 +300,12 @@ export default async function EditInterviewPage({
 
               <div className="space-y-2">
                 <Label htmlFor="feedback">Feedback</Label>
-                <textarea
+                <Textarea
                   id="feedback"
                   name="feedback"
                   rows={5}
                   defaultValue={interview.feedback ?? ""}
                   placeholder="Reflection or feedback after the interview..."
-                  className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 />
               </div>
 

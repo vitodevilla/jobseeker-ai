@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { AiSectionCard } from "@/components/ai-section-card";
 import { MarkdownContent } from "@/components/markdown-content";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 
 const MAX_QUESTION_LENGTH = 1500;
 const MAX_HISTORY_MESSAGES = 6;
@@ -418,7 +419,7 @@ function AssistantChatPanelState({
           <label htmlFor={textareaId} className="text-sm font-medium">
             Message
           </label>
-          <textarea
+          <Textarea
             ref={textareaRef}
             id={textareaId}
             name="question"
@@ -439,7 +440,7 @@ function AssistantChatPanelState({
             aria-invalid={Boolean(composerError)}
             aria-describedby={composerError ? composerErrorId : undefined}
             placeholder="Ask what to prioritize, which records need attention, or whether a saved job mentions a requirement..."
-            className="flex min-h-24 w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
+            className="min-h-24"
           />
           {composerError ? (
             <p id={composerErrorId} className="text-sm text-destructive">

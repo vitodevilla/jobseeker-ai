@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
 import { formatDisplayDate } from "@/lib/display-formatters";
 import {
   Card,
@@ -24,8 +25,6 @@ import type { Prisma } from "@/generated/prisma";
 const PAGE_SIZE = 10;
 const SEMANTIC_RESULT_LIMIT = 5;
 const SEARCH_MODES = ["keyword", "semantic"] as const;
-const SELECT_CLASS =
-  "flex h-8 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50";
 
 type SearchMode = (typeof SEARCH_MODES)[number];
 
@@ -299,15 +298,14 @@ export default async function ResumesPage({ searchParams }: ResumesPageProps) {
 
                 <div className="space-y-2">
                   <Label htmlFor="mode">Mode</Label>
-                  <select
+                  <Select
                     id="mode"
                     name="mode"
                     defaultValue={searchMode}
-                    className={SELECT_CLASS}
                   >
                     <option value="keyword">Keyword</option>
                     <option value="semantic">Semantic</option>
-                  </select>
+                  </Select>
                 </div>
               </div>
 

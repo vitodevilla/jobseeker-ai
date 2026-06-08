@@ -17,8 +17,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { DeleteConfirmationForm } from "@/components/delete-confirmation-form";
 import { DangerZoneCard } from "@/components/danger-zone-card";
 import { AiOutputPanel, AiSectionCard } from "@/components/ai-section-card";
@@ -188,12 +191,11 @@ export default async function EditCoverLetterPage({
             <form action={updateCoverLetterWithId} className="space-y-5">
               <div className="space-y-2">
                 <Label htmlFor="applicationId">Application *</Label>
-                <select
+                <Select
                   id="applicationId"
                   name="applicationId"
                   required
                   defaultValue={coverLetter.applicationId}
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 >
                   {applications.map((application) => (
                     <option key={application.id} value={application.id}>
@@ -201,7 +203,7 @@ export default async function EditCoverLetterPage({
                       {application.jobPosting.company.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               <div className="grid gap-5 sm:grid-cols-2">
@@ -217,12 +219,11 @@ export default async function EditCoverLetterPage({
 
                 <div className="space-y-2">
                   <Label htmlFor="mode">Creation mode *</Label>
-                  <select
+                  <Select
                     id="mode"
                     name="mode"
                     required
                     defaultValue={coverLetter.mode}
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                   >
                     <option value="WRITTEN">Written draft — recommended</option>
                     <option value="UPLOADED">
@@ -233,7 +234,7 @@ export default async function EditCoverLetterPage({
                         AI-generated first draft
                       </option>
                     ) : null}
-                  </select>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
@@ -249,12 +250,10 @@ export default async function EditCoverLetterPage({
                 </div>
 
                 <div className="flex items-center gap-2 sm:pt-7">
-                  <input
+                  <Checkbox
                     id="isFinal"
                     name="isFinal"
-                    type="checkbox"
                     defaultChecked={coverLetter.isFinal}
-                    className="h-4 w-4 rounded border-input"
                   />
                   <Label htmlFor="isFinal">Mark as final version</Label>
                 </div>
@@ -262,13 +261,12 @@ export default async function EditCoverLetterPage({
 
               <div className="space-y-2">
                 <Label htmlFor="content">Cover letter text</Label>
-                <textarea
+                <Textarea
                   id="content"
                   name="content"
                   rows={12}
                   defaultValue={coverLetter.content ?? ""}
                   placeholder="Paste or write your cover letter draft here..."
-                  className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 />
                 <p className="text-sm text-muted-foreground">
                   Tip: writing your own first draft usually gives better

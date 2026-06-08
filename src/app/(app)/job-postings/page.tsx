@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
 import { formatDisplayDate } from "@/lib/display-formatters";
 import {
   Card,
@@ -38,8 +39,6 @@ const WORK_MODE_LABELS = {
   ONSITE: "On-site",
   FLEXIBLE: "Flexible",
 } satisfies Record<WorkMode, string>;
-const SELECT_CLASS =
-  "flex h-8 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50";
 
 type SearchMode = (typeof SEARCH_MODES)[number];
 
@@ -451,40 +450,37 @@ export default async function JobPostingsPage({
 
                 <div className="space-y-2">
                   <Label htmlFor="mode">Mode</Label>
-                  <select
+                  <Select
                     id="mode"
                     name="mode"
                     defaultValue={searchMode}
-                    className={SELECT_CLASS}
                   >
                     <option value="keyword">Keyword</option>
                     <option value="semantic">Semantic</option>
-                  </select>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="workMode">Work mode</Label>
-                  <select
+                  <Select
                     id="workMode"
                     name="workMode"
                     defaultValue={selectedWorkMode ?? ""}
-                    className={SELECT_CLASS}
                   >
                     <option value="">All work modes</option>
                     <option value="REMOTE">Remote</option>
                     <option value="HYBRID">Hybrid</option>
                     <option value="ONSITE">On-site</option>
                     <option value="FLEXIBLE">Flexible</option>
-                  </select>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="companyId">Company</Label>
-                  <select
+                  <Select
                     id="companyId"
                     name="companyId"
                     defaultValue={selectedCompanyId ?? ""}
-                    className={SELECT_CLASS}
                   >
                     <option value="">All companies</option>
                     {companies.map((company) => (
@@ -492,7 +488,7 @@ export default async function JobPostingsPage({
                         {company.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
               </div>
 

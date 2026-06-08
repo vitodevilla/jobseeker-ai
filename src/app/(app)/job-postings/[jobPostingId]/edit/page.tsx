@@ -30,6 +30,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { DeleteConfirmationForm } from "@/components/delete-confirmation-form";
 import { DangerZoneCard } from "@/components/danger-zone-card";
 import { AiOutputPanel, AiSectionCard } from "@/components/ai-section-card";
@@ -370,19 +372,18 @@ export default async function EditJobPostingPage({
             <form action={updateJobPostingWithId} className="space-y-5">
               <div className="space-y-2">
                 <Label htmlFor="companyId">Company *</Label>
-                <select
+                <Select
                   id="companyId"
                   name="companyId"
                   required
                   defaultValue={jobPosting.companyId}
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 >
                   {companies.map((company) => (
                     <option key={company.id} value={company.id}>
                       {company.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               <div className="grid gap-5 sm:grid-cols-2">
@@ -408,18 +409,17 @@ export default async function EditJobPostingPage({
 
                 <div className="space-y-2">
                   <Label htmlFor="workMode">Work mode</Label>
-                  <select
+                  <Select
                     id="workMode"
                     name="workMode"
                     defaultValue={jobPosting.workMode ?? ""}
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                   >
                     <option value="">No work mode</option>
                     <option value="REMOTE">Remote</option>
                     <option value="HYBRID">Hybrid</option>
                     <option value="ONSITE">On-site</option>
                     <option value="FLEXIBLE">Flexible</option>
-                  </select>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
@@ -500,13 +500,12 @@ export default async function EditJobPostingPage({
 
               <div className="space-y-2">
                 <Label htmlFor="description">Description *</Label>
-                <textarea
+                <Textarea
                   id="description"
                   name="description"
                   required
                   rows={10}
                   defaultValue={jobPosting.description}
-                  className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 />
                 <p className="text-sm text-muted-foreground">
                   Saved job text powers AI summary, resume match, tailoring
@@ -600,12 +599,11 @@ export default async function EditJobPostingPage({
             <form action={analyzeResumeJobMatchWithId} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="resumeId">Resume</Label>
-                <select
+                <Select
                   id="resumeId"
                   name="resumeId"
                   required
                   defaultValue={defaultResumeId}
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 >
                   <option value="">Select a resume</option>
                   {resumes.map((resume) => (
@@ -613,7 +611,7 @@ export default async function EditJobPostingPage({
                       {resume.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               <Button
@@ -705,12 +703,11 @@ export default async function EditJobPostingPage({
             >
               <div className="space-y-2">
                 <Label htmlFor="tailoringResumeId">Resume</Label>
-                <select
+                <Select
                   id="tailoringResumeId"
                   name="resumeId"
                   required
                   defaultValue={defaultTailoringResumeId}
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 >
                   <option value="">Select a resume</option>
                   {resumes.map((resume) => (
@@ -718,7 +715,7 @@ export default async function EditJobPostingPage({
                       {resume.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               <Button
