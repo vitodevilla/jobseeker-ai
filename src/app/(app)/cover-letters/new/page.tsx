@@ -16,9 +16,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
 import { StatusMessage } from "@/components/ui/status-message";
+import { Textarea } from "@/components/ui/textarea";
 
 type NewCoverLetterPageProps = {
   searchParams: Promise<{
@@ -143,11 +146,10 @@ export default async function NewCoverLetterPage({
                 <form action={createCoverLetter} className="space-y-5">
                   <div className="space-y-2">
                     <Label htmlFor="manualApplicationId">Application *</Label>
-                    <select
+                    <Select
                       id="manualApplicationId"
                       name="applicationId"
                       required
-                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                     >
                       <option value="">Select an application</option>
                       {applications.map((application) => (
@@ -156,7 +158,7 @@ export default async function NewCoverLetterPage({
                           {application.jobPosting.company.name}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   </div>
 
                   <div className="grid gap-5 sm:grid-cols-2">
@@ -172,18 +174,17 @@ export default async function NewCoverLetterPage({
 
                     <div className="space-y-2">
                       <Label htmlFor="mode">Creation mode *</Label>
-                      <select
+                      <Select
                         id="mode"
                         name="mode"
                         required
                         defaultValue="WRITTEN"
-                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                       >
                         <option value="WRITTEN">
                           Written draft — recommended
                         </option>
                         <option value="UPLOADED">Uploaded document</option>
-                      </select>
+                      </Select>
                     </div>
 
                     <div className="space-y-2">
@@ -199,11 +200,9 @@ export default async function NewCoverLetterPage({
                     </div>
 
                     <div className="flex items-center gap-2 sm:pt-7">
-                      <input
+                      <Checkbox
                         id="isFinal"
                         name="isFinal"
-                        type="checkbox"
-                        className="h-4 w-4 rounded border-input"
                       />
                       <Label htmlFor="isFinal">Mark as final version</Label>
                     </div>
@@ -211,12 +210,11 @@ export default async function NewCoverLetterPage({
 
                   <div className="space-y-2">
                     <Label htmlFor="content">Cover letter text</Label>
-                    <textarea
+                    <Textarea
                       id="content"
                       name="content"
                       rows={12}
                       placeholder="Paste or write your cover letter draft here..."
-                      className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                     />
                     <p className="text-sm text-muted-foreground">
                       Tip: writing your own first draft usually gives better
@@ -247,11 +245,10 @@ export default async function NewCoverLetterPage({
               >
                 <div className="space-y-2">
                   <Label htmlFor="generationApplicationId">Application *</Label>
-                  <select
+                  <Select
                     id="generationApplicationId"
                     name="applicationId"
                     required
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                   >
                     <option value="">Select an application</option>
                     {applications.map((application) => (
@@ -260,7 +257,7 @@ export default async function NewCoverLetterPage({
                         {application.jobPosting.company.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                   <p className="text-sm text-muted-foreground">
                     This creates a separate generated draft and will not
                     overwrite anything you wrote.

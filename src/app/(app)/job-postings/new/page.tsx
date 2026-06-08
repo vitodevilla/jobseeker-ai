@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 export default async function NewJobPostingPage() {
   const session = await auth.api.getSession({
@@ -80,11 +82,10 @@ export default async function NewJobPostingPage() {
               <form action={createJobPosting} className="space-y-5">
                 <div className="space-y-2">
                   <Label htmlFor="companyId">Company *</Label>
-                  <select
+                  <Select
                     id="companyId"
                     name="companyId"
                     required
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                   >
                     <option value="">Select a company</option>
                     {companies.map((company) => (
@@ -92,7 +93,7 @@ export default async function NewJobPostingPage() {
                         {company.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
 
                 <div className="grid gap-5 sm:grid-cols-2">
@@ -117,17 +118,16 @@ export default async function NewJobPostingPage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="workMode">Work mode</Label>
-                    <select
+                    <Select
                       id="workMode"
                       name="workMode"
-                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                     >
                       <option value="">No work mode</option>
                       <option value="REMOTE">Remote</option>
                       <option value="HYBRID">Hybrid</option>
                       <option value="ONSITE">On-site</option>
                       <option value="FLEXIBLE">Flexible</option>
-                    </select>
+                    </Select>
                   </div>
 
                   <div className="space-y-2">
@@ -193,13 +193,12 @@ export default async function NewJobPostingPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="description">Description *</Label>
-                  <textarea
+                  <Textarea
                     id="description"
                     name="description"
                     required
                     rows={10}
                     placeholder="Paste the job description here..."
-                    className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                   />
                   <p className="text-sm text-muted-foreground">
                     Saved job text powers AI summary, resume match, tailoring

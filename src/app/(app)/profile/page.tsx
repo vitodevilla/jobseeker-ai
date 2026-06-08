@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
+import { StatusMessage } from "@/components/ui/status-message";
 
 type ProfilePageProps = {
   searchParams: Promise<{
@@ -62,9 +64,10 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
         </div>
 
         {params.updated ? (
-          <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
-            Profile updated successfully.
-          </p>
+          <StatusMessage
+            variant="success"
+            title="Profile updated successfully."
+          />
         ) : null}
 
         <Card>
@@ -123,18 +126,17 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
 
                 <div className="space-y-2 sm:col-span-2">
                   <Label htmlFor="preferredWorkMode">Preferred work mode</Label>
-                  <select
+                  <Select
                     id="preferredWorkMode"
                     name="preferredWorkMode"
                     defaultValue={user.preferredWorkMode ?? ""}
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                   >
                     <option value="">No preference yet</option>
                     <option value="REMOTE">Remote</option>
                     <option value="HYBRID">Hybrid</option>
                     <option value="ONSITE">On-site</option>
                     <option value="FLEXIBLE">Flexible</option>
-                  </select>
+                  </Select>
                 </div>
               </div>
 

@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { DeleteConfirmationForm } from "@/components/delete-confirmation-form";
 import { DangerZoneCard } from "@/components/danger-zone-card";
 
@@ -140,30 +142,28 @@ export default async function EditApplicationPage({
             <form action={updateApplicationWithId} className="space-y-5">
               <div className="space-y-2">
                 <Label htmlFor="jobPostingId">Job posting *</Label>
-                <select
+                <Select
                   id="jobPostingId"
                   name="jobPostingId"
                   required
                   defaultValue={application.jobPostingId}
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 >
                   {availableJobPostings.map((jobPosting) => (
                     <option key={jobPosting.id} value={jobPosting.id}>
                       {jobPosting.title} — {jobPosting.company.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               <div className="grid gap-5 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="status">Status *</Label>
-                  <select
+                  <Select
                     id="status"
                     name="status"
                     required
                     defaultValue={application.status}
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                   >
                     <option value="SAVED">Saved</option>
                     <option value="INTERESTED">Interested</option>
@@ -176,31 +176,29 @@ export default async function EditApplicationPage({
                     <option value="WITHDRAWN">Withdrawn</option>
                     <option value="GHOSTED">Ghosted</option>
                     <option value="ARCHIVED">Archived</option>
-                  </select>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="priority">Priority *</Label>
-                  <select
+                  <Select
                     id="priority"
                     name="priority"
                     required
                     defaultValue={application.priority}
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                   >
                     <option value="LOW">Low</option>
                     <option value="MEDIUM">Medium</option>
                     <option value="HIGH">High</option>
-                  </select>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="resumeId">Resume</Label>
-                  <select
+                  <Select
                     id="resumeId"
                     name="resumeId"
                     defaultValue={application.resumeId ?? ""}
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                   >
                     <option value="">No resume selected</option>
                     {resumes.map((resume) => (
@@ -208,7 +206,7 @@ export default async function EditApplicationPage({
                         {resume.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
@@ -244,13 +242,12 @@ export default async function EditApplicationPage({
 
               <div className="space-y-2">
                 <Label htmlFor="notes">Private notes</Label>
-                <textarea
+                <Textarea
                   id="notes"
                   name="notes"
                   rows={5}
                   defaultValue={application.notes ?? ""}
                   placeholder="Anything important about this application..."
-                  className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 />
               </div>
 

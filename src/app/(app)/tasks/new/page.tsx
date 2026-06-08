@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 export default async function NewTaskPage() {
   const session = await auth.api.getSession({
@@ -80,11 +82,10 @@ export default async function NewTaskPage() {
               <div className="grid gap-5 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="applicationId">Linked application</Label>
-                  <select
+                  <Select
                     id="applicationId"
                     name="applicationId"
                     defaultValue=""
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                   >
                     <option value="">Standalone task</option>
                     {applications.map((application) => (
@@ -93,7 +94,7 @@ export default async function NewTaskPage() {
                         {application.jobPosting.company.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
@@ -103,54 +104,50 @@ export default async function NewTaskPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="status">Status *</Label>
-                  <select
+                  <Select
                     id="status"
                     name="status"
                     required
                     defaultValue="PENDING"
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                   >
                     <option value="PENDING">Pending</option>
                     <option value="DONE">Done</option>
                     <option value="CANCELLED">Cancelled</option>
-                  </select>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="priority">Priority *</Label>
-                  <select
+                  <Select
                     id="priority"
                     name="priority"
                     required
                     defaultValue="MEDIUM"
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                   >
                     <option value="LOW">Low</option>
                     <option value="MEDIUM">Medium</option>
                     <option value="HIGH">High</option>
-                  </select>
+                  </Select>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="description">Description</Label>
-                <textarea
+                <Textarea
                   id="description"
                   name="description"
                   rows={4}
                   placeholder="Optional details about the task..."
-                  className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="completionNotes">Completion notes</Label>
-                <textarea
+                <Textarea
                   id="completionNotes"
                   name="completionNotes"
                   rows={4}
                   placeholder="Optional notes after completing the task..."
-                  className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 />
               </div>
 
