@@ -54,7 +54,7 @@ export function EmptyState({
       )}
     >
       {icon ? (
-        <div className="mb-2 flex size-9 items-center justify-center rounded-full border border-[#D3DCE7] bg-[#EEF3F8] text-[#7B96B7] dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-300">
+        <div className="mb-2 flex size-9 items-center justify-center rounded-full border border-[#D9D5C5] bg-[#F8F5E5] text-[#7C7A71] dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-300">
           {renderIcon(icon)}
         </div>
       ) : null}

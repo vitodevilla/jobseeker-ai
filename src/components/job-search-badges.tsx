@@ -18,9 +18,9 @@ type BadgeTone =
 
 const toneStyles: Record<BadgeTone, string> = {
   neutral:
-    "border-[#D3DCE7] bg-[#EEF3F8] text-[#46658C] dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-300",
+    "border-[#D9D5C5] bg-[#F8F5E5] text-[#7C7A71] dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-300",
   steel:
-    "border-[#A7B9CF] bg-[#EEF3F8] text-[#3C5778] dark:border-[#4F739F]/60 dark:bg-[#223449]/40 dark:text-[#D6E2EF]",
+    "border-[#A3B3C0] bg-[#F2F6FB] text-[#334F70] dark:border-[#4F739F]/60 dark:bg-[#223449]/40 dark:text-[#D6E2EF]",
   green:
     "border-[#BBF7D0] bg-[#F0FDF4] text-[#15803D] dark:border-green-900/70 dark:bg-green-950/40 dark:text-green-300",
   amber:
@@ -28,7 +28,7 @@ const toneStyles: Record<BadgeTone, string> = {
   rose:
     "border-[#FECDD3] bg-[#FFF1F2] text-[#BE123C] dark:border-rose-900/70 dark:bg-rose-950/40 dark:text-rose-300",
   slate:
-    "border-[#D3DCE7] bg-[#EEF3F8] text-[#46658C] dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-300",
+    "border-[#D9D5C5] bg-[#F8F5E5] text-[#7C7A71] dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-300",
 }
 
 const statusConfig: Record<StatusValue, { label: string; tone: BadgeTone }> = {
@@ -61,7 +61,7 @@ const priorityConfig: Record<
 }
 
 const priorityBadgeShellClassName =
-  "gap-1.5 border-[#D3DCE7] bg-[#EEF3F8] pl-1.5 pr-2 text-[#46658C] dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-300"
+  "gap-1.5 border-[#D9D5C5] bg-[#F8F5E5] pl-1.5 pr-2 text-[#7C7A71] dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-300"
 
 function formatUnknownValue(value: string) {
   return value
