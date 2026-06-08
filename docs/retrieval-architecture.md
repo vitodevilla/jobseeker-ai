@@ -1,8 +1,14 @@
 # Retrieval Architecture
 
-## Overview
+This document explains the technical retrieval layer in JobSeeker AI.
 
-The retrieval layer lets JobSeeker AI rank saved resumes and job postings by semantic similarity. It is separate from the generative AI features. Retrieval returns existing records; it does not generate new explanations, rewrite user data, or browse external URLs.
+The retrieval layer lets the app rank saved resumes and job postings by semantic similarity. It is separate from the generative AI features and from the contextual assistant, although the assistant can benefit from retrieval-related context and read-only tools.
+
+Retrieval returns existing user-owned records. It does not generate new explanations, rewrite user data, browse external URLs, or bypass authorization.
+
+---
+
+## Main Implementation Files
 
 The main implementation files are:
 
@@ -11,6 +17,10 @@ The main implementation files are:
 - `scripts/backfill-embeddings.ts`
 - `scripts/seed-semantic-test-data.ts`
 - `scripts/evaluate-retrieval.ts`
+
+Related UI/actions exist on resume and job posting edit/list pages.
+
+---
 
 ## Embeddings
 
@@ -24,6 +34,8 @@ The embedding helper:
 - validates that the returned vector has the expected length,
 - hashes the formatted text with a model/version prefix.
 
+---
+
 ## Model And Dimension
 
 The current embedding constants are defined in `src/lib/ai/embeddings.ts`:
@@ -34,6 +46,8 @@ The current embedding constants are defined in `src/lib/ai/embeddings.ts`:
 - Hash version: `embedding:v1:gemini-embedding-001:3072`
 
 The database columns use `vector(3072)`, so generated embeddings must be 3072-dimensional before they can be stored safely.
+
+---
 
 ## Stored Embedding Fields
 
@@ -59,26 +73,57 @@ prisma/migrations/20260522144841_add_embeddings_retrieval_infrastructure/migrati
 
 No vector indexes are added in v1.
 
+---
+
+## Why Only Resumes And Job Postings Are Embedded
+
+Resumes and job postings are the main long-text entities where semantic matching is immediately useful.
+
+They support:
+
+- resume-to-job similar records,
+- job-to-resume similar records,
+- semantic job posting search,
+- semantic resume search.
+
+Other entities are not embedded in v1:
+
+- Applications are status/relationship driven.
+- Tasks are date/action driven.
+- Interviews are date/event driven.
+- Companies are useful as context but not central semantic retrieval targets.
+- Cover letters may become useful retrieval targets later.
+
+This keeps retrieval focused and easier to evaluate.
+
+---
+
 ## Formatted Embedding Text
 
 Resume embedding text includes:
 
-- resume name
-- resume content
+- resume name,
+- resume content.
 
 Job posting embedding text includes:
 
-- job title
-- job description
-- location
-- work mode
-- seniority
-- salary
-- company name
-- company industry
-- company notes
+- job title,
+- job description,
+- location,
+- work mode,
+- seniority,
+- salary,
+- company name,
+- company industry,
+- company notes.
 
 Volatile AI outputs such as summaries, match analysis, and tailoring suggestions are not part of the embedding text.
+
+Reason:
+
+The embedding should represent the user's source record, not downstream AI output that may change over time.
+
+---
 
 ## Hash And Staleness Model
 
@@ -94,7 +139,16 @@ When a resume or job posting is edited, the app clears:
 - `embeddedAt`
 - `embeddingTextHash`
 
-The stored vector column may still contain the previous vector, but semantic queries require both `embedding IS NOT NULL` and `embeddingTextHash IS NOT NULL`. Clearing the hash metadata excludes stale vectors from current semantic retrieval.
+The stored vector column may still contain the previous vector, but semantic queries require both:
+
+```sql
+embedding IS NOT NULL
+AND embeddingTextHash IS NOT NULL
+```
+
+Clearing the hash metadata excludes stale vectors from current semantic retrieval.
+
+---
 
 ## Embedding Generation Outcomes
 
@@ -107,6 +161,8 @@ The embedding generation helpers return status values:
 
 The helpers always scope the selected record by `userId`.
 
+---
+
 ## Backfill Script
 
 `scripts/backfill-embeddings.ts` is a bulk maintenance script. It scans existing resumes and job postings, then calls the same embedding generation helpers used by the UI refresh actions.
@@ -117,11 +173,20 @@ Run command:
 pnpm backfill:embeddings
 ```
 
-The script is useful after adding embedding columns or seeding semantic test data. It is not run automatically by the app, and it is not part of normal page rendering.
+The script is useful after:
+
+- adding embedding columns,
+- seeding semantic test data,
+- changing embedding text formatting,
+- changing embedding model/version.
+
+It is not run automatically by the app, and it is not part of normal page rendering.
+
+---
 
 ## Semantic Refresh UX
 
-The app also provides per-record semantic refresh actions on resume and job posting edit pages.
+The app provides per-record semantic refresh actions on resume and job posting edit pages.
 
 When a record has been edited and its semantic data is stale, the UI shows:
 
@@ -137,6 +202,8 @@ The action:
 - reports whether semantic data was updated, already fresh, empty, or failed.
 
 This keeps product UI focused on user actions instead of telling users to run `pnpm backfill:embeddings`. The backfill script remains available for development and bulk maintenance.
+
+---
 
 ## Similar Records
 
@@ -159,6 +226,8 @@ Similarity is returned as:
 
 The UI presents scores as approximate semantic similarity. These scores are not calibrated job-fit probabilities.
 
+---
+
 ## Hybrid Search
 
 This is a hybrid search interface, not a fully blended hybrid ranking system.
@@ -179,19 +248,25 @@ Resumes:
 
 Semantic search falls back to keyword results if the semantic query path fails.
 
+---
+
 ## Top-5 Semantic Results
 
 Semantic list search uses a small top-N result set in the UI. The app currently shows the closest semantic results and disables normal pagination for semantic mode.
 
-This is intentional for v1 because vector search can rank every embedded record, including weak tail results. Showing a small set avoids presenting low-similarity tail records as equally meaningful recommendations.
+This is intentional because vector search can rank every embedded record, including weak tail results. Showing a small set avoids presenting low-similarity tail records as equally meaningful recommendations.
 
 The helper layer supports bounded limits up to 20, but the current UI uses a top-5 style presentation for semantic result sets.
+
+---
 
 ## No Hard Similarity Threshold Yet
 
 The current implementation does not enforce a hard similarity cutoff. Results are ordered by distance and displayed with approximate similarity scores.
 
 A threshold may be added later after collecting more data about score distributions and user expectations. Until then, top-N ranking is easier to inspect and evaluate.
+
+---
 
 ## User Ownership
 
@@ -204,11 +279,33 @@ Every retrieval path preserves user ownership:
 
 Vector search changes how eligible records are ranked. It does not change which records are eligible.
 
+---
+
+## Relationship To The Assistant
+
+The contextual assistant is a separate read-only AI layer, but it can use retrieval-adjacent concepts:
+
+- saved resumes and job postings,
+- semantic data availability,
+- read-only search/retrieval tools,
+- page-aware context for current resume/job/application,
+- trusted record references.
+
+The assistant does not bypass retrieval authorization rules. Any record used by assistant context or tools must still be scoped to the signed-in user.
+
+Formal assistant evaluation is future work; retrieval evaluation remains focused on semantic search and similar-record helpers.
+
+---
+
 ## Future Background Refresh
 
-The current app uses manual refresh and bulk backfill. A future production version could add a background job queue that regenerates stale embeddings after edits. That would preserve the current staleness model while removing the need for manual per-record refresh.
+The current app uses manual refresh and bulk backfill. A future production version could add a background job queue that regenerates stale embeddings after edits.
+
+That would preserve the current staleness model while removing the need for manual per-record refresh.
 
 The current manual refresh action is intentionally simpler than a background queue because it avoids adding job infrastructure while still preventing stale semantic data from being used.
+
+---
 
 ## Thesis-Defense Explanations
 
@@ -240,4 +337,10 @@ Backfill:
 
 ```txt
 The backfill script separates schema changes from external AI API calls. It can regenerate embeddings for existing records without coupling migrations to model calls.
+```
+
+Assistant relationship:
+
+```txt
+The assistant can use saved records and read-only tools, but retrieval and assistant context remain user-scoped. The assistant does not gain access to records that semantic retrieval would not be allowed to return.
 ```
