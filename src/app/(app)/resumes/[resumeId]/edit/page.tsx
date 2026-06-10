@@ -18,6 +18,7 @@ import {
   refreshResumeSemanticData,
   updateResume,
 } from "@/app/(app)/resumes/actions";
+import { FormActions } from "@/components/form-actions";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -306,6 +307,7 @@ export default async function EditResumePage({
                 <Textarea
                   id="content"
                   name="content"
+                  className="min-h-80"
                   rows={14}
                   defaultValue={resume.content}
                 />
@@ -315,14 +317,7 @@ export default async function EditResumePage({
                 </p>
               </div>
 
-              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <Button variant="outline" className="w-full sm:w-auto" asChild>
-                  <Link href="/resumes">Cancel</Link>
-                </Button>
-                <Button type="submit" className="w-full sm:w-auto">
-                  Save changes
-                </Button>
-              </div>
+              <FormActions cancelHref="/resumes" submitLabel="Save changes" />
             </form>
           </CardContent>
         </Card>

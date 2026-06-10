@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createCompany } from "@/app/(app)/companies/actions";
-import { Button } from "@/components/ui/button";
+import { FormActions } from "@/components/form-actions";
 import {
   Card,
   CardContent,
@@ -87,19 +87,16 @@ export default function NewCompanyPage() {
                 <Textarea
                   id="notes"
                   name="notes"
+                  className="min-h-32"
                   rows={5}
                   placeholder="What do you know about this company? Why is it interesting?"
                 />
               </div>
 
-              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <Button variant="outline" className="w-full sm:w-auto" asChild>
-                  <Link href="/companies">Cancel</Link>
-                </Button>
-                <Button type="submit" className="w-full sm:w-auto">
-                  Create company
-                </Button>
-              </div>
+              <FormActions
+                cancelHref="/companies"
+                submitLabel="Create company"
+              />
             </form>
           </CardContent>
         </Card>

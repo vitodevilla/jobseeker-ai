@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createTask } from "@/app/(app)/tasks/actions";
-import { Button } from "@/components/ui/button";
+import { FormActions } from "@/components/form-actions";
 import {
   Card,
   CardContent,
@@ -136,6 +136,7 @@ export default async function NewTaskPage() {
                 <Textarea
                   id="description"
                   name="description"
+                  className="min-h-28"
                   rows={4}
                   placeholder="Optional details about the task..."
                 />
@@ -146,19 +147,13 @@ export default async function NewTaskPage() {
                 <Textarea
                   id="completionNotes"
                   name="completionNotes"
+                  className="min-h-28"
                   rows={4}
                   placeholder="Optional notes after completing the task..."
                 />
               </div>
 
-              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <Button variant="outline" className="w-full sm:w-auto" asChild>
-                  <Link href="/tasks">Cancel</Link>
-                </Button>
-                <Button type="submit" className="w-full sm:w-auto">
-                  Create task
-                </Button>
-              </div>
+              <FormActions cancelHref="/tasks" submitLabel="Create task" />
             </form>
           </CardContent>
         </Card>

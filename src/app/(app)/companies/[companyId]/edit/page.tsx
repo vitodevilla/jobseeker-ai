@@ -4,7 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { deleteCompany, updateCompany } from "@/app/(app)/companies/actions";
-import { Button } from "@/components/ui/button";
+import { FormActions } from "@/components/form-actions";
 import {
   Card,
   CardContent,
@@ -128,20 +128,14 @@ export default async function EditCompanyPage({
                 <Textarea
                   id="notes"
                   name="notes"
+                  className="min-h-32"
                   rows={5}
                   defaultValue={company.notes ?? ""}
                   placeholder="What do you know about this company? Why is it interesting?"
                 />
               </div>
 
-              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <Button variant="outline" className="w-full sm:w-auto" asChild>
-                  <Link href="/companies">Cancel</Link>
-                </Button>
-                <Button type="submit" className="w-full sm:w-auto">
-                  Save changes
-                </Button>
-              </div>
+              <FormActions cancelHref="/companies" submitLabel="Save changes" />
             </form>
           </CardContent>
         </Card>

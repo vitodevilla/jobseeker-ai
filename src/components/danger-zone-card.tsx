@@ -21,13 +21,13 @@ export function DangerZoneCard({
   return (
     <Card
       size="sm"
-      className="bg-[#FFF1F2] ring-[#FECDD3] dark:bg-rose-950/20 dark:ring-rose-900/70"
+      className="border-l-4 border-l-destructive/50 bg-card ring-rose-200 dark:ring-rose-900/70"
     >
       <CardHeader>
-        <CardTitle className="text-rose-900 dark:text-rose-200">
+        <CardTitle className="text-destructive dark:text-rose-200">
           {title}
         </CardTitle>
-        <CardDescription className="text-rose-900/75 dark:text-rose-200/80">
+        <CardDescription className="text-muted-foreground dark:text-rose-200/80">
           {description}
         </CardDescription>
       </CardHeader>

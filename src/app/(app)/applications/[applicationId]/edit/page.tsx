@@ -9,7 +9,7 @@ import {
   deleteApplication,
   updateApplication,
 } from "@/app/(app)/applications/actions";
-import { Button } from "@/components/ui/button";
+import { FormActions } from "@/components/form-actions";
 import {
   Card,
   CardContent,
@@ -245,20 +245,17 @@ export default async function EditApplicationPage({
                 <Textarea
                   id="notes"
                   name="notes"
+                  className="min-h-32"
                   rows={5}
                   defaultValue={application.notes ?? ""}
                   placeholder="Anything important about this application..."
                 />
               </div>
 
-              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <Button variant="outline" className="w-full sm:w-auto" asChild>
-                  <Link href="/applications">Cancel</Link>
-                </Button>
-                <Button type="submit" className="w-full sm:w-auto">
-                  Save changes
-                </Button>
-              </div>
+              <FormActions
+                cancelHref="/applications"
+                submitLabel="Save changes"
+              />
             </form>
           </CardContent>
         </Card>

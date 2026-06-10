@@ -9,6 +9,7 @@ import {
   generateInterviewPrepNotes,
   updateInterview,
 } from "@/app/(app)/interviews/actions";
+import { FormActions } from "@/components/form-actions";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -287,6 +288,7 @@ export default async function EditInterviewPage({
                 <Textarea
                   id="prepNotes"
                   name="prepNotes"
+                  className="min-h-32"
                   rows={5}
                   defaultValue={interview.prepNotes ?? ""}
                   placeholder="Add personal reminders or edit generated prep notes..."
@@ -303,20 +305,17 @@ export default async function EditInterviewPage({
                 <Textarea
                   id="feedback"
                   name="feedback"
+                  className="min-h-32"
                   rows={5}
                   defaultValue={interview.feedback ?? ""}
                   placeholder="Reflection or feedback after the interview..."
                 />
               </div>
 
-              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <Button variant="outline" className="w-full sm:w-auto" asChild>
-                  <Link href="/interviews">Cancel</Link>
-                </Button>
-                <Button type="submit" className="w-full sm:w-auto">
-                  Save changes
-                </Button>
-              </div>
+              <FormActions
+                cancelHref="/interviews"
+                submitLabel="Save changes"
+              />
             </form>
           </CardContent>
         </Card>

@@ -42,7 +42,11 @@ export function DeleteConfirmationForm({
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button type="button" variant="destructive">
+        <Button
+          type="button"
+          variant="destructive"
+          className="w-full sm:w-auto"
+        >
           {triggerLabel}
         </Button>
       </AlertDialogTrigger>

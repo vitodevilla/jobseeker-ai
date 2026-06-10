@@ -8,6 +8,7 @@ import {
   generateCoverLetterDraftForApplication,
 } from "@/app/(app)/cover-letters/actions";
 import { AiSectionCard } from "@/components/ai-section-card";
+import { FormActions } from "@/components/form-actions";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -116,7 +117,7 @@ export default async function NewCoverLetterPage({
         ) : null}
 
         {applications.length === 0 ? (
-          <Card>
+          <Card size="sm">
             <CardHeader>
               <CardTitle>No applications yet</CardTitle>
               <CardDescription>
@@ -126,7 +127,7 @@ export default async function NewCoverLetterPage({
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button asChild>
+              <Button className="w-full sm:w-auto" asChild>
                 <Link href="/applications/new">Create application</Link>
               </Button>
             </CardContent>
@@ -213,6 +214,7 @@ export default async function NewCoverLetterPage({
                     <Textarea
                       id="content"
                       name="content"
+                      className="min-h-72"
                       rows={12}
                       placeholder="Paste or write your cover letter draft here..."
                     />
@@ -223,14 +225,10 @@ export default async function NewCoverLetterPage({
                     </p>
                   </div>
 
-                  <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                    <Button variant="outline" className="w-full sm:w-auto" asChild>
-                      <Link href="/cover-letters">Cancel</Link>
-                    </Button>
-                    <Button type="submit" className="w-full sm:w-auto">
-                      Create cover letter
-                    </Button>
-                  </div>
+                  <FormActions
+                    cancelHref="/cover-letters"
+                    submitLabel="Create cover letter"
+                  />
                 </form>
               </CardContent>
             </Card>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createResume } from "@/app/(app)/resumes/actions";
-import { Button } from "@/components/ui/button";
+import { FormActions } from "@/components/form-actions";
 import {
   Card,
   CardContent,
@@ -136,6 +136,7 @@ export default async function NewResumePage({
                 <Textarea
                   id="content"
                   name="content"
+                  className="min-h-80"
                   rows={14}
                   placeholder="Paste your resume text here if you are not uploading a PDF, or as a fallback."
                 />
@@ -145,14 +146,7 @@ export default async function NewResumePage({
                 </p>
               </div>
 
-              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <Button variant="outline" className="w-full sm:w-auto" asChild>
-                  <Link href="/resumes">Cancel</Link>
-                </Button>
-                <Button type="submit" className="w-full sm:w-auto">
-                  Create resume
-                </Button>
-              </div>
+              <FormActions cancelHref="/resumes" submitLabel="Create resume" />
             </form>
           </CardContent>
         </Card>
