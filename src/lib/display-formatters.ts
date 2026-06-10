@@ -1,10 +1,14 @@
+export const APP_DISPLAY_TIME_ZONE = "Europe/Zagreb"
+
 const displayDateFormatter = new Intl.DateTimeFormat("en-US", {
+  timeZone: APP_DISPLAY_TIME_ZONE,
   month: "short",
   day: "numeric",
   year: "numeric",
 })
 
 const displayDateTimeFormatter = new Intl.DateTimeFormat("en-US", {
+  timeZone: APP_DISPLAY_TIME_ZONE,
   month: "short",
   day: "numeric",
   year: "numeric",

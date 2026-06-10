@@ -1,5 +1,6 @@
 import { google } from "@ai-sdk/google";
 import { generateText } from "ai";
+import { formatDisplayDate } from "@/lib/display-formatters";
 
 type CareerContext = {
   targetRole: string | null;
@@ -50,7 +51,7 @@ type GenerateCoverLetterCritiqueInput = {
 const COVER_LETTER_CRITIQUE_MODEL = "gemini-2.5-flash";
 
 function formatDate(date: Date | null) {
-  return date ? date.toISOString().slice(0, 10) : null;
+  return date ? formatDisplayDate(date) : null;
 }
 
 function formatSalary(context: JobPostingContext) {
