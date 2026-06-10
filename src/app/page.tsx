@@ -10,64 +10,80 @@ import {
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-background">
-      <section className="mx-auto flex min-h-screen max-w-5xl flex-col justify-center px-4 py-12">
-        <div className="max-w-2xl space-y-6">
-          <p className="text-sm font-medium text-muted-foreground">
+      <section className="mx-auto flex min-h-screen max-w-5xl flex-col px-4 py-5 sm:py-6">
+        <div className="flex items-center justify-between gap-4">
+          <Link
+            href="/"
+            className="text-base font-semibold whitespace-nowrap"
+          >
             JobSeeker AI
-          </p>
+          </Link>
 
-          <div className="space-y-4">
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-              Track your job search and prepare smarter with your own data.
-            </h1>
-
-            <p className="text-lg text-muted-foreground">
-              JobSeeker AI is a personal job search workspace for applications,
-              resumes, cover letters, interviews, tasks, and future AI-assisted
-              matching.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Button asChild>
-              <Link href="/sign-up">Create account</Link>
-            </Button>
-
-            <Button variant="outline" asChild>
-              <Link href="/sign-in">Sign in</Link>
-            </Button>
-          </div>
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/sign-in">Sign in</Link>
+          </Button>
         </div>
 
-        <div className="mt-12 grid gap-4 sm:grid-cols-3">
-          <Card>
-            <CardHeader>
-              <CardTitle>Track applications</CardTitle>
-              <CardDescription>
-                Keep saved jobs, applications, interviews, and follow-ups in one
-                place.
-              </CardDescription>
-            </CardHeader>
-          </Card>
+        <div className="flex flex-1 flex-col justify-center py-10 sm:py-14">
+          <div className="max-w-3xl space-y-6">
+            <p className="inline-flex rounded-full border border-[#A3B3C0] bg-[#F2F6FB] px-2.5 py-1 text-xs font-medium text-[#334F70]">
+              Job-search workspace
+            </p>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Manage documents</CardTitle>
-              <CardDescription>
-                Organize resume versions and cover letters for each opportunity.
-              </CardDescription>
-            </CardHeader>
-          </Card>
+            <div className="space-y-4">
+              <h1 className="max-w-2xl text-4xl font-bold tracking-tight sm:text-5xl">
+                A calmer workspace for your job search.
+              </h1>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Prepare for AI assistance</CardTitle>
-              <CardDescription>
-                Build structured career context that future AI features can use
-                for personalized recommendations.
-              </CardDescription>
-            </CardHeader>
-          </Card>
+              <p className="max-w-2xl text-lg leading-8 text-muted-foreground">
+                Track applications, tasks, interviews, resumes, and cover
+                letters in one place. Use your saved records to prepare for the
+                next step with context that stays organized.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button className="w-full sm:w-auto" asChild>
+                <Link href="/sign-up">Create account</Link>
+              </Button>
+
+              <Button variant="outline" className="w-full sm:w-auto" asChild>
+                <Link href="/sign-in">Sign in</Link>
+              </Button>
+            </div>
+          </div>
+
+          <div className="mt-10 grid gap-4 sm:grid-cols-3">
+            <Card>
+              <CardHeader>
+                <CardTitle>Track the pipeline</CardTitle>
+                <CardDescription>
+                  Keep applications, interviews, and follow-ups moving from one
+                  organized view.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Keep documents close</CardTitle>
+                <CardDescription>
+                  Organize resumes and cover letters by opportunity so the right
+                  version is easy to find.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Prepare from saved context</CardTitle>
+                <CardDescription>
+                  Review records and next steps with assistant support grounded
+                  in your job-search data.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
         </div>
       </section>
     </main>

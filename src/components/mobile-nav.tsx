@@ -35,7 +35,7 @@ export function MobileNav({ navGroups, userName, userEmail }: MobileNavProps) {
       <div className="flex min-h-16 items-center justify-between gap-4 py-3">
         <Link
           href="/dashboard"
-          className="block min-w-0 truncate text-lg font-semibold"
+          className="block min-w-0 truncate rounded-md text-lg font-semibold focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
           onClick={() => setOpen(false)}
         >
           JobSeeker AI
@@ -47,6 +47,7 @@ export function MobileNav({ navGroups, userName, userEmail }: MobileNavProps) {
           size="sm"
           aria-expanded={open}
           aria-controls="mobile-navigation"
+          className="shrink-0"
           onClick={() => setOpen((current) => !current)}
         >
           {open ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
@@ -60,14 +61,14 @@ export function MobileNav({ navGroups, userName, userEmail }: MobileNavProps) {
           aria-label="Primary navigation"
           className="border-t py-3"
         >
-          <div className="flex flex-col gap-4">
+          <div className="rounded-lg border border-border bg-card p-2 shadow-sm">
             {navGroups.map((group) => (
-              <div key={group.label} className="space-y-1">
+              <div key={group.label} className="space-y-1 py-1.5">
                 <p className="px-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
                   {group.label}
                 </p>
 
-                <div className="flex flex-col">
+                <div className="flex flex-col gap-1">
                   {group.items.map((item) => {
                     const active = isNavHrefActive(pathname, item.href);
 
@@ -77,9 +78,9 @@ export function MobileNav({ navGroups, userName, userEmail }: MobileNavProps) {
                         href={item.href}
                         aria-current={active ? "page" : undefined}
                         className={cn(
-                          "rounded-md px-2 py-2 text-sm font-medium transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
+                          "rounded-md border border-transparent px-2.5 py-2 text-sm font-medium transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
                           active
-                            ? "bg-muted text-foreground"
+                            ? "border-border bg-muted text-foreground"
                             : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
                         )}
                         onClick={() => setOpen(false)}
@@ -91,8 +92,8 @@ export function MobileNav({ navGroups, userName, userEmail }: MobileNavProps) {
                 </div>
 
                 {group.label === "Account" ? (
-                  <div className="mt-2 space-y-2 px-2">
-                    <div className="rounded-md bg-muted/60 p-3 text-sm">
+                  <div className="mt-2 space-y-2">
+                    <div className="min-w-0 rounded-md border border-border bg-muted/50 p-3 text-sm">
                       <p className="truncate font-medium">{displayName}</p>
                       <p className="truncate text-muted-foreground">
                         {userEmail}
