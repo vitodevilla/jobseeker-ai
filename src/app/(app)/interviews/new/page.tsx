@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createInterview } from "@/app/(app)/interviews/actions";
+import { FormActions } from "@/components/form-actions";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -62,7 +63,7 @@ export default async function NewInterviewPage() {
         </div>
 
         {applications.length === 0 ? (
-          <Card>
+          <Card size="sm">
             <CardHeader>
               <CardTitle>No applications yet</CardTitle>
               <CardDescription>
@@ -71,7 +72,7 @@ export default async function NewInterviewPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button asChild>
+              <Button className="w-full sm:w-auto" asChild>
                 <Link href="/applications/new">Create application</Link>
               </Button>
             </CardContent>
@@ -194,6 +195,7 @@ export default async function NewInterviewPage() {
                   <Textarea
                     id="prepNotes"
                     name="prepNotes"
+                    className="min-h-32"
                     rows={5}
                     placeholder="What should you prepare before this interview?"
                   />
@@ -204,19 +206,16 @@ export default async function NewInterviewPage() {
                   <Textarea
                     id="feedback"
                     name="feedback"
+                    className="min-h-32"
                     rows={5}
                     placeholder="Reflection or feedback after the interview..."
                   />
                 </div>
 
-                <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                  <Button variant="outline" className="w-full sm:w-auto" asChild>
-                    <Link href="/interviews">Cancel</Link>
-                  </Button>
-                  <Button type="submit" className="w-full sm:w-auto">
-                    Create interview
-                  </Button>
-                </div>
+                <FormActions
+                  cancelHref="/interviews"
+                  submitLabel="Create interview"
+                />
               </form>
             </CardContent>
           </Card>

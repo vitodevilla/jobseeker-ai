@@ -20,6 +20,7 @@ import {
   refreshJobPostingSemanticData,
   updateJobPosting,
 } from "@/app/(app)/job-postings/actions";
+import { FormActions } from "@/components/form-actions";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -499,6 +500,7 @@ export default async function EditJobPostingPage({
                 <Textarea
                   id="description"
                   name="description"
+                  className="min-h-64"
                   required
                   rows={10}
                   defaultValue={jobPosting.description}
@@ -509,14 +511,10 @@ export default async function EditJobPostingPage({
                 </p>
               </div>
 
-              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <Button variant="outline" className="w-full sm:w-auto" asChild>
-                  <Link href="/job-postings">Cancel</Link>
-                </Button>
-                <Button type="submit" className="w-full sm:w-auto">
-                  Save changes
-                </Button>
-              </div>
+              <FormActions
+                cancelHref="/job-postings"
+                submitLabel="Save changes"
+              />
             </form>
           </CardContent>
         </Card>

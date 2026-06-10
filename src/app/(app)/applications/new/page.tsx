@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createApplication } from "@/app/(app)/applications/actions";
+import { FormActions } from "@/components/form-actions";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -69,7 +70,7 @@ export default async function NewApplicationPage() {
         </div>
 
         {availableJobPostings.length === 0 ? (
-          <Card>
+          <Card size="sm">
             <CardHeader>
               <CardTitle>No available job postings</CardTitle>
               <CardDescription>
@@ -78,7 +79,7 @@ export default async function NewApplicationPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button asChild>
+              <Button className="w-full sm:w-auto" asChild>
                 <Link href="/job-postings/new">Add job posting</Link>
               </Button>
             </CardContent>
@@ -192,19 +193,16 @@ export default async function NewApplicationPage() {
                   <Textarea
                     id="notes"
                     name="notes"
+                    className="min-h-32"
                     rows={5}
                     placeholder="Anything important about this application..."
                   />
                 </div>
 
-                <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                  <Button variant="outline" className="w-full sm:w-auto" asChild>
-                    <Link href="/applications">Cancel</Link>
-                  </Button>
-                  <Button type="submit" className="w-full sm:w-auto">
-                    Create application
-                  </Button>
-                </div>
+                <FormActions
+                  cancelHref="/applications"
+                  submitLabel="Create application"
+                />
               </form>
             </CardContent>
           </Card>

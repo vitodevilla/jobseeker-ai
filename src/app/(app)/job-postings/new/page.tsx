@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createJobPosting } from "@/app/(app)/job-postings/actions";
+import { FormActions } from "@/components/form-actions";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -55,7 +56,7 @@ export default async function NewJobPostingPage() {
         </div>
 
         {companies.length === 0 ? (
-          <Card>
+          <Card size="sm">
             <CardHeader>
               <CardTitle>Add a company first</CardTitle>
               <CardDescription>
@@ -64,7 +65,7 @@ export default async function NewJobPostingPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button asChild>
+              <Button className="w-full sm:w-auto" asChild>
                 <Link href="/companies/new">Add company</Link>
               </Button>
             </CardContent>
@@ -196,6 +197,7 @@ export default async function NewJobPostingPage() {
                   <Textarea
                     id="description"
                     name="description"
+                    className="min-h-64"
                     required
                     rows={10}
                     placeholder="Paste the job description here..."
@@ -206,14 +208,10 @@ export default async function NewJobPostingPage() {
                   </p>
                 </div>
 
-                <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                  <Button variant="outline" className="w-full sm:w-auto" asChild>
-                    <Link href="/job-postings">Cancel</Link>
-                  </Button>
-                  <Button type="submit" className="w-full sm:w-auto">
-                    Create job posting
-                  </Button>
-                </div>
+                <FormActions
+                  cancelHref="/job-postings"
+                  submitLabel="Create job posting"
+                />
               </form>
             </CardContent>
           </Card>

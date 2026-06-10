@@ -9,6 +9,7 @@ import {
   generateCoverLetterAiFeedback,
   updateCoverLetter,
 } from "@/app/(app)/cover-letters/actions";
+import { FormActions } from "@/components/form-actions";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -156,16 +157,6 @@ export default async function EditCoverLetterPage({
           </p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Writing guidance</CardTitle>
-            <CardDescription>
-              Written drafts are the recommended starting point. AI critique can
-              help you improve specificity, alignment, and readability.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-
         {errorMessage ? (
           <StatusMessage
             variant="error"
@@ -177,6 +168,16 @@ export default async function EditCoverLetterPage({
         {aiSuccessMessage ? (
           <StatusMessage variant="success" title={aiSuccessMessage} />
         ) : null}
+
+        <Card size="sm">
+          <CardHeader>
+            <CardTitle>Writing guidance</CardTitle>
+            <CardDescription>
+              Written drafts are the recommended starting point. AI critique can
+              help you improve specificity, alignment, and readability.
+            </CardDescription>
+          </CardHeader>
+        </Card>
 
         <Card>
           <CardHeader>
@@ -264,6 +265,7 @@ export default async function EditCoverLetterPage({
                 <Textarea
                   id="content"
                   name="content"
+                  className="min-h-72"
                   rows={12}
                   defaultValue={coverLetter.content ?? ""}
                   placeholder="Paste or write your cover letter draft here..."
@@ -274,14 +276,10 @@ export default async function EditCoverLetterPage({
                 </p>
               </div>
 
-              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <Button variant="outline" className="w-full sm:w-auto" asChild>
-                  <Link href="/cover-letters">Cancel</Link>
-                </Button>
-                <Button type="submit" className="w-full sm:w-auto">
-                  Save changes
-                </Button>
-              </div>
+              <FormActions
+                cancelHref="/cover-letters"
+                submitLabel="Save changes"
+              />
             </form>
           </CardContent>
         </Card>
