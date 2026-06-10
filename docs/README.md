@@ -33,6 +33,7 @@ The separate `~/zavrsni` folder is a thesis/dev writing workspace. It can contai
 - [Semantic Test Data](data/semantic-test-data.md): controlled synthetic dataset used for semantic retrieval testing.
 - [Retrieval Evaluation Cases](evaluation/retrieval-evaluation-cases.md): expected strong, medium, and decoy records for the retrieval harness.
 - [Latest Retrieval Evaluation Results](evaluation-results/retrieval-evaluation-latest.md): latest generated markdown report from `pnpm evaluate:retrieval --email test@example.com --write-report`.
+- [Demo Readiness Checklist](demo-readiness-checklist.md): short final-prep checklist for seeding demo data, refreshing embeddings, running retrieval evaluation, and manually preparing selected AI outputs.
 
 ---
 
