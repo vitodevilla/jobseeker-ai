@@ -1,3 +1,8 @@
+import {
+  formatDisplayDate,
+  formatDisplayDateTime,
+} from "@/lib/display-formatters";
+
 const QUERY_TERM_LIMIT = 8;
 const RESUME_EXCERPT_LENGTH = 900;
 const JOB_DESCRIPTION_EXCERPT_LENGTH = 700;
@@ -112,11 +117,11 @@ export function excerptAroundTerms(
 }
 
 export function formatDate(date: Date | null | undefined) {
-  return date ? date.toISOString().slice(0, 10) : "not set";
+  return date ? formatDisplayDate(date) : "not set";
 }
 
 export function formatDateTime(date: Date | null | undefined) {
-  return date ? date.toISOString() : "not set";
+  return date ? formatDisplayDateTime(date) : "not set";
 }
 
 export function formatStatus(value: string | null | undefined) {

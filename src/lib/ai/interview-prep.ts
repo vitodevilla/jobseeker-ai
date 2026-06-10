@@ -1,5 +1,9 @@
 import { google } from "@ai-sdk/google";
 import { generateText } from "ai";
+import {
+  formatDisplayDate,
+  formatDisplayDateTime,
+} from "@/lib/display-formatters";
 
 type CareerContext = {
   targetRole: string | null;
@@ -69,11 +73,11 @@ type GenerateInterviewPrepNotesInput = {
 const INTERVIEW_PREP_MODEL = "gemini-2.5-flash";
 
 function formatDate(date: Date | null) {
-  return date ? date.toISOString().slice(0, 10) : null;
+  return date ? formatDisplayDate(date) : null;
 }
 
 function formatDateTime(date: Date) {
-  return date.toISOString();
+  return formatDisplayDateTime(date);
 }
 
 function formatSalary(context: JobPostingContext) {
