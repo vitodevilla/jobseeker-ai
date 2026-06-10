@@ -65,6 +65,9 @@ type SemanticJobPostingSearchRow = {
   location: string | null;
   workMode: WorkMode | null;
   seniorityLevel: string | null;
+  salaryMin: number | null;
+  salaryMax: number | null;
+  salaryCurrency: string | null;
   matchScore: number | null;
   deadline: Date | null;
   savedAt: Date;
@@ -132,6 +135,9 @@ export type SearchJobPostingsBySemanticQueryResult = {
     location: string | null;
     workMode: WorkMode | null;
     seniorityLevel: string | null;
+    salaryMin: number | null;
+    salaryMax: number | null;
+    salaryCurrency: string | null;
     matchScore: number | null;
     deadline: Date | null;
     savedAt: Date;
@@ -788,6 +794,9 @@ export async function searchJobPostingsBySemanticQuery({
              jp."location",
              jp."workMode",
              jp."seniorityLevel",
+             jp."salaryMin",
+             jp."salaryMax",
+             jp."salaryCurrency",
              jp."matchScore",
              jp."deadline",
              jp."savedAt",
@@ -817,6 +826,9 @@ export async function searchJobPostingsBySemanticQuery({
       location: row.location,
       workMode: row.workMode,
       seniorityLevel: row.seniorityLevel,
+      salaryMin: row.salaryMin,
+      salaryMax: row.salaryMax,
+      salaryCurrency: row.salaryCurrency,
       matchScore: row.matchScore,
       deadline: row.deadline,
       savedAt: row.savedAt,
