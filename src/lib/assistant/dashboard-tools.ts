@@ -25,7 +25,15 @@ const RECENT_JOB_POSTING_LIMIT = 6;
 const SCORED_JOB_POSTING_LIMIT = 5;
 const KEYWORD_RESULT_LIMIT = 5;
 const SEMANTIC_RESULT_LIMIT = 3;
+const SALARY_RANKED_JOB_POSTING_LIMIT = 10;
 const NOTES_EXCERPT_LENGTH = 300;
+
+const SALARY_INTENT_PATTERN =
+  /\b(salary|salaries|compensation|pay|paid|paying|wage|wages)\b/;
+const RANKING_INTENT_PATTERN =
+  /\b(top|highest|high|best|most|maximum|max|largest|rank|ranking|ranked|sort|sorted|order|ordered)\b/;
+const PAID_RANKING_INTENT_PATTERN =
+  /\b(highest|best|top|most)[ -]+paid\b|\b(best|top)[ -]+paying\b/;
 
 const CLOSED_APPLICATION_STATUSES = [
   "ACCEPTED",
@@ -125,6 +133,24 @@ function buildModuleResult({
     limitations,
     status: status ?? (lines.length > 0 ? "ok" : "empty"),
   };
+}
+
+export function isSalaryRankingJobPostingQuestion(question: string) {
+  const normalizedQuestion = question
+    .toLowerCase()
+    .replaceAll("_", " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!normalizedQuestion) {
+    return false;
+  }
+
+  return (
+    PAID_RANKING_INTENT_PATTERN.test(normalizedQuestion) ||
+    (SALARY_INTENT_PATTERN.test(normalizedQuestion) &&
+      RANKING_INTENT_PATTERN.test(normalizedQuestion))
+  );
 }
 
 function buildJobPostingKeywordWhere(
@@ -722,6 +748,66 @@ export async function getSavedJobMatchScoresContext({
   });
 }
 
+export async function getSalaryRankedJobPostingsContext({
+  userId,
+  registry,
+  terms,
+}: DashboardModuleInput): Promise<DashboardAssistantContextModuleResult> {
+  const salaryRankedJobPostings = await prisma.jobPosting.findMany({
+    where: {
+      userId,
+      OR: [
+        {
+          salaryMax: {
+            not: null,
+          },
+        },
+        {
+          salaryMin: {
+            not: null,
+          },
+        },
+      ],
+    },
+    include: {
+      company: true,
+    },
+    orderBy: [
+      {
+        salaryMax: {
+          sort: "desc",
+          nulls: "last",
+        },
+      },
+      {
+        salaryMin: {
+          sort: "desc",
+          nulls: "last",
+        },
+      },
+      {
+        savedAt: "desc",
+      },
+    ],
+    take: SALARY_RANKED_JOB_POSTING_LIMIT,
+  });
+  const lines = salaryRankedJobPostings.map((jobPosting, index) =>
+    formatJobPostingLine({
+      index: index + 1,
+      sourceKey: registry.addJobPostingSource(jobPosting),
+      companyKey: registry.addCompanySource(jobPosting.company),
+      jobPosting,
+      terms,
+    }),
+  );
+
+  return buildModuleResult({
+    title: "Salary-Ranked Saved Job Postings",
+    lines,
+    emptyMessage: "No saved job postings with salary information were found.",
+  });
+}
+
 export async function searchJobPostingsContext({
   userId,
   registry,
@@ -729,6 +815,14 @@ export async function searchJobPostingsContext({
   question,
   mode,
 }: SearchDashboardModuleInput): Promise<DashboardAssistantContextModuleResult> {
+  if (mode === "keyword" && isSalaryRankingJobPostingQuestion(question)) {
+    return getSalaryRankedJobPostingsContext({
+      userId,
+      registry,
+      terms,
+    });
+  }
+
   if (mode === "keyword") {
     const keywordJobPostings =
       terms.length > 0

@@ -4,7 +4,9 @@ import { getQuestionTerms, section } from "@/lib/assistant/context-formatters";
 import {
   findApplicationsNeedingAttentionContext,
   getPendingTasksContext,
+  getSalaryRankedJobPostingsContext,
   getUpcomingInterviewsContext,
+  isSalaryRankingJobPostingQuestion,
   searchJobPostingsContext,
   searchResumesContext,
   type DashboardAssistantContextModuleResult,
@@ -215,7 +217,7 @@ export function createDashboardAssistantTools({
 
     searchJobPostings: tool({
       description:
-        "Use when the user asks about saved jobs, job requirements, companies, technologies, Docker/containers, role fit, or job details. Searches saved job postings with keyword and semantic retrieval. Read-only.",
+        "Use when the user asks about saved jobs, job requirements, companies, technologies, Docker/containers, role fit, salary/compensation/pay rankings, or job details. Searches saved job postings with read-only retrieval.",
       inputSchema: searchInputSchema,
       execute: async ({ query }) =>
         runReadOnlyTool({
@@ -231,6 +233,21 @@ export function createDashboardAssistantTools({
               terms,
               question: query,
             };
+
+            if (isSalaryRankingJobPostingQuestion(query)) {
+              const salaryResult = await getSalaryRankedJobPostingsContext({
+                userId,
+                registry,
+                terms,
+              });
+
+              return combineSearchResults({
+                title: "Saved Job Posting Search",
+                query,
+                results: [salaryResult],
+              });
+            }
+
             const [keywordResult, semanticResult] = await Promise.all([
               searchJobPostingsContext({
                 ...sharedInput,
