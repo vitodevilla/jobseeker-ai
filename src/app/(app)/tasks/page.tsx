@@ -264,7 +264,7 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
         ) : (
           <>
             <div className="flex flex-col gap-1 rounded-lg border border-border bg-card px-3 py-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-              <p className="min-w-0 break-words">
+              <p className="min-w-0 wrap-break-word">
                 Showing {tasks.length} of {totalTasks}{" "}
                 {query ? "matching " : ""}
                 tasks
@@ -292,7 +292,7 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
                       <PriorityBadge priority={task.priority} />
                     </div>
 
-                    <div className="grid gap-1.5 break-words text-sm text-muted-foreground">
+                    <div className="grid gap-1.5 wrap-break-word text-sm text-muted-foreground">
                       {task.dueAt ? (
                         <p>
                           <span className="font-medium text-foreground">
@@ -313,7 +313,7 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
                     </div>
 
                     {task.description ? (
-                      <p className="line-clamp-3 break-words text-sm text-muted-foreground">
+                      <p className="line-clamp-3 wrap-break-word text-sm text-muted-foreground">
                         {task.description}
                       </p>
                     ) : null}

@@ -194,7 +194,7 @@ export default async function CompaniesPage({
         ) : (
           <>
             <div className="flex flex-col gap-1 rounded-lg border border-border bg-card px-3 py-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-              <p className="min-w-0 break-words">
+              <p className="min-w-0 wrap-break-word">
                 Showing {companies.length} of {totalCompanies}{" "}
                 {query ? "matching " : ""}
                 companies
@@ -215,7 +215,7 @@ export default async function CompaniesPage({
                   </CardHeader>
 
                   <CardContent className="space-y-3">
-                    <div className="grid gap-1.5 break-words text-sm text-muted-foreground">
+                    <div className="grid gap-1.5 wrap-break-word text-sm text-muted-foreground">
                       {company.website ? (
                         <p className="break-all">
                           <span className="font-medium text-foreground">

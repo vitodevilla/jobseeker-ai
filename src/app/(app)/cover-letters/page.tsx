@@ -132,7 +132,7 @@ export default async function CoverLettersPage() {
                       </Badge>
                     </div>
 
-                    <div className="grid gap-1.5 break-words text-sm text-muted-foreground">
+                    <div className="grid gap-1.5 wrap-break-word text-sm text-muted-foreground">
                       <p>
                         <span className="font-medium text-foreground">
                           Version:
@@ -148,7 +148,7 @@ export default async function CoverLettersPage() {
                     </div>
 
                     {coverLetter.content ? (
-                      <p className="line-clamp-3 break-words text-sm text-muted-foreground">
+                      <p className="line-clamp-3 wrap-break-word text-sm text-muted-foreground">
                         {coverLetter.content}
                       </p>
                     ) : (

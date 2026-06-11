@@ -77,7 +77,7 @@ const markdownComponents: Components = {
     const safeHref = typeof href === "string" ? getSafeHref(href) : null;
 
     if (!safeHref) {
-      return <span className="break-words">{children}</span>;
+      return <span className="wrap-break-word">{children}</span>;
     }
 
     const normalizedHref = safeHref.toLowerCase();
@@ -91,7 +91,7 @@ const markdownComponents: Components = {
         href={safeHref}
         target={isExternalLink ? "_blank" : undefined}
         rel={isExternalLink ? "noreferrer" : undefined}
-        className="break-words font-medium text-foreground underline underline-offset-4"
+        className="wrap-break-word font-medium text-foreground underline underline-offset-4"
       >
         {children}
       </a>
@@ -143,7 +143,7 @@ const markdownComponents: Components = {
     return <ol className="ml-5 list-decimal space-y-1.5">{children}</ol>;
   },
   p({ children }) {
-    return <p className="break-words">{children}</p>;
+    return <p className="wrap-break-word">{children}</p>;
   },
   pre({ children }) {
     return (
@@ -189,7 +189,7 @@ export function MarkdownContent({ children, className }: MarkdownContentProps) {
   return (
     <div
       className={cn(
-        "space-y-3.5 break-words text-sm leading-6",
+        "space-y-3.5 wrap-break-word text-sm leading-6",
         className,
       )}
     >

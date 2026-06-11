@@ -412,10 +412,10 @@ export default async function EditResumePage({
                       className="group flex min-w-0 flex-col gap-2 p-3 transition-colors hover:bg-muted/50 sm:flex-row sm:items-center sm:justify-between"
                     >
                       <div className="min-w-0 space-y-1">
-                        <p className="break-words font-medium text-foreground underline-offset-4 group-hover:underline">
+                        <p className="wrap-break-word font-medium text-foreground underline-offset-4 group-hover:underline">
                           {jobPosting.title}
                         </p>
-                        <p className="break-words text-sm text-muted-foreground">
+                        <p className="wrap-break-word text-sm text-muted-foreground">
                           {jobPosting.companyName}
                         </p>
                       </div>

@@ -477,10 +477,10 @@ export default async function DashboardPage() {
                 {nextInterview ? (
                   <>
                     <div className="space-y-1">
-                      <p className="break-words text-sm font-medium">
+                      <p className="wrap-break-word text-sm font-medium">
                         {nextInterview.application.jobPosting.title}
                       </p>
-                      <p className="break-words text-sm text-muted-foreground">
+                      <p className="wrap-break-word text-sm text-muted-foreground">
                         {nextInterview.application.jobPosting.company.name}
                       </p>
                     </div>
@@ -527,10 +527,10 @@ export default async function DashboardPage() {
                 {mostUrgentTask ? (
                   <>
                     <div className="space-y-1">
-                      <p className="break-words text-sm font-medium">
+                      <p className="wrap-break-word text-sm font-medium">
                         {mostUrgentTask.title}
                       </p>
-                      <p className="break-words text-sm text-muted-foreground">
+                      <p className="wrap-break-word text-sm text-muted-foreground">
                         {mostUrgentTask.application
                           ? `${mostUrgentTask.application.jobPosting.title} - ${mostUrgentTask.application.jobPosting.company.name}`
                           : "Standalone task"}
@@ -575,10 +575,10 @@ export default async function DashboardPage() {
                 {attentionApplication ? (
                   <>
                     <div className="space-y-1">
-                      <p className="break-words text-sm font-medium">
+                      <p className="wrap-break-word text-sm font-medium">
                         {attentionApplication.jobPosting.title}
                       </p>
-                      <p className="break-words text-sm text-muted-foreground">
+                      <p className="wrap-break-word text-sm text-muted-foreground">
                         {attentionApplication.jobPosting.company.name}
                       </p>
                     </div>
@@ -682,10 +682,10 @@ export default async function DashboardPage() {
                     >
                       <div className="min-w-0 space-y-2">
                         <div className="space-y-1">
-                          <p className="break-words text-sm font-medium">
+                          <p className="wrap-break-word text-sm font-medium">
                             {interview.application.jobPosting.title}
                           </p>
-                          <p className="break-words text-sm text-muted-foreground">
+                          <p className="wrap-break-word text-sm text-muted-foreground">
                             {interview.application.jobPosting.company.name}
                           </p>
                         </div>
@@ -755,10 +755,10 @@ export default async function DashboardPage() {
                     >
                       <div className="min-w-0 space-y-2">
                         <div className="space-y-1">
-                          <p className="break-words text-sm font-medium">
+                          <p className="wrap-break-word text-sm font-medium">
                             {task.title}
                           </p>
-                          <p className="break-words text-sm text-muted-foreground">
+                          <p className="wrap-break-word text-sm text-muted-foreground">
                             {task.application
                               ? `${task.application.jobPosting.title} - ${task.application.jobPosting.company.name}`
                               : "Standalone task"}
@@ -828,10 +828,10 @@ export default async function DashboardPage() {
                   >
                     <div className="min-w-0 space-y-2">
                       <div className="space-y-1">
-                        <p className="break-words text-sm font-medium">
+                        <p className="wrap-break-word text-sm font-medium">
                           {application.jobPosting.title}
                         </p>
-                        <p className="break-words text-sm text-muted-foreground">
+                        <p className="wrap-break-word text-sm text-muted-foreground">
                           {application.jobPosting.company.name}
                         </p>
                       </div>
@@ -858,7 +858,7 @@ export default async function DashboardPage() {
                           </p>
                         ) : null}
 
-                        <p className="break-words">
+                        <p className="wrap-break-word">
                           {application.resume
                             ? `Resume: ${application.resume.name}`
                             : "No resume selected"}

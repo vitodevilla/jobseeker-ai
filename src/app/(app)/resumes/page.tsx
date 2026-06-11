@@ -364,7 +364,7 @@ export default async function ResumesPage({ searchParams }: ResumesPageProps) {
         ) : (
           <>
             <div className="flex flex-col gap-1 rounded-lg border border-border bg-card px-3 py-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-              <p className="min-w-0 break-words">{resultSummary}</p>
+              <p className="min-w-0 wrap-break-word">{resultSummary}</p>
               {shouldShowPagination ? (
                 <p>
                   Page {page} of {totalPages}
@@ -395,7 +395,7 @@ export default async function ResumesPage({ searchParams }: ResumesPageProps) {
                         </div>
                       ) : null}
 
-                      <p className="line-clamp-3 break-words text-sm text-muted-foreground">
+                      <p className="line-clamp-3 wrap-break-word text-sm text-muted-foreground">
                         {resume.content}
                       </p>
                     </CardContent>
