@@ -6,6 +6,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { generateCoverLetterAiFeedback } from "@/app/(app)/cover-letters/actions";
 import { EmptyState } from "@/components/empty-state";
+import { SubmitButton } from "@/components/submit-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDisplayDate } from "@/lib/display-formatters";
@@ -174,8 +175,8 @@ export default async function CoverLettersPage() {
                       action={generateCoverLetterAiFeedbackWithId}
                       className="w-full sm:w-auto"
                     >
-                      <Button
-                        type="submit"
+                      <SubmitButton
+                        pendingLabel="Analyzing..."
                         variant="ai"
                         size="sm"
                         className="w-full sm:w-auto"
@@ -183,7 +184,7 @@ export default async function CoverLettersPage() {
                         {coverLetter.aiFeedback
                           ? "Refresh critique"
                           : "AI critique"}
-                      </Button>
+                      </SubmitButton>
                     </form>
                   </CardFooter>
                 </Card>

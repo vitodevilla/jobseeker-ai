@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Form from "next/form";
 import { BriefcaseIcon } from "lucide-react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -8,6 +9,7 @@ import { searchJobPostingsBySemanticQuery } from "@/lib/retrieval/semantic-searc
 import { generateJobPostingAiSummary } from "@/app/(app)/job-postings/actions";
 import { EmptyState } from "@/components/empty-state";
 import { MatchBadge, SimilarityBadge } from "@/components/job-search-badges";
+import { SubmitButton } from "@/components/submit-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -430,7 +432,11 @@ export default async function JobPostingsPage({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form action="/job-postings" className="space-y-3">
+            <Form
+              action="/job-postings"
+              prefetch={false}
+              className="space-y-3"
+            >
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_150px_150px_220px]">
                 <div className="space-y-1.5">
                   <Label htmlFor="q">Search</Label>
@@ -490,9 +496,12 @@ export default async function JobPostingsPage({
                 </p>
 
                 <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-                  <Button type="submit" className="w-full sm:w-auto">
+                  <SubmitButton
+                    pendingLabel="Searching..."
+                    className="w-full sm:w-auto"
+                  >
                     Search
-                  </Button>
+                  </SubmitButton>
                   {hasActiveSearchControls ? (
                     <Button
                       variant="outline"
@@ -504,7 +513,7 @@ export default async function JobPostingsPage({
                   ) : null}
                 </div>
               </div>
-            </form>
+            </Form>
           </CardContent>
         </Card>
 
@@ -626,8 +635,8 @@ export default async function JobPostingsPage({
                         action={generateJobPostingAiSummaryWithId}
                         className="w-full sm:w-auto"
                       >
-                        <Button
-                          type="submit"
+                        <SubmitButton
+                          pendingLabel="Generating summary..."
                           variant="ai"
                           size="sm"
                           className="w-full sm:w-auto"
@@ -635,7 +644,7 @@ export default async function JobPostingsPage({
                           {jobPosting.aiSummary
                             ? "Refresh summary"
                             : "AI summary"}
-                        </Button>
+                        </SubmitButton>
                       </form>
                     </CardFooter>
                   </Card>

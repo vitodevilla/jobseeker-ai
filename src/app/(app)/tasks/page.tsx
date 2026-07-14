@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Form from "next/form";
 import { CheckSquareIcon } from "lucide-react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -6,6 +7,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { EmptyState } from "@/components/empty-state";
 import { PriorityBadge, StatusBadge } from "@/components/job-search-badges";
+import { SubmitButton } from "@/components/submit-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatDisplayDate } from "@/lib/display-formatters";
@@ -216,8 +218,9 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form
+            <Form
               action="/tasks"
+              prefetch={false}
               className="flex flex-col gap-2 sm:flex-row sm:items-center"
             >
               <Input
@@ -225,15 +228,18 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
                 defaultValue={query}
                 placeholder="Search tasks..."
               />
-              <Button type="submit" className="w-full sm:w-auto">
+              <SubmitButton
+                pendingLabel="Searching..."
+                className="w-full sm:w-auto"
+              >
                 Search
-              </Button>
+              </SubmitButton>
               {query ? (
                 <Button variant="outline" className="w-full sm:w-auto" asChild>
                   <Link href="/tasks">Clear</Link>
                 </Button>
               ) : null}
-            </form>
+            </Form>
           </CardContent>
         </Card>
 

@@ -9,6 +9,7 @@ import {
 } from "@/app/(app)/cover-letters/actions";
 import { AiSectionCard } from "@/components/ai-section-card";
 import { FormActions } from "@/components/form-actions";
+import { SubmitButton } from "@/components/submit-button";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -262,13 +263,13 @@ export default async function NewCoverLetterPage({
                   </p>
                 </div>
 
-                <Button
-                  type="submit"
+                <SubmitButton
+                  pendingLabel="Generating draft..."
                   variant="ai"
                   className="w-full sm:w-auto"
                 >
                   Generate first draft
-                </Button>
+                </SubmitButton>
               </form>
             </AiSectionCard>
           </>

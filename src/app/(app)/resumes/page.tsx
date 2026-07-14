@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Form from "next/form";
 import { FileTextIcon } from "lucide-react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -8,6 +9,7 @@ import { searchResumesBySemanticQuery } from "@/lib/retrieval/semantic-search";
 import { generateResumeAiFeedback } from "@/app/(app)/resumes/actions";
 import { EmptyState } from "@/components/empty-state";
 import { SimilarityBadge } from "@/components/job-search-badges";
+import { SubmitButton } from "@/components/submit-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -280,7 +282,7 @@ export default async function ResumesPage({ searchParams }: ResumesPageProps) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form action="/resumes" className="space-y-3">
+            <Form action="/resumes" prefetch={false} className="space-y-3">
               <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_150px]">
                 <div className="space-y-1.5">
                   <Label htmlFor="q">Search</Label>
@@ -309,9 +311,12 @@ export default async function ResumesPage({ searchParams }: ResumesPageProps) {
                 </p>
 
                 <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-                  <Button type="submit" className="w-full sm:w-auto">
+                  <SubmitButton
+                    pendingLabel="Searching..."
+                    className="w-full sm:w-auto"
+                  >
                     Search
-                  </Button>
+                  </SubmitButton>
                   {hasActiveSearchControls ? (
                     <Button
                       variant="outline"
@@ -323,7 +328,7 @@ export default async function ResumesPage({ searchParams }: ResumesPageProps) {
                   ) : null}
                 </div>
               </div>
-            </form>
+            </Form>
           </CardContent>
         </Card>
 
@@ -414,8 +419,8 @@ export default async function ResumesPage({ searchParams }: ResumesPageProps) {
                         action={generateResumeAiFeedbackWithId}
                         className="w-full sm:w-auto"
                       >
-                        <Button
-                          type="submit"
+                        <SubmitButton
+                          pendingLabel="Analyzing..."
                           variant="ai"
                           size="sm"
                           className="w-full sm:w-auto"
@@ -423,7 +428,7 @@ export default async function ResumesPage({ searchParams }: ResumesPageProps) {
                           {resume.aiFeedbackAt
                             ? "Refresh critique"
                             : "AI critique"}
-                        </Button>
+                        </SubmitButton>
                       </form>
                     </CardFooter>
                   </Card>

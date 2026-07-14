@@ -10,7 +10,7 @@ import {
   updateCoverLetter,
 } from "@/app/(app)/cover-letters/actions";
 import { FormActions } from "@/components/form-actions";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/submit-button";
 import {
   Card,
   CardContent,
@@ -299,14 +299,14 @@ export default async function EditCoverLetterPage({
               action={generateCoverLetterAiFeedbackWithId}
               className="w-full sm:w-auto"
             >
-              <Button
-                type="submit"
+              <SubmitButton
+                pendingLabel="Analyzing..."
                 variant="ai"
                 size="sm"
                 className="w-full sm:w-auto"
               >
                 {coverLetter.aiFeedback ? "Refresh critique" : "AI critique"}
-              </Button>
+              </SubmitButton>
             </form>
           }
         >

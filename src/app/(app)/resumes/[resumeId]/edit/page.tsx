@@ -19,7 +19,7 @@ import {
   updateResume,
 } from "@/app/(app)/resumes/actions";
 import { FormActions } from "@/components/form-actions";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/submit-button";
 import {
   Card,
   CardContent,
@@ -344,14 +344,14 @@ export default async function EditResumePage({
               action={generateResumeAiFeedbackWithId}
               className="w-full sm:w-auto"
             >
-              <Button
-                type="submit"
+              <SubmitButton
+                pendingLabel="Analyzing..."
                 variant="ai"
                 size="sm"
                 className="w-full sm:w-auto"
               >
                 {resume.aiFeedback ? "Refresh critique" : "AI critique"}
-              </Button>
+              </SubmitButton>
             </form>
           }
         >
@@ -393,14 +393,14 @@ export default async function EditResumePage({
                   action={refreshResumeSemanticDataWithId}
                   className="w-full sm:w-auto"
                 >
-                  <Button
-                    type="submit"
+                  <SubmitButton
+                    pendingLabel="Refreshing..."
                     variant="ai"
                     size="sm"
                     className="w-full sm:w-auto"
                   >
                     Refresh recommendations
-                  </Button>
+                  </SubmitButton>
                 </form>
               </div>
             ) : similarJobPostingsState.jobPostings.length > 0 ? (

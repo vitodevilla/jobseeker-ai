@@ -1,10 +1,12 @@
 import Link from "next/link";
+import Form from "next/form";
 import { Building2Icon } from "lucide-react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { EmptyState } from "@/components/empty-state";
+import { SubmitButton } from "@/components/submit-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -146,8 +148,9 @@ export default async function CompaniesPage({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form
+            <Form
               action="/companies"
+              prefetch={false}
               className="flex flex-col gap-2 sm:flex-row sm:items-center"
             >
               <Input
@@ -155,15 +158,18 @@ export default async function CompaniesPage({
                 defaultValue={query}
                 placeholder="Search companies..."
               />
-              <Button type="submit" className="w-full sm:w-auto">
+              <SubmitButton
+                pendingLabel="Searching..."
+                className="w-full sm:w-auto"
+              >
                 Search
-              </Button>
+              </SubmitButton>
               {query ? (
                 <Button variant="outline" className="w-full sm:w-auto" asChild>
                   <Link href="/companies">Clear</Link>
                 </Button>
               ) : null}
-            </form>
+            </Form>
           </CardContent>
         </Card>
 

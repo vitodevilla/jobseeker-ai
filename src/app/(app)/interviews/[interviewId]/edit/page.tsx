@@ -10,7 +10,7 @@ import {
   updateInterview,
 } from "@/app/(app)/interviews/actions";
 import { FormActions } from "@/components/form-actions";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/submit-button";
 import {
   Card,
   CardContent,
@@ -328,8 +328,8 @@ export default async function EditInterviewPage({
               action={generateInterviewPrepNotesWithId}
               className="w-full sm:w-auto"
             >
-              <Button
-                type="submit"
+              <SubmitButton
+                pendingLabel="Generating prep..."
                 variant="ai"
                 size="sm"
                 className="w-full sm:w-auto"
@@ -337,7 +337,7 @@ export default async function EditInterviewPage({
                 {interview.prepNotes
                   ? "Refresh prep notes"
                   : "Generate prep notes"}
-              </Button>
+              </SubmitButton>
             </form>
           }
         >
