@@ -183,7 +183,7 @@ export function AssistantShell() {
             aria-modal="true"
             aria-labelledby={titleId}
             aria-describedby={descriptionId}
-            className="absolute inset-y-0 right-0 flex max-h-dvh w-full flex-col overflow-hidden border-l bg-background shadow-xl sm:max-w-md"
+            className="absolute inset-y-0 right-0 flex max-h-dvh w-full flex-col overflow-hidden border-l bg-background shadow-xl sm:max-w-lg"
           >
             <div className="flex shrink-0 items-start justify-between gap-3 border-b p-3 sm:gap-4 sm:p-4">
               <div className="min-w-0">
@@ -214,12 +214,12 @@ export function AssistantShell() {
               </Button>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-hidden p-3 sm:p-4">
+            <div className="min-h-0 flex-1 overflow-hidden p-3 sm:px-4 sm:py-3">
               <AssistantChatPanel
                 quickPrompts={quickPrompts}
                 pageContext={pageContext}
                 resetKey={resetKey}
-                className="h-full min-h-0"
+                className="h-full min-h-0 gap-3 sm:gap-4"
                 transcriptClassName="min-h-0 flex-1 max-h-none md:max-h-none"
               />
             </div>

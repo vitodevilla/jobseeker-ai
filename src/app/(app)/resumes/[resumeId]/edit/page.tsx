@@ -19,7 +19,7 @@ import {
   updateResume,
 } from "@/app/(app)/resumes/actions";
 import { FormActions } from "@/components/form-actions";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/submit-button";
 import {
   Card,
   CardContent,
@@ -344,14 +344,14 @@ export default async function EditResumePage({
               action={generateResumeAiFeedbackWithId}
               className="w-full sm:w-auto"
             >
-              <Button
-                type="submit"
+              <SubmitButton
+                pendingLabel="Analyzing..."
                 variant="ai"
                 size="sm"
                 className="w-full sm:w-auto"
               >
                 {resume.aiFeedback ? "Refresh critique" : "AI critique"}
-              </Button>
+              </SubmitButton>
             </form>
           }
         >
@@ -393,14 +393,14 @@ export default async function EditResumePage({
                   action={refreshResumeSemanticDataWithId}
                   className="w-full sm:w-auto"
                 >
-                  <Button
-                    type="submit"
+                  <SubmitButton
+                    pendingLabel="Refreshing..."
                     variant="ai"
                     size="sm"
                     className="w-full sm:w-auto"
                   >
                     Refresh recommendations
-                  </Button>
+                  </SubmitButton>
                 </form>
               </div>
             ) : similarJobPostingsState.jobPostings.length > 0 ? (
@@ -412,10 +412,10 @@ export default async function EditResumePage({
                       className="group flex min-w-0 flex-col gap-2 p-3 transition-colors hover:bg-muted/50 sm:flex-row sm:items-center sm:justify-between"
                     >
                       <div className="min-w-0 space-y-1">
-                        <p className="break-words font-medium text-foreground underline-offset-4 group-hover:underline">
+                        <p className="wrap-break-word font-medium text-foreground underline-offset-4 group-hover:underline">
                           {jobPosting.title}
                         </p>
-                        <p className="break-words text-sm text-muted-foreground">
+                        <p className="wrap-break-word text-sm text-muted-foreground">
                           {jobPosting.companyName}
                         </p>
                       </div>

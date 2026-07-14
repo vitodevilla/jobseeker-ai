@@ -1,10 +1,12 @@
 import Link from "next/link";
+import Form from "next/form";
 import { Building2Icon } from "lucide-react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { EmptyState } from "@/components/empty-state";
+import { SubmitButton } from "@/components/submit-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -146,8 +148,9 @@ export default async function CompaniesPage({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form
+            <Form
               action="/companies"
+              prefetch={false}
               className="flex flex-col gap-2 sm:flex-row sm:items-center"
             >
               <Input
@@ -155,15 +158,18 @@ export default async function CompaniesPage({
                 defaultValue={query}
                 placeholder="Search companies..."
               />
-              <Button type="submit" className="w-full sm:w-auto">
+              <SubmitButton
+                pendingLabel="Searching..."
+                className="w-full sm:w-auto"
+              >
                 Search
-              </Button>
+              </SubmitButton>
               {query ? (
                 <Button variant="outline" className="w-full sm:w-auto" asChild>
                   <Link href="/companies">Clear</Link>
                 </Button>
               ) : null}
-            </form>
+            </Form>
           </CardContent>
         </Card>
 
@@ -194,7 +200,7 @@ export default async function CompaniesPage({
         ) : (
           <>
             <div className="flex flex-col gap-1 rounded-lg border border-border bg-card px-3 py-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-              <p className="min-w-0 break-words">
+              <p className="min-w-0 wrap-break-word">
                 Showing {companies.length} of {totalCompanies}{" "}
                 {query ? "matching " : ""}
                 companies
@@ -215,7 +221,7 @@ export default async function CompaniesPage({
                   </CardHeader>
 
                   <CardContent className="space-y-3">
-                    <div className="grid gap-1.5 break-words text-sm text-muted-foreground">
+                    <div className="grid gap-1.5 wrap-break-word text-sm text-muted-foreground">
                       {company.website ? (
                         <p className="break-all">
                           <span className="font-medium text-foreground">

@@ -21,6 +21,7 @@ import {
   updateJobPosting,
 } from "@/app/(app)/job-postings/actions";
 import { FormActions } from "@/components/form-actions";
+import { SubmitButton } from "@/components/submit-button";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -541,14 +542,14 @@ export default async function EditJobPostingPage({
               action={generateJobPostingAiSummaryWithId}
               className="w-full sm:w-auto"
             >
-              <Button
-                type="submit"
+              <SubmitButton
+                pendingLabel="Generating summary..."
                 variant="ai"
                 size="sm"
                 className="w-full sm:w-auto"
               >
                 {jobPosting.aiSummary ? "Refresh summary" : "AI summary"}
-              </Button>
+              </SubmitButton>
             </form>
           }
         >
@@ -608,8 +609,8 @@ export default async function EditJobPostingPage({
                 </Select>
               </div>
 
-              <Button
-                type="submit"
+              <SubmitButton
+                pendingLabel="Generating match..."
                 variant="ai"
                 size="sm"
                 className="w-full sm:w-auto"
@@ -617,7 +618,7 @@ export default async function EditJobPostingPage({
                 {jobPosting.matchScore === null
                   ? "Analyze match"
                   : "Reanalyze match"}
-              </Button>
+              </SubmitButton>
               {jobPosting.matchScore !== null ? (
                 <p className="text-sm text-muted-foreground">
                   Reanalyzing regenerates the AI assessment and may slightly
@@ -712,8 +713,8 @@ export default async function EditJobPostingPage({
                 </Select>
               </div>
 
-              <Button
-                type="submit"
+              <SubmitButton
+                pendingLabel="Generating suggestions..."
                 variant="ai"
                 size="sm"
                 className="w-full sm:w-auto"
@@ -721,7 +722,7 @@ export default async function EditJobPostingPage({
                 {jobPosting.tailoringSuggestions
                   ? "Refresh tailoring suggestions"
                   : "Suggest resume tailoring"}
-              </Button>
+              </SubmitButton>
             </form>
           )}
 
@@ -779,14 +780,14 @@ export default async function EditJobPostingPage({
                   action={refreshJobPostingSemanticDataWithId}
                   className="w-full sm:w-auto"
                 >
-                  <Button
-                    type="submit"
+                  <SubmitButton
+                    pendingLabel="Refreshing..."
                     variant="ai"
                     size="sm"
                     className="w-full sm:w-auto"
                   >
                     Refresh recommendations
-                  </Button>
+                  </SubmitButton>
                 </form>
               </div>
             ) : similarResumesState.resumes.length > 0 ? (

@@ -105,7 +105,7 @@ export default async function InterviewsPage() {
                     <StatusBadge status={interview.outcome} />
                   </div>
 
-                  <div className="grid gap-1.5 break-words text-sm text-muted-foreground">
+                  <div className="grid gap-1.5 wrap-break-word text-sm text-muted-foreground">
                     <p>
                       <span className="font-medium text-foreground">
                         Scheduled:
@@ -142,7 +142,7 @@ export default async function InterviewsPage() {
                   </div>
 
                   {interview.prepNotes ? (
-                    <p className="line-clamp-3 break-words text-sm text-muted-foreground">
+                    <p className="line-clamp-3 wrap-break-word text-sm text-muted-foreground">
                       {interview.prepNotes}
                     </p>
                   ) : null}

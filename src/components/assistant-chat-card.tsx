@@ -167,7 +167,7 @@ function AssistantChatMessageView({
   if (message.role === "user") {
     return (
       <div className="flex justify-end">
-        <div className="min-w-0 max-w-[85%] whitespace-pre-wrap break-words rounded-lg bg-primary px-3 py-2 text-sm leading-6 text-primary-foreground">
+        <div className="min-w-0 max-w-[85%] whitespace-pre-wrap wrap-break-word rounded-lg bg-primary px-3 py-2 text-sm leading-6 text-primary-foreground">
           {message.content}
         </div>
       </div>
@@ -176,7 +176,7 @@ function AssistantChatMessageView({
 
   return (
     <div className="flex justify-start">
-      <div className="min-w-0 max-w-[92%] space-y-3 break-words">
+      <div className="min-w-0 max-w-[92%] space-y-3 wrap-break-word">
         {message.status === "complete" ? (
           <AiOutputPanel caption={null}>
             <MarkdownContent>{message.content}</MarkdownContent>
@@ -185,8 +185,8 @@ function AssistantChatMessageView({
           <div
             className={
               message.status === "error"
-                ? "whitespace-pre-wrap break-words rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm leading-6 text-destructive"
-                : "whitespace-pre-wrap break-words rounded-md border border-[#C8D6E6] bg-[#F2F6FB]/70 p-3.5 text-sm leading-6 text-[#334F70] dark:border-[#4F739F]/60 dark:bg-[#223449]/30 dark:text-[#D6E2EF] sm:p-4"
+                ? "whitespace-pre-wrap wrap-break-word rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm leading-6 text-destructive"
+                : "whitespace-pre-wrap wrap-break-word rounded-md border border-[#C8D6E6] bg-[#F2F6FB]/70 p-3.5 text-sm leading-6 text-[#334F70] dark:border-[#4F739F]/60 dark:bg-[#223449]/30 dark:text-[#D6E2EF] sm:p-4"
             }
           >
             {message.content}
@@ -196,7 +196,7 @@ function AssistantChatMessageView({
         {message.status === "complete" && message.limitations.length > 0 ? (
           <div className="space-y-2">
             <p className="text-sm font-medium">Limitations</p>
-            <ul className="list-disc space-y-1.5 break-words pl-5 text-sm text-muted-foreground">
+            <ul className="list-disc space-y-1.5 wrap-break-word pl-5 text-sm text-muted-foreground">
               {message.limitations.map((limitation) => (
                 <li key={limitation}>{limitation}</li>
               ))}
@@ -215,10 +215,10 @@ function AssistantChatMessageView({
                     href={record.href}
                     className="block min-w-0 space-y-1 p-2.5 text-sm transition-colors hover:bg-muted/50 sm:p-3"
                   >
-                    <span className="block break-words font-medium text-foreground underline-offset-4 hover:underline">
+                    <span className="block wrap-break-word font-medium text-foreground underline-offset-4 hover:underline">
                       {record.label}
                     </span>
-                    <span className="block break-words text-muted-foreground">
+                    <span className="block wrap-break-word text-muted-foreground">
                       {formatRecordType(record.type)}
                       {record.description ? ` · ${record.description}` : ""}
                     </span>

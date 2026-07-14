@@ -6,6 +6,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { generateCoverLetterAiFeedback } from "@/app/(app)/cover-letters/actions";
 import { EmptyState } from "@/components/empty-state";
+import { SubmitButton } from "@/components/submit-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDisplayDate } from "@/lib/display-formatters";
@@ -132,7 +133,7 @@ export default async function CoverLettersPage() {
                       </Badge>
                     </div>
 
-                    <div className="grid gap-1.5 break-words text-sm text-muted-foreground">
+                    <div className="grid gap-1.5 wrap-break-word text-sm text-muted-foreground">
                       <p>
                         <span className="font-medium text-foreground">
                           Version:
@@ -148,7 +149,7 @@ export default async function CoverLettersPage() {
                     </div>
 
                     {coverLetter.content ? (
-                      <p className="line-clamp-3 break-words text-sm text-muted-foreground">
+                      <p className="line-clamp-3 wrap-break-word text-sm text-muted-foreground">
                         {coverLetter.content}
                       </p>
                     ) : (
@@ -174,8 +175,8 @@ export default async function CoverLettersPage() {
                       action={generateCoverLetterAiFeedbackWithId}
                       className="w-full sm:w-auto"
                     >
-                      <Button
-                        type="submit"
+                      <SubmitButton
+                        pendingLabel="Analyzing..."
                         variant="ai"
                         size="sm"
                         className="w-full sm:w-auto"
@@ -183,7 +184,7 @@ export default async function CoverLettersPage() {
                         {coverLetter.aiFeedback
                           ? "Refresh critique"
                           : "AI critique"}
-                      </Button>
+                      </SubmitButton>
                     </form>
                   </CardFooter>
                 </Card>

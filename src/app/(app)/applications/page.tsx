@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Form from "next/form";
 import { BriefcaseIcon } from "lucide-react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -6,6 +7,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { EmptyState } from "@/components/empty-state";
 import { PriorityBadge, StatusBadge } from "@/components/job-search-badges";
+import { SubmitButton } from "@/components/submit-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatDisplayDate } from "@/lib/display-formatters";
@@ -232,8 +234,9 @@ export default async function ApplicationsPage({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form
+            <Form
               action="/applications"
+              prefetch={false}
               className="flex flex-col gap-2 sm:flex-row sm:items-center"
             >
               <Input
@@ -241,15 +244,18 @@ export default async function ApplicationsPage({
                 defaultValue={query}
                 placeholder="Search applications..."
               />
-              <Button type="submit" className="w-full sm:w-auto">
+              <SubmitButton
+                pendingLabel="Searching..."
+                className="w-full sm:w-auto"
+              >
                 Search
-              </Button>
+              </SubmitButton>
               {query ? (
                 <Button variant="outline" className="w-full sm:w-auto" asChild>
                   <Link href="/applications">Clear</Link>
                 </Button>
               ) : null}
-            </form>
+            </Form>
           </CardContent>
         </Card>
 
@@ -287,7 +293,7 @@ export default async function ApplicationsPage({
         ) : (
           <>
             <div className="flex flex-col gap-1 rounded-lg border border-border bg-card px-3 py-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-              <p className="min-w-0 break-words">
+              <p className="min-w-0 wrap-break-word">
                 Showing {applications.length} of {totalApplications}{" "}
                 {query ? "matching " : ""}
                 applications
@@ -316,7 +322,7 @@ export default async function ApplicationsPage({
                       <PriorityBadge priority={application.priority} />
                     </div>
 
-                    <div className="grid gap-1.5 break-words text-sm text-muted-foreground">
+                    <div className="grid gap-1.5 wrap-break-word text-sm text-muted-foreground">
                       {application.resume ? (
                         <p>
                           <span className="font-medium text-foreground">
@@ -348,7 +354,7 @@ export default async function ApplicationsPage({
                     </div>
 
                     {application.notes ? (
-                      <p className="line-clamp-3 break-words text-sm text-muted-foreground">
+                      <p className="line-clamp-3 wrap-break-word text-sm text-muted-foreground">
                         {application.notes}
                       </p>
                     ) : null}
