@@ -4,7 +4,7 @@ Exact similarity scores can drift when embedding models, record text, or surroun
 
 ## Run Metadata
 
-- Run timestamp: 2026-07-14T11:56:46.170Z
+- Run timestamp: 2026-07-14T23:46:38.284Z
 - Target email: test@example.com
 - Target user ID: 2PUZzHnzxkPupa2ZVOzgETXF4PfMEPzW
 - Top-N limit: 5
